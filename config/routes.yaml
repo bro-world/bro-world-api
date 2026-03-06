@@ -34,6 +34,15 @@ user-controllers:
     defaults:
         _format: json
 
+configuration-controllers:
+    resource:
+        path: ../src/Configuration/Transport/Controller/Api/
+        namespace: App\Configuration\Transport\Controller\Api
+    type: attribute
+    prefix: /api
+    defaults:
+        _format: json
+
 platform-controllers:
     resource:
         path: ../src/Platform/Transport/Controller/Api/
