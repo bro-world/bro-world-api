@@ -26,6 +26,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Throwable;
 
 use function is_array;
+use function is_bool;
 use function is_string;
 
 #[AsController]
@@ -55,6 +56,7 @@ class ApplicationCreateController
                 'platformId' => '0195f4b9-4f2b-7c9a-8e6d-6f9b7d4a6e70',
                 'title' => 'My Ecommerce App',
                 'status' => 'active',
+                'private' => false,
                 'configurations' => [
                     [
                         'configurationKey' => 'app.theme',
@@ -84,6 +86,7 @@ class ApplicationCreateController
                 new Property(property: 'platformId', type: 'string'),
                 new Property(property: 'title', type: 'string'),
                 new Property(property: 'status', type: 'string'),
+                new Property(property: 'private', type: 'boolean'),
             ],
             type: 'object',
         ),
@@ -96,6 +99,7 @@ class ApplicationCreateController
         $platformId = $payload['platformId'] ?? null;
         $title = $payload['title'] ?? null;
         $status = $payload['status'] ?? PlatformStatus::ACTIVE->value;
+        $private = $payload['private'] ?? false;
 
         if (!is_string($platformId) || $platformId === '') {
             throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Field "platformId" is required.');
@@ -109,13 +113,18 @@ class ApplicationCreateController
             throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Field "status" must be a string.');
         }
 
+        if (!is_bool($private)) {
+            throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Field "private" must be a boolean.');
+        }
+
         $platform = $this->platformResource->findOne($platformId, true);
 
         $application = (new Application())
             ->setUser($loggedInUser)
             ->setPlatform($platform)
             ->setTitle($title)
-            ->setStatus($status);
+            ->setStatus($status)
+            ->setPrivate($private);
 
         $configurations = $payload['configurations'] ?? [];
         if (!is_array($configurations)) {
@@ -179,6 +188,7 @@ class ApplicationCreateController
             'platformId' => $application->getPlatform()?->getId(),
             'title' => $application->getTitle(),
             'status' => $application->getStatus()->value,
+            'private' => $application->isPrivate(),
         ], JsonResponse::HTTP_CREATED);
     }
 

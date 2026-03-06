@@ -52,6 +52,10 @@ class Application implements EntityInterface
     #[Assert\NotNull]
     private PlatformStatus $status = PlatformStatus::ACTIVE;
 
+    #[ORM\Column(name: 'private', type: Types::BOOLEAN, options: ['default' => false])]
+    #[Assert\NotNull]
+    private bool $private = false;
+
     /**
      * @var Collection<int, Configuration>|ArrayCollection<int, Configuration>
      */
@@ -122,6 +126,18 @@ class Application implements EntityInterface
     public function setStatus(PlatformStatus|string $status): self
     {
         $this->status = $status instanceof PlatformStatus ? $status : PlatformStatus::from($status);
+
+        return $this;
+    }
+
+    public function isPrivate(): bool
+    {
+        return $this->private;
+    }
+
+    public function setPrivate(bool $private): self
+    {
+        $this->private = $private;
 
         return $this;
     }
