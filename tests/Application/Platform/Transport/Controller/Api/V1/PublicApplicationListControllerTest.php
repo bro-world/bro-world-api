@@ -49,6 +49,7 @@ class PublicApplicationListControllerTest extends WebTestCase
             self::assertArrayHasKey('id', $application);
             self::assertArrayHasKey('title', $application);
             self::assertArrayHasKey('description', $application);
+            self::assertArrayHasKey('photo', $application);
             self::assertArrayHasKey('status', $application);
             self::assertArrayHasKey('private', $application);
             self::assertArrayHasKey('platformId', $application);

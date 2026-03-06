@@ -61,6 +61,7 @@ class PrivateApplicationListControllerTest extends WebTestCase
 
         foreach ($responseData as $application) {
             self::assertArrayHasKey('description', $application);
+            self::assertArrayHasKey('photo', $application);
             self::assertArrayHasKey('platformName', $application);
             self::assertArrayHasKey('author', $application);
             self::assertArrayHasKey('createdAt', $application);
@@ -105,6 +106,7 @@ class PrivateApplicationListControllerTest extends WebTestCase
 
         foreach ($responseData as $application) {
             self::assertArrayHasKey('description', $application);
+            self::assertArrayHasKey('photo', $application);
             self::assertArrayHasKey('platformName', $application);
             self::assertArrayHasKey('author', $application);
             self::assertArrayHasKey('createdAt', $application);
