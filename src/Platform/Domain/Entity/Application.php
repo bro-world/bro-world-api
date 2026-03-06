@@ -22,6 +22,7 @@ use Throwable;
 
 use function rawurlencode;
 use function str_replace;
+use function str_starts_with;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'platform_application')]
@@ -176,6 +177,12 @@ class Application implements EntityInterface
         if ($this->photo === '') {
             $title = rawurlencode($this->title);
             $this->photo = 'https://ui-avatars.com/api/?name=' . str_replace('%20', '+', $title);
+
+            return $this;
+        }
+
+        if (!str_starts_with($this->photo, 'http://') && !str_starts_with($this->photo, 'https://')) {
+            $this->photo = '/uploads/applications/' . ltrim($this->photo, '/');
         }
 
         return $this;
