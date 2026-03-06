@@ -38,7 +38,7 @@ class ApplicationUploadPhotoController
     }
 
     #[Route(
-        path: '/v1/profile/applications/{applicationId}/photo',
+        path: '/v1/profile/applications/{application}/photo',
         methods: [Request::METHOD_POST],
     )]
     #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
@@ -47,11 +47,11 @@ class ApplicationUploadPhotoController
         content: new OA\MediaType(
             mediaType: 'multipart/form-data',
             schema: new OA\Schema(
-                type: 'object',
                 required: ['photo'],
                 properties: [
                     new OA\Property(property: 'photo', type: 'string', format: 'binary'),
                 ],
+                type: 'object',
             ),
         ),
     )]
@@ -76,23 +76,8 @@ class ApplicationUploadPhotoController
         response: 404,
         description: 'Application not found for current user',
     )]
-    public function __invoke(Request $request, User $loggedInUser, string $applicationId): JsonResponse
+    public function __invoke(Request $request, User $loggedInUser, Application $application): JsonResponse
     {
-        /** @var Application|null $application */
-        $application = $this->entityManager
-            ->getRepository(Application::class)
-            ->createQueryBuilder('application')
-            ->where('application.id = :applicationId')
-            ->andWhere('application.user = :loggedInUser')
-            ->setParameter('applicationId', $applicationId, UuidHelper::getType($applicationId))
-            ->setParameter('loggedInUser', $loggedInUser)
-            ->getQuery()
-            ->getOneOrNullResult();
-
-        if (!$application instanceof Application) {
-            throw new HttpException(Response::HTTP_NOT_FOUND, 'Application not found.');
-        }
-
         /** @var UploadedFile|null $photo */
         $photo = $request->files->get('photo');
 
