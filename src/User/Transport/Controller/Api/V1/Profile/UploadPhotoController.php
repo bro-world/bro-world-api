@@ -21,6 +21,8 @@ use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 use function bin2hex;
+use function exif_imagetype;
+use function function_exists;
 use function random_bytes;
 use function str_starts_with;
 
@@ -86,7 +88,7 @@ class UploadPhotoController
             throw new HttpException(Response::HTTP_BAD_REQUEST, 'Invalid uploaded file.');
         }
 
-        if (!str_starts_with((string)$photo->getMimeType(), 'image/')) {
+        if (!$this->isImageFile($photo)) {
             throw new HttpException(Response::HTTP_BAD_REQUEST, 'Uploaded file must be an image.');
         }
 
@@ -105,5 +107,22 @@ class UploadPhotoController
         return new JsonResponse([
             'photo' => $photoUrl,
         ]);
+    }
+
+    private function isImageFile(UploadedFile $photo): bool
+    {
+        if (str_starts_with((string) $photo->getMimeType(), 'image/')) {
+            return true;
+        }
+
+        if (str_starts_with((string) $photo->getClientMimeType(), 'image/')) {
+            return true;
+        }
+
+        if (function_exists('exif_imagetype')) {
+            return false !== exif_imagetype($photo->getPathname());
+        }
+
+        return false;
     }
 }
