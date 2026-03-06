@@ -140,6 +140,9 @@ when@dev:
         App\Role\Infrastructure\DataFixtures\:
             resource: '../src/Role/Infrastructure/DataFixtures/*'
 
+        App\Platform\Infrastructure\DataFixtures\:
+            resource: '../src/Platform/Infrastructure/DataFixtures/*'
+
         App\User\Infrastructure\DataFixtures\:
             resource: '../src/User/Infrastructure/DataFixtures/*'
 
@@ -176,6 +179,9 @@ when@test:
 
         App\Role\Infrastructure\DataFixtures\:
             resource: '../src/Role/Infrastructure/DataFixtures/*'
+
+        App\Platform\Infrastructure\DataFixtures\:
+            resource: '../src/Platform/Infrastructure/DataFixtures/*'
 
         App\User\Infrastructure\DataFixtures\:
             resource: '../src/User/Infrastructure/DataFixtures/*'
