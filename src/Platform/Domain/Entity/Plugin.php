@@ -21,6 +21,7 @@ use Throwable;
 
 use function rawurlencode;
 use function str_replace;
+use function str_starts_with;
 
 /**
  * @package App\Platform
@@ -251,6 +252,12 @@ class Plugin implements EntityInterface
         if ($this->photo === '') {
             $name = rawurlencode($this->name);
             $this->photo = 'https://ui-avatars.com/api/?name=' . str_replace('%20', '+', $name);
+
+            return $this;
+        }
+
+        if (!str_starts_with($this->photo, 'http://') && !str_starts_with($this->photo, 'https://')) {
+            $this->photo = '/uploads/plugins/' . ltrim($this->photo, '/');
         }
 
         return $this;
