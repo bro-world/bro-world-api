@@ -40,6 +40,12 @@ doctrine:
                         dir: '%kernel.project_dir%/src/ApiKey/Domain/Entity'
                         prefix: 'App\ApiKey\Domain\Entity'
                         alias: ApiKey
+                    Configuration:
+                        type: attribute
+                        is_bundle: false
+                        dir: '%kernel.project_dir%/src/Configuration/Domain/Entity'
+                        prefix: 'App\Configuration\Domain\Entity'
+                        alias: Configuration
                     DateDimension:
                         type: attribute
                         is_bundle: false
