@@ -137,6 +137,9 @@ when@dev:
         App\ApiKey\Infrastructure\DataFixtures\:
             resource: '../src/ApiKey/Infrastructure/DataFixtures/*'
 
+        App\Configuration\Infrastructure\DataFixtures\:
+            resource: '../src/Configuration/Infrastructure/DataFixtures/*'
+
         App\Role\Infrastructure\DataFixtures\:
             resource: '../src/Role/Infrastructure/DataFixtures/*'
 
@@ -176,6 +179,9 @@ when@test:
 
         App\ApiKey\Infrastructure\DataFixtures\:
             resource: '../src/ApiKey/Infrastructure/DataFixtures/*'
+
+        App\Configuration\Infrastructure\DataFixtures\:
+            resource: '../src/Configuration/Infrastructure/DataFixtures/*'
 
         App\Role\Infrastructure\DataFixtures\:
             resource: '../src/Role/Infrastructure/DataFixtures/*'
