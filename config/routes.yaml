@@ -51,3 +51,12 @@ platform-controllers:
     prefix: /api
     defaults:
         _format: json
+
+recruit-controllers:
+    resource:
+        path: ../src/Recruit/Transport/Controller/Api/
+        namespace: App\Recruit\Transport\Controller\Api
+    type: attribute
+    prefix: /api
+    defaults:
+        _format: json

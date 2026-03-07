@@ -149,6 +149,9 @@ when@dev:
         App\User\Infrastructure\DataFixtures\:
             resource: '../src/User/Infrastructure/DataFixtures/*'
 
+        App\Recruit\Infrastructure\DataFixtures\:
+            resource: '../src/Recruit/Infrastructure/DataFixtures/*'
+
         App\Tests\TestCase\:
             resource: '../tests/TestCase/*'
 
