@@ -20,11 +20,16 @@ use Doctrine\Persistence\ObjectManager;
 use Override;
 use Throwable;
 
+use function sprintf;
+use function str_pad;
+
 /**
  * @package App\Platform
  */
 final class LoadApplicationData extends Fixture implements OrderedFixtureInterface
 {
+    private const int BULK_APPLICATION_COUNT = 150;
+
     /**
      * @var array<int, array{
      *     uuid: non-empty-string,
@@ -247,7 +252,63 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
             $this->addReference('Application-' . $item['key'], $application);
         }
 
+        $this->loadBulkPrivateApplications($manager);
+
         $manager->flush();
+    }
+
+    /**
+     * @throws Throwable
+     */
+    private function loadBulkPrivateApplications(ObjectManager $manager): void
+    {
+        $ownerReferences = [
+            'User-john',
+            'User-john-logged',
+            'User-john-api',
+            'User-john-admin',
+            'User-john-user',
+        ];
+        $platformReferences = [
+            'Platform-SH-Shop Principal',
+            'Platform-RE-Recruit Principal',
+            'Platform-SC-School Principal',
+        ];
+        $statuses = [
+            PlatformStatus::ACTIVE,
+            PlatformStatus::MAINTENANCE,
+            PlatformStatus::DISABLED,
+        ];
+
+        for ($index = 1; $index <= self::BULK_APPLICATION_COUNT; ++$index) {
+            $ownerReference = $ownerReferences[($index - 1) % count($ownerReferences)];
+            $platformReference = $platformReferences[($index - 1) % count($platformReferences)];
+            $status = $statuses[($index - 1) % count($statuses)];
+
+            /** @var User $owner */
+            $owner = $this->getReference($ownerReference, User::class);
+
+            /** @var Platform $platform */
+            $platform = $this->getReference($platformReference, Platform::class);
+
+            $application = (new Application())
+                ->setUser($owner)
+                ->setPlatform($platform)
+                ->setTitle(sprintf('Bulk Private App %03d', $index))
+                ->setDescription(sprintf('Application de fixture volumique %03d pour %s.', $index, $owner->getUsername()))
+                ->setStatus($status)
+                ->setPrivate(true);
+
+            PhpUnitUtil::setProperty('id', UuidHelper::fromString($this->buildBulkUuid($index)), $application);
+
+            $manager->persist($application);
+            $this->addReference(sprintf('Application-bulk-private-%03d', $index), $application);
+        }
+    }
+
+    private function buildBulkUuid(int $index): string
+    {
+        return '70000000-0000-1000-8000-' . str_pad((string) $index, 12, '0', STR_PAD_LEFT);
     }
 
     #[Override]
