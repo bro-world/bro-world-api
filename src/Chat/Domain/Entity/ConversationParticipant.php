@@ -14,7 +14,7 @@ use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Ramsey\Uuid\UuidInterface;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'conversation_participant')]
+#[ORM\Table(name: 'chat_conversation_participant')]
 #[ORM\UniqueConstraint(name: 'uq_conversation_participant_conversation_user', columns: ['conversation_id', 'user_id'])]
 #[ORM\Index(name: 'idx_conversation_participant_conversation_id', columns: ['conversation_id'])]
 #[ORM\Index(name: 'idx_conversation_participant_user_id', columns: ['user_id'])]

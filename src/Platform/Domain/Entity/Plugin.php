@@ -28,7 +28,7 @@ use function str_starts_with;
  * @package App\Platform
  */
 #[ORM\Entity]
-#[ORM\Table(name: 'plugin')]
+#[ORM\Table(name: 'platform_plugin')]
 #[ORM\ChangeTrackingPolicy('DEFERRED_EXPLICIT')]
 class Plugin implements EntityInterface
 {

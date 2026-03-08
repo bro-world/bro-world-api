@@ -30,7 +30,7 @@ use function str_starts_with;
  * @package App\Platform
  */
 #[ORM\Entity]
-#[ORM\Table(name: 'platform')]
+#[ORM\Table(name: 'platform_platform')]
 #[ORM\ChangeTrackingPolicy('DEFERRED_EXPLICIT')]
 class Platform implements EntityInterface
 {
