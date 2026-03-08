@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\User\Transport\Controller\Api\V1\Profile;
 
 use App\Configuration\Domain\Entity\Configuration;
+use App\General\Application\Message\EntityCreated;
 use App\Configuration\Domain\Enum\ConfigurationScope;
 use App\Platform\Application\Resource\PlatformResource;
 use App\Platform\Application\Resource\PluginResource;
@@ -25,6 +26,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Throwable;
 
 use function array_values;
@@ -43,6 +45,7 @@ class ApplicationCreateController
         private readonly PluginResource $pluginResource,
         private readonly ApplicationPluginProvisioningService $applicationPluginProvisioningService,
         private readonly EntityManagerInterface $entityManager,
+        private readonly MessageBusInterface $messageBus,
     ) {
     }
 
@@ -209,6 +212,7 @@ class ApplicationCreateController
         $this->entityManager->persist($application);
         $this->applicationPluginProvisioningService->provision($application, array_values($detectedPluginKeys));
         $this->entityManager->flush();
+        $this->messageBus->dispatch(new EntityCreated('platform_application', $application->getId()));
 
         return new JsonResponse([
             'id' => $application->getId(),

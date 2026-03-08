@@ -6,6 +6,7 @@ namespace App\Recruit\Transport\Controller\Api\V1\Job;
 
 use App\Recruit\Domain\Entity\Job;
 use App\Recruit\Domain\Entity\Recruit;
+use App\General\Application\Message\EntityCreated;
 use App\Recruit\Domain\Enum\ContractType;
 use App\Recruit\Domain\Enum\Schedule;
 use App\Recruit\Domain\Enum\WorkMode;
@@ -20,6 +21,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 use function is_array;
 use function is_string;
@@ -33,6 +35,7 @@ class JobCreateFromApplicationController
     public function __construct(
         private readonly RecruitRepositoryInterface $recruitRepository,
         private readonly JobRepository $jobRepository,
+        private readonly MessageBusInterface $messageBus,
     ) {
     }
 
@@ -98,6 +101,9 @@ class JobCreateFromApplicationController
         $this->applyOptionalFields($job, $payload);
 
         $this->jobRepository->save($job);
+        $this->messageBus->dispatch(new EntityCreated('recruit_job', $job->getId(), context: [
+            'applicationSlug' => $application?->getSlug() ?? '',
+        ]));
 
         return new JsonResponse([
             'id' => $job->getId(),

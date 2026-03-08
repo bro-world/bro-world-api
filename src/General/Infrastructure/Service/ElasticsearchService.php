@@ -88,6 +88,17 @@ class ElasticsearchService implements ElasticsearchServiceInterface
     /**
      * {@inheritdoc}
      */
+    public function delete(string $index, string $documentId): mixed
+    {
+        return $this->client->delete([
+            'index' => $index,
+            'id' => $documentId,
+        ]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public static function generateIndexName(?int $timestamp = null): string
     {
         $date = $timestamp
