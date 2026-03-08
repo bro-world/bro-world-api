@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Recruit\Infrastructure\DataFixtures\ORM;
 
 use App\Platform\Domain\Entity\Application;
+use App\Platform\Domain\Enum\PlatformKey;
 use App\Recruit\Domain\Entity\Badge;
 use App\Recruit\Domain\Entity\Company;
 use App\Recruit\Domain\Entity\Job;
@@ -27,13 +28,6 @@ use function sprintf;
 final class LoadRecruitData extends Fixture implements OrderedFixtureInterface
 {
     private const int JOB_COUNT_PER_APPLICATION = 12;
-
-    /** @var array<int, string> */
-    private const array RECRUIT_APPLICATION_KEYS = [
-        'recruit-talent-hub',
-        'recruit-hiring-pipeline',
-        'recruit-interview-desk',
-    ];
 
     /** @var array<int, array{name: string, logo: string, sector: string, size: string}> */
     private const array COMPANIES = [
@@ -111,10 +105,20 @@ final class LoadRecruitData extends Fixture implements OrderedFixtureInterface
             $badges[] = $badge;
         }
 
+        $recruitApplications = $manager->getRepository(Application::class)
+            ->createQueryBuilder('application')
+            ->innerJoin('application.platform', 'platform')
+            ->andWhere('platform.platformKey = :platformKey')
+            ->setParameter('platformKey', PlatformKey::RECRUIT)
+            ->orderBy('application.title', 'ASC')
+            ->getQuery()
+            ->getResult();
+
         $jobReferenceIndex = 1;
-        foreach (self::RECRUIT_APPLICATION_KEYS as $applicationKeyIndex => $applicationKey) {
-            /** @var Application $application */
-            $application = $this->getReference('Recruit-Application-' . $applicationKey, Application::class);
+        foreach ($recruitApplications as $applicationIndex => $application) {
+            if (!$application instanceof Application) {
+                continue;
+            }
 
             $recruit = $manager->getRepository(Recruit::class)->findOneBy([
                 'application' => $application,
@@ -126,7 +130,7 @@ final class LoadRecruitData extends Fixture implements OrderedFixtureInterface
             }
 
             for ($i = 1; $i <= self::JOB_COUNT_PER_APPLICATION; ++$i) {
-                $loopIndex = ($applicationKeyIndex * self::JOB_COUNT_PER_APPLICATION) + $i;
+                $loopIndex = ($applicationIndex * self::JOB_COUNT_PER_APPLICATION) + $i;
                 $title = self::TITLES[($loopIndex - 1) % count(self::TITLES)];
                 $company = $companies[($loopIndex - 1) % count($companies)];
 
