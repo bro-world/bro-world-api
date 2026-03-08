@@ -30,17 +30,17 @@ final class ConversationListService
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function getByApplicationSlug(string $applicationSlug): array
+    public function getByChatId(string $chatId): array
     {
-        return $this->normalizeConversations($this->conversationRepository->findByApplicationSlug($applicationSlug));
+        return $this->normalizeConversations($this->conversationRepository->findByChatId($chatId));
     }
 
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function getByApplicationSlugAndUser(string $applicationSlug, User $user): array
+    public function getByChatIdAndUser(string $chatId, User $user): array
     {
-        return $this->normalizeConversations($this->conversationRepository->findByApplicationSlugAndUser($applicationSlug, $user));
+        return $this->normalizeConversations($this->conversationRepository->findByChatIdAndUser($chatId, $user));
     }
 
     /**
@@ -54,7 +54,6 @@ final class ConversationListService
             return [
                 'id' => $conversation->getId(),
                 'chatId' => $conversation->getChat()->getId(),
-                'applicationSlug' => $conversation->getApplicationSlug(),
                 'participants' => array_map(static function (ConversationParticipant $participant): array {
                     return [
                         'id' => $participant->getId(),

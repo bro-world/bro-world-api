@@ -54,8 +54,8 @@ final class LoadRecruitChatCalendarScenarioData extends Fixture implements Order
             $this->ensureEvent($manager, $application, $calendar);
 
             if ($application->getTitle() === 'Recruit Talent Hub') {
-                $this->createDiscussionConversationScenario($manager, $application, $chat);
-                $this->createJohnRootConversationScenario($manager, $application, $chat, $calendar);
+                $this->createDiscussionConversationScenario($manager, $chat);
+                $this->createJohnRootConversationScenario($manager, $chat, $calendar);
             }
         }
 
@@ -216,7 +216,7 @@ final class LoadRecruitChatCalendarScenarioData extends Fixture implements Order
         return $event;
     }
 
-    private function createDiscussionConversationScenario(ObjectManager $manager, PlatformApplication $application, Chat $chat): void
+    private function createDiscussionConversationScenario(ObjectManager $manager, Chat $chat): void
     {
         /** @var RecruitApplication $discussionApplication */
         $discussionApplication = $this->getReference('Recruit-Application-john-admin-on-other-owner-discussion', RecruitApplication::class);
@@ -225,18 +225,7 @@ final class LoadRecruitChatCalendarScenarioData extends Fixture implements Order
             return;
         }
 
-        $conversation = $manager->getRepository(Conversation::class)->findOneBy([
-            'chat' => $chat,
-            'applicationSlug' => $application->getSlug(),
-        ]);
-
-        if (!$conversation instanceof Conversation) {
-            $conversation = (new Conversation())
-                ->setChat($chat)
-                ->setApplicationSlug($application->getSlug());
-
-            $manager->persist($conversation);
-        }
+        $conversation = $this->ensureConversation($manager, $chat);
 
         $owner = $discussionApplication->getJob()->getOwner();
         $applicant = $discussionApplication->getApplicant()->getUser();
@@ -300,7 +289,6 @@ final class LoadRecruitChatCalendarScenarioData extends Fixture implements Order
 
     private function createJohnRootConversationScenario(
         ObjectManager $manager,
-        PlatformApplication $application,
         Chat $chat,
         Calendar $calendar,
     ): void {
@@ -315,18 +303,7 @@ final class LoadRecruitChatCalendarScenarioData extends Fixture implements Order
             return;
         }
 
-        $conversation = $manager->getRepository(Conversation::class)->findOneBy([
-            'chat' => $chat,
-            'applicationSlug' => $application->getSlug() . '-john-root-scenario',
-        ]);
-
-        if (!$conversation instanceof Conversation) {
-            $conversation = (new Conversation())
-                ->setChat($chat)
-                ->setApplicationSlug($application->getSlug() . '-john-root-scenario');
-
-            $manager->persist($conversation);
-        }
+        $conversation = $this->ensureConversation($manager, $chat);
 
         $this->ensureParticipant($manager, $conversation, $johnRoot);
         if ($johnRoot->getId() !== $otherOwner->getId()) {
@@ -382,6 +359,24 @@ final class LoadRecruitChatCalendarScenarioData extends Fixture implements Order
         $this->addReference('Recruit-Message-john-root-scenario-from-john-root', $johnRootMessage);
         $this->addReference('Recruit-Message-john-root-scenario-from-owner', $ownerReplyMessage);
         $this->addReference('Recruit-Event-john-root-scenario', $event);
+    }
+
+    private function ensureConversation(ObjectManager $manager, Chat $chat): Conversation
+    {
+        $conversation = $manager->getRepository(Conversation::class)->findOneBy([
+            'chat' => $chat,
+        ]);
+
+        if ($conversation instanceof Conversation) {
+            return $conversation;
+        }
+
+        $conversation = (new Conversation())
+            ->setChat($chat);
+
+        $manager->persist($conversation);
+
+        return $conversation;
     }
 
     private function ensureParticipant(ObjectManager $manager, Conversation $conversation, User $user): void

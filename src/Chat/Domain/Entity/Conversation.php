@@ -16,9 +16,8 @@ use Ramsey\Uuid\UuidInterface;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'chat_conversation')]
-#[ORM\UniqueConstraint(name: 'uq_conversation_chat_application_slug', columns: ['chat_id', 'application_slug'])]
+#[ORM\UniqueConstraint(name: 'uq_conversation_chat_id', columns: ['chat_id'])]
 #[ORM\Index(name: 'idx_conversation_chat_id', columns: ['chat_id'])]
-#[ORM\Index(name: 'idx_conversation_application_slug', columns: ['application_slug'])]
 #[ORM\ChangeTrackingPolicy('DEFERRED_EXPLICIT')]
 class Conversation implements EntityInterface
 {
@@ -32,9 +31,6 @@ class Conversation implements EntityInterface
     #[ORM\ManyToOne(targetEntity: Chat::class, inversedBy: 'conversations')]
     #[ORM\JoinColumn(name: 'chat_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private Chat $chat;
-
-    #[ORM\Column(name: 'application_slug', type: 'string', length: 100)]
-    private string $applicationSlug;
 
     /**
      * @var Collection<int, ConversationParticipant>
@@ -70,18 +66,6 @@ class Conversation implements EntityInterface
     public function setChat(Chat $chat): self
     {
         $this->chat = $chat;
-
-        return $this;
-    }
-
-    public function getApplicationSlug(): string
-    {
-        return $this->applicationSlug;
-    }
-
-    public function setApplicationSlug(string $applicationSlug): self
-    {
-        $this->applicationSlug = $applicationSlug;
 
         return $this;
     }

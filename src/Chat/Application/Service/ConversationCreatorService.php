@@ -18,16 +18,15 @@ class ConversationCreatorService
     ) {
     }
 
-    public function getOrCreate(Chat $chat, string $applicationSlug): Conversation
+    public function getOrCreate(Chat $chat): Conversation
     {
-        $conversation = $this->conversationRepository->findOneByChatAndApplicationSlug($chat, $applicationSlug);
+        $conversation = $this->conversationRepository->findOneByChat($chat);
         if ($conversation instanceof Conversation) {
             return $conversation;
         }
 
         $conversation = (new Conversation())
-            ->setChat($chat)
-            ->setApplicationSlug($applicationSlug);
+            ->setChat($chat);
 
         try {
             $this->entityManager->persist($conversation);
@@ -35,7 +34,7 @@ class ConversationCreatorService
 
             return $conversation;
         } catch (UniqueConstraintViolationException) {
-            $conversation = $this->conversationRepository->findOneByChatAndApplicationSlug($chat, $applicationSlug);
+            $conversation = $this->conversationRepository->findOneByChat($chat);
             if ($conversation instanceof Conversation) {
                 return $conversation;
             }
