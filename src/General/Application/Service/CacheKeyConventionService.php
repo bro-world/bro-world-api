@@ -36,6 +36,43 @@ class CacheKeyConventionService
         ], JSON_THROW_ON_ERROR));
     }
 
+
+    /**
+     * @param array<string, mixed> $filters
+     */
+    public function buildShopProductListKey(int $page, int $limit, array $filters): string
+    {
+        return 'shop_product_list_' . md5((string) json_encode([
+            'page' => $page,
+            'limit' => $limit,
+            'filters' => $filters,
+        ], JSON_THROW_ON_ERROR));
+    }
+
+    /**
+     * @param array<string, mixed> $filters
+     */
+    public function buildCrmTaskListKey(int $page, int $limit, array $filters): string
+    {
+        return 'crm_task_list_' . md5((string) json_encode([
+            'page' => $page,
+            'limit' => $limit,
+            'filters' => $filters,
+        ], JSON_THROW_ON_ERROR));
+    }
+
+    /**
+     * @param array<string, mixed> $filters
+     */
+    public function buildSchoolExamListKey(int $page, int $limit, array $filters): string
+    {
+        return 'school_exam_list_' . md5((string) json_encode([
+            'page' => $page,
+            'limit' => $limit,
+            'filters' => $filters,
+        ], JSON_THROW_ON_ERROR));
+    }
+
     public function applicationListTag(): string
     {
         return 'cache:application:list';
@@ -44,5 +81,20 @@ class CacheKeyConventionService
     public function recruitJobListTag(string $applicationSlug): string
     {
         return 'cache:recruit:job:list:' . $applicationSlug;
+    }
+
+    public function shopProductListTag(): string
+    {
+        return 'cache:shop:product:list';
+    }
+
+    public function crmTaskListTag(): string
+    {
+        return 'cache:crm:task:list';
+    }
+
+    public function schoolExamListTag(): string
+    {
+        return 'cache:school:exam:list';
     }
 }
