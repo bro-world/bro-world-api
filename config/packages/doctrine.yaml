@@ -94,6 +94,19 @@ doctrine:
                         dir: '%kernel.project_dir%/src/User/Domain/Entity'
                         prefix: 'App\User\Domain\Entity'
                         alias: User
+                    Calendar:
+                        type: attribute
+                        is_bundle: false
+                        dir: '%kernel.project_dir%/src/Calendar/Domain/Entity'
+                        prefix: 'App\Calendar\Domain\Entity'
+                        alias: Calendar
+                    Chat:
+                        type: attribute
+                        is_bundle: false
+                        dir: '%kernel.project_dir%/src/Chat/Domain/Entity'
+                        prefix: 'App\Chat\Domain\Entity'
+                        alias: Chat
+
                 dql:
                     datetime_functions:
                         datesub: DoctrineExtensions\Query\Mysql\DateSub

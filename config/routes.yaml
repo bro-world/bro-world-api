@@ -60,3 +60,21 @@ recruit-controllers:
     prefix: /api
     defaults:
         _format: json
+
+calendar-controllers:
+    resource:
+        path: ../src/Calendar/Transport/Controller/Api/
+        namespace: App\Calendar\Transport\Controller\Api
+    type: attribute
+    prefix: /api
+    defaults:
+        _format: json
+
+chat-controllers:
+    resource:
+        path: ../src/Chat/Transport/Controller/Api/
+        namespace: App\Chat\Transport\Controller\Api
+    type: attribute
+    prefix: /api
+    defaults:
+        _format: json
