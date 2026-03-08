@@ -47,7 +47,7 @@ class MyJobListService
             ->innerJoin('application.job', 'job')->addSelect('job')
             ->leftJoin('job.company', 'company')->addSelect('company')
             ->andWhere('user = :user')
-            ->setParameter('user', $loggedInUser)
+            ->setParameter('user', $loggedInUser->getId(), UuidBinaryOrderedTimeType::NAME)
             ->orderBy('application.createdAt', 'DESC')
             ->addOrderBy('application.id', 'DESC')
             ->getQuery()
