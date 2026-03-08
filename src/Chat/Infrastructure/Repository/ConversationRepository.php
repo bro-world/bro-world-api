@@ -8,7 +8,9 @@ use App\Chat\Domain\Entity\Chat;
 use App\Chat\Domain\Entity\Conversation as Entity;
 use App\Chat\Domain\Repository\Interfaces\ConversationRepositoryInterface;
 use App\General\Infrastructure\Repository\BaseRepository;
+use App\User\Domain\Entity\User;
 use Doctrine\DBAL\LockMode;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -37,5 +39,53 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
         ]);
 
         return $conversation;
+    }
+
+    public function findByUser(User $user): array
+    {
+        return $this->getConversationQueryBuilder()
+            ->innerJoin('conversation.participants', 'participant')
+            ->andWhere('participant.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('conversation.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findByApplicationSlug(string $applicationSlug): array
+    {
+        return $this->getConversationQueryBuilder()
+            ->andWhere('conversation.applicationSlug = :applicationSlug')
+            ->setParameter('applicationSlug', $applicationSlug)
+            ->orderBy('conversation.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findByApplicationSlugAndUser(string $applicationSlug, User $user): array
+    {
+        return $this->getConversationQueryBuilder()
+            ->innerJoin('conversation.participants', 'participant')
+            ->andWhere('conversation.applicationSlug = :applicationSlug')
+            ->andWhere('participant.user = :user')
+            ->setParameter('applicationSlug', $applicationSlug)
+            ->setParameter('user', $user)
+            ->orderBy('conversation.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    private function getConversationQueryBuilder(): QueryBuilder
+    {
+        return $this->createQueryBuilder('conversation')
+            ->addSelect('chat', 'participants', 'participantUser', 'messages', 'sender', 'reactions', 'reactionUser')
+            ->innerJoin('conversation.chat', 'chat')
+            ->leftJoin('conversation.participants', 'participants')
+            ->leftJoin('participants.user', 'participantUser')
+            ->leftJoin('conversation.messages', 'messages')
+            ->leftJoin('messages.sender', 'sender')
+            ->leftJoin('messages.reactions', 'reactions')
+            ->leftJoin('reactions.user', 'reactionUser')
+            ->distinct();
     }
 }

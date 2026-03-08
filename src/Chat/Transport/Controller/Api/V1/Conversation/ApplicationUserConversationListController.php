@@ -1,0 +1,31 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Chat\Transport\Controller\Api\V1\Conversation;
+
+use App\Chat\Application\Service\ConversationListService;
+use App\User\Domain\Entity\User;
+use OpenApi\Attributes as OA;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[AsController]
+#[OA\Tag(name: 'Chat Conversation')]
+#[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
+class ApplicationUserConversationListController
+{
+    public function __construct(private readonly ConversationListService $conversationListService)
+    {
+    }
+
+    #[Route(path: '/v1/chat/private/applications/{applicationSlug}/conversations', methods: [Request::METHOD_GET])]
+    public function __invoke(string $applicationSlug, User $loggedInUser): JsonResponse
+    {
+        return new JsonResponse($this->conversationListService->getByApplicationSlugAndUser($applicationSlug, $loggedInUser));
+    }
+}
