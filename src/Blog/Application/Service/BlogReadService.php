@@ -32,15 +32,7 @@ final readonly class BlogReadService
     {
         return $this->cache->get('blog_app_' . $applicationSlug, function (ItemInterface $item) use ($applicationSlug): array {
             $item->expiresAfter(120);
-            $blog = $this->blogRepository->findOneBy(['application.slug' => $applicationSlug]);
-            if (!$blog instanceof Blog) {
-                $blog = $this->blogRepository->createQueryBuilder('b')
-                    ->leftJoin('b.application', 'a')
-                    ->andWhere('a.slug = :slug')
-                    ->setParameter('slug', $applicationSlug)
-                    ->getQuery()
-                    ->getOneOrNullResult();
-            }
+            $blog = $this->blogRepository->findOneByApplicationSlug($applicationSlug);
 
             return $blog instanceof Blog ? $this->normalizeBlog($blog) : [];
         });
