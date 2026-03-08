@@ -38,6 +38,44 @@ class CacheInvalidationService
         }
     }
 
+
+    public function invalidateShopProductListCaches(): void
+    {
+        if ($this->cache instanceof TagAwareCacheInterface) {
+            $this->cache->invalidateTags([$this->cacheKeyConventionService->shopProductListTag()]);
+        }
+
+        $this->cache->delete($this->cacheKeyConventionService->buildShopProductListKey(1, 20, [
+            'q' => '',
+            'name' => '',
+            'category' => '',
+        ]));
+    }
+
+    public function invalidateCrmTaskListCaches(): void
+    {
+        if ($this->cache instanceof TagAwareCacheInterface) {
+            $this->cache->invalidateTags([$this->cacheKeyConventionService->crmTaskListTag()]);
+        }
+
+        $this->cache->delete($this->cacheKeyConventionService->buildCrmTaskListKey(1, 20, [
+            'q' => '',
+            'title' => '',
+        ]));
+    }
+
+    public function invalidateSchoolExamListCaches(): void
+    {
+        if ($this->cache instanceof TagAwareCacheInterface) {
+            $this->cache->invalidateTags([$this->cacheKeyConventionService->schoolExamListTag()]);
+        }
+
+        $this->cache->delete($this->cacheKeyConventionService->buildSchoolExamListKey(1, 20, [
+            'q' => '',
+            'title' => '',
+        ]));
+    }
+
     public function invalidateRecruitJobListCaches(string $applicationSlug): void
     {
         if ($this->cache instanceof TagAwareCacheInterface) {

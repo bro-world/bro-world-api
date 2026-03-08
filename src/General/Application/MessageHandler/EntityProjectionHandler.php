@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\General\Application\MessageHandler;
 
+use App\Crm\Application\Projection\CrmTaskProjection;
+use App\Crm\Infrastructure\Repository\TaskRepository;
 use App\General\Application\Message\EntityCreated;
 use App\General\Application\Message\EntityDeleted;
 use App\General\Application\Message\EntityMutationMessage;
@@ -16,6 +18,10 @@ use App\Platform\Application\Projection\ApplicationProjection;
 use App\Platform\Infrastructure\Repository\ApplicationRepository;
 use App\Recruit\Application\Projection\RecruitJobProjection;
 use App\Recruit\Infrastructure\Repository\JobRepository;
+use App\School\Application\Projection\SchoolExamProjection;
+use App\School\Infrastructure\Repository\ExamRepository;
+use App\Shop\Application\Projection\ShopProductProjection;
+use App\Shop\Infrastructure\Repository\ProductRepository;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 use function array_map;
@@ -25,10 +31,16 @@ final readonly class EntityProjectionHandler
 {
     private const string PLATFORM_APPLICATION = 'platform_application';
     private const string RECRUIT_JOB = 'recruit_job';
+    private const string SHOP_PRODUCT = 'shop_product';
+    private const string CRM_TASK = 'crm_task';
+    private const string SCHOOL_EXAM = 'school_exam';
 
     public function __construct(
         private ApplicationRepository $applicationRepository,
         private JobRepository $jobRepository,
+        private ProductRepository $productRepository,
+        private TaskRepository $taskRepository,
+        private ExamRepository $examRepository,
         private CacheInvalidationService $cacheInvalidationService,
         private CriticalViewWarmer $criticalViewWarmer,
         private ElasticsearchServiceInterface $elasticsearchService,
@@ -44,12 +56,26 @@ final readonly class EntityProjectionHandler
 
         if ($message->entityType === self::PLATFORM_APPLICATION) {
             $this->projectPlatformApplication($message);
-
             return;
         }
 
         if ($message->entityType === self::RECRUIT_JOB) {
             $this->projectRecruitJob($message);
+            return;
+        }
+
+        if ($message->entityType === self::SHOP_PRODUCT) {
+            $this->projectShopProduct($message);
+            return;
+        }
+
+        if ($message->entityType === self::CRM_TASK) {
+            $this->projectCrmTask($message);
+            return;
+        }
+
+        if ($message->entityType === self::SCHOOL_EXAM) {
+            $this->projectSchoolExam($message);
         }
     }
 
@@ -123,5 +149,81 @@ final readonly class EntityProjectionHandler
             $this->cacheInvalidationService->invalidateRecruitJobListCaches($applicationSlug);
             $this->criticalViewWarmer->warmRecruitJobList($applicationSlug);
         }
+    }
+
+    private function projectShopProduct(EntityMutationMessage $message): void
+    {
+        if ($message instanceof EntityDeleted) {
+            $this->elasticsearchService->delete(ShopProductProjection::INDEX_NAME, $message->entityId);
+            $this->cacheInvalidationService->invalidateShopProductListCaches();
+            return;
+        }
+
+        $product = $this->productRepository->find($message->entityId);
+        if ($product === null) {
+            return;
+        }
+
+        $this->elasticsearchService->index(ShopProductProjection::INDEX_NAME, $product->getId(), [
+            'id' => $product->getId(),
+            'name' => $product->getName(),
+            'price' => $product->getPrice(),
+            'categoryId' => $product->getCategory()?->getId(),
+            'categoryName' => $product->getCategory()?->getName() ?? '',
+            'tags' => array_map(static fn ($tag): string => $tag->getLabel(), $product->getTags()->toArray()),
+            'updatedAt' => $product->getUpdatedAt()?->format(DATE_ATOM),
+        ]);
+
+        $this->cacheInvalidationService->invalidateShopProductListCaches();
+    }
+
+    private function projectCrmTask(EntityMutationMessage $message): void
+    {
+        if ($message instanceof EntityDeleted) {
+            $this->elasticsearchService->delete(CrmTaskProjection::INDEX_NAME, $message->entityId);
+            $this->cacheInvalidationService->invalidateCrmTaskListCaches();
+            return;
+        }
+
+        $task = $this->taskRepository->find($message->entityId);
+        if ($task === null) {
+            return;
+        }
+
+        $this->elasticsearchService->index(CrmTaskProjection::INDEX_NAME, $task->getId(), [
+            'id' => $task->getId(),
+            'title' => $task->getTitle(),
+            'projectName' => $task->getProject()?->getName() ?? '',
+            'sprintName' => $task->getSprint()?->getName() ?? '',
+            'taskRequests' => array_map(static fn ($request): string => $request->getTitle(), $task->getTaskRequests()->toArray()),
+            'updatedAt' => $task->getUpdatedAt()?->format(DATE_ATOM),
+        ]);
+
+        $this->cacheInvalidationService->invalidateCrmTaskListCaches();
+    }
+
+    private function projectSchoolExam(EntityMutationMessage $message): void
+    {
+        if ($message instanceof EntityDeleted) {
+            $this->elasticsearchService->delete(SchoolExamProjection::INDEX_NAME, $message->entityId);
+            $this->cacheInvalidationService->invalidateSchoolExamListCaches();
+            return;
+        }
+
+        $exam = $this->examRepository->find($message->entityId);
+        if ($exam === null) {
+            return;
+        }
+
+        $this->elasticsearchService->index(SchoolExamProjection::INDEX_NAME, $exam->getId(), [
+            'id' => $exam->getId(),
+            'title' => $exam->getTitle(),
+            'className' => $exam->getSchoolClass()?->getName() ?? '',
+            'teacherName' => $exam->getTeacher()?->getName() ?? '',
+            'grades' => array_map(static fn ($grade): float => $grade->getScore(), $exam->getGrades()->toArray()),
+            'updatedAt' => $exam->getUpdatedAt()?->format(DATE_ATOM),
+        ]);
+
+        $this->cacheInvalidationService->invalidateSchoolExamListCaches();
     }
 }
