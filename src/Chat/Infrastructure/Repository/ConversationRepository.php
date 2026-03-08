@@ -45,7 +45,7 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
         return $this->getConversationQueryBuilder()
             ->innerJoin('conversation.participants', 'participant')
             ->andWhere('participant.user = :user')
-            ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
+            ->setParameter('user', $user)
             ->orderBy('conversation.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
@@ -68,7 +68,7 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
             ->andWhere('chat.id = :chatId')
             ->andWhere('participant.user = :user')
             ->setParameter('chatId', $chatId, UuidBinaryOrderedTimeType::NAME)
-            ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
+            ->setParameter('user', $user)
             ->orderBy('conversation.createdAt', 'DESC')
             ->getQuery()
             ->getResult();

@@ -57,14 +57,14 @@ final class ConversationListService
                 'participants' => array_map(static function (ConversationParticipant $participant): array {
                     return [
                         'id' => $participant->getId(),
-                        'userId' => $participant->getUser()->getId(),
+                        'userId' => $participant?->getUser()?->getId(),
                     ];
                 }, $conversation->getParticipants()->toArray()),
                 'messages' => array_map(static function (ChatMessage $message): array {
                     return [
                         'id' => $message->getId(),
                         'content' => $message->getContent(),
-                        'senderId' => $message->getSender()->getId(),
+                        'senderId' => $message?->getSender()?->getId(),
                         'attachments' => $message->getAttachments(),
                         'readAt' => $message->getReadAt()?->format(DATE_ATOM),
                         'createdAt' => $message->getCreatedAt()?->format(DATE_ATOM),
