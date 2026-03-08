@@ -39,7 +39,7 @@ class ApplicationStatusUpdateController
             content: new OA\JsonContent(
                 required: ['status'],
                 properties: [
-                    new OA\Property(property: 'status', type: 'string', enum: ['WAITING', 'REVIEWING', 'INTERVIEW', 'ACCEPTED', 'REJECTED']),
+                    new OA\Property(property: 'status', type: 'string', enum: ['WAITING', 'IN_PROGRESS', 'DISCUSSION', 'INVITE_TO_INTERVIEW', 'INTERVIEW', 'ACCEPTED', 'REJECTED']),
                 ],
             ),
         ),
@@ -71,7 +71,7 @@ class ApplicationStatusUpdateController
 
         $newStatus = ApplicationStatus::tryFrom(strtoupper($status));
         if ($newStatus === null) {
-            throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Field "status" must be one of: WAITING, REVIEWING, INTERVIEW, ACCEPTED, REJECTED.');
+            throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Field "status" must be one of: WAITING, IN_PROGRESS, DISCUSSION, INVITE_TO_INTERVIEW, INTERVIEW, ACCEPTED, REJECTED.');
         }
 
         $currentStatus = $application->getStatus();
@@ -91,8 +91,10 @@ class ApplicationStatusUpdateController
     private function isAllowedTransition(ApplicationStatus $from, ApplicationStatus $to): bool
     {
         $allowedTransitions = [
-            ApplicationStatus::WAITING->value => [ApplicationStatus::REVIEWING->value, ApplicationStatus::REJECTED->value],
-            ApplicationStatus::REVIEWING->value => [ApplicationStatus::INTERVIEW->value, ApplicationStatus::ACCEPTED->value, ApplicationStatus::REJECTED->value],
+            ApplicationStatus::WAITING->value => [ApplicationStatus::IN_PROGRESS->value, ApplicationStatus::REJECTED->value],
+            ApplicationStatus::IN_PROGRESS->value => [ApplicationStatus::DISCUSSION->value, ApplicationStatus::INVITE_TO_INTERVIEW->value, ApplicationStatus::REJECTED->value],
+            ApplicationStatus::DISCUSSION->value => [ApplicationStatus::INVITE_TO_INTERVIEW->value, ApplicationStatus::REJECTED->value],
+            ApplicationStatus::INVITE_TO_INTERVIEW->value => [ApplicationStatus::INTERVIEW->value, ApplicationStatus::REJECTED->value],
             ApplicationStatus::INTERVIEW->value => [ApplicationStatus::ACCEPTED->value, ApplicationStatus::REJECTED->value],
             ApplicationStatus::ACCEPTED->value => [],
             ApplicationStatus::REJECTED->value => [],
