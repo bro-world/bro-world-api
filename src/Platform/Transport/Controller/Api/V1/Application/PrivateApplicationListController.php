@@ -26,8 +26,8 @@ class PrivateApplicationListController
 
     #[Route(path: '/v1/application/private', methods: [Request::METHOD_GET])]
     #[OA\Get(
-        summary: 'Liste des applications visibles par l’utilisateur',
         description: 'Retourne les applications publiques + privées appartenant à l’utilisateur connecté, avec filtres et pagination.',
+        summary: 'Liste des applications visibles par l’utilisateur',
         parameters: [
             new OA\Parameter(name: 'page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', minimum: 1, default: 1), example: 1),
             new OA\Parameter(name: 'limit', in: 'query', required: false, schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100, default: 20), example: 10),

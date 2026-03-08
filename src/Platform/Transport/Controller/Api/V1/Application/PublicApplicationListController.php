@@ -24,9 +24,9 @@ class PublicApplicationListController
 
     #[Route(path: '/v1/application/public', methods: [Request::METHOD_GET])]
     #[OA\Get(
-        security: [],
-        summary: 'Liste des applications publiques',
         description: 'Endpoint paginé avec filtres sur title, description, platformName et platformKey.',
+        summary: 'Liste des applications publiques',
+        security: [],
         parameters: [
             new OA\Parameter(name: 'page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', minimum: 1, default: 1), example: 1),
             new OA\Parameter(name: 'limit', in: 'query', required: false, schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100, default: 20), example: 20),
@@ -59,13 +59,13 @@ class PublicApplicationListController
                                     new Property(property: 'pluginKeys', type: 'array', items: new OA\Items(type: 'string', example: 'analytics')),
                                     new Property(
                                         property: 'author',
-                                        type: 'object',
                                         properties: [
                                             new Property(property: 'id', type: 'string', nullable: true),
                                             new Property(property: 'firstName', type: 'string'),
                                             new Property(property: 'lastName', type: 'string'),
                                             new Property(property: 'photo', type: 'string'),
                                         ],
+                                        type: 'object',
                                     ),
                                     new Property(property: 'createdAt', type: 'string', nullable: true, example: '2026-03-06T09:00:00+00:00'),
                                     new Property(property: 'isOwner', type: 'boolean', example: false),
@@ -75,21 +75,21 @@ class PublicApplicationListController
                         ),
                         new Property(
                             property: 'pagination',
-                            type: 'object',
                             properties: [
                                 new Property(property: 'page', type: 'integer', example: 1),
                                 new Property(property: 'limit', type: 'integer', example: 20),
                                 new Property(property: 'totalItems', type: 'integer', example: 2),
                                 new Property(property: 'totalPages', type: 'integer', example: 1),
                             ],
+                            type: 'object',
                         ),
                         new Property(
                             property: 'filters',
-                            type: 'object',
                             properties: [
                                 new Property(property: 'title', type: 'string', example: 'shop'),
                                 new Property(property: 'platformKey', type: 'string', example: 'shop'),
                             ],
+                            type: 'object',
                         ),
                     ],
                     type: 'object',
