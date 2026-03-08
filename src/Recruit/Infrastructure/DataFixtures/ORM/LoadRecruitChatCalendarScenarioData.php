@@ -137,8 +137,28 @@ final class LoadRecruitChatCalendarScenarioData extends Fixture implements Order
         $event = (new Event())
             ->setTitle('Recruit event - ' . $application->getTitle())
             ->setDescription('Scheduled event for recruit application workflow.')
+            ->setLocation('Recruit HQ')
             ->setStartAt($startAt)
             ->setEndAt($startAt->modify('+1 hour'))
+            ->setTimezone('Europe/Paris')
+            ->setOrganizerName('Recruit Team')
+            ->setOrganizerEmail('recruit@example.com')
+            ->setAttendees([
+                [
+                    'name' => 'Hiring Manager',
+                    'email' => 'hiring.manager@example.com',
+                ],
+            ])
+            ->setReminders([
+                [
+                    'method' => 'email',
+                    'minutesBefore' => 30,
+                ],
+            ])
+            ->setMetadata([
+                'source' => 'fixtures',
+                'applicationSlug' => $application->getSlug(),
+            ])
             ->setStatus(EventStatus::CONFIRMED)
             ->setVisibility(EventVisibility::PRIVATE)
             ->setUser($application->getUser())
