@@ -22,6 +22,8 @@ class ApplicationConversationListController
     #[Route(path: '/v1/chat/applications/{applicationSlug}/conversations', methods: [Request::METHOD_GET])]
     public function __invoke(string $applicationSlug): JsonResponse
     {
-        return new JsonResponse($this->conversationListService->getByApplicationSlug($applicationSlug));
+        return ConversationJsonResponseFactory::create(
+            $this->conversationListService->getByApplicationSlug($applicationSlug)
+        );
     }
 }

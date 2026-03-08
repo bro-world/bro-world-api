@@ -26,6 +26,6 @@ class UserConversationListController
     #[Route(path: '/v1/chat/private/conversations', methods: [Request::METHOD_GET])]
     public function __invoke(User $loggedInUser): JsonResponse
     {
-        return new JsonResponse($this->conversationListService->getByUser($loggedInUser));
+        return ConversationJsonResponseFactory::create($this->conversationListService->getByUser($loggedInUser));
     }
 }
