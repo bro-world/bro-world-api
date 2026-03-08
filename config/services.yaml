@@ -158,6 +158,13 @@ when@dev:
         App\Quiz\Infrastructure\DataFixtures\:
             resource: '../src/Quiz/Infrastructure/DataFixtures/*'
 
+        App\Shop\Infrastructure\DataFixtures\:
+            resource: '../src/Shop/Infrastructure/DataFixtures/*'
+        App\Crm\Infrastructure\DataFixtures\:
+            resource: '../src/Crm/Infrastructure/DataFixtures/*'
+        App\School\Infrastructure\DataFixtures\:
+            resource: '../src/School/Infrastructure/DataFixtures/*'
+
         App\Tests\TestCase\:
             resource: '../tests/TestCase/*'
 
@@ -200,6 +207,13 @@ when@test:
 
         App\User\Infrastructure\DataFixtures\:
             resource: '../src/User/Infrastructure/DataFixtures/*'
+
+        App\Shop\Infrastructure\DataFixtures\:
+            resource: '../src/Shop/Infrastructure/DataFixtures/*'
+        App\Crm\Infrastructure\DataFixtures\:
+            resource: '../src/Crm/Infrastructure/DataFixtures/*'
+        App\School\Infrastructure\DataFixtures\:
+            resource: '../src/School/Infrastructure/DataFixtures/*'
 
         App\Tests\TestCase\:
             resource: '../tests/TestCase/*'
