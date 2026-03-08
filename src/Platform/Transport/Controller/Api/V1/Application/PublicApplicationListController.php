@@ -67,7 +67,7 @@ class PublicApplicationListController
                                         ],
                                         type: 'object',
                                     ),
-                                    new Property(property: 'createdAt', type: 'string', nullable: true, example: '2026-03-06T09:00:00+00:00'),
+                                    new Property(property: 'createdAt', type: 'string', example: '2026-03-06T09:00:00+00:00', nullable: true),
                                     new Property(property: 'isOwner', type: 'boolean', example: false),
                                 ],
                                 type: 'object',

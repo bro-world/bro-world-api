@@ -8,33 +8,49 @@ use App\General\Domain\Service\Interfaces\ElasticsearchServiceInterface;
 use App\Platform\Domain\Entity\Application;
 use App\Platform\Domain\Repository\Interfaces\ApplicationRepositoryInterface;
 use App\User\Domain\Entity\User;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Throwable;
 
-class ApplicationListService
+readonly class ApplicationListService
 {
     public function __construct(
-        private readonly ApplicationRepositoryInterface $applicationRepository,
-        private readonly CacheInterface $cache,
-        private readonly ElasticsearchServiceInterface $elasticsearchService,
+        private ApplicationRepositoryInterface $applicationRepository,
+        private CacheInterface                 $cache,
+        private ElasticsearchServiceInterface  $elasticsearchService,
     ) {
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @param Request $request
+     * @return array<string, mixed>
+     * @throws \JsonException
+     */
     public function getPublicList(Request $request): array
     {
         return $this->getList($request, null);
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @param Request $request
+     * @param User $loggedInUser
+     * @return array<string, mixed>
+     * @throws \JsonException
+     */
     public function getPrivateList(Request $request, User $loggedInUser): array
     {
         return $this->getList($request, $loggedInUser);
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @param Request $request
+     * @param User|null $loggedInUser
+     * @return array<string, mixed>
+     * @throws \JsonException
+     * @throws InvalidArgumentException
+     */
     private function getList(Request $request, ?User $loggedInUser): array
     {
         $page = max(1, $request->query->getInt('page', 1));
@@ -47,12 +63,12 @@ class ApplicationListService
             'platformKey' => trim((string) $request->query->get('platformKey', '')),
         ];
 
-        $cacheKey = 'application_list_' . md5((string) json_encode([
-            'userId' => $loggedInUser?->getId(),
-            'page' => $page,
-            'limit' => $limit,
-            'filters' => $filters,
-        ]));
+        $cacheKey = 'application_list_' . md5((string)json_encode([
+                'userId' => $loggedInUser?->getId(),
+                'page' => $page,
+                'limit' => $limit,
+                'filters' => $filters,
+            ], JSON_THROW_ON_ERROR));
 
         /** @var array<string, mixed> $result */
         $result = $this->cache->get($cacheKey, function (ItemInterface $item) use ($loggedInUser, $filters, $page, $limit): array {
