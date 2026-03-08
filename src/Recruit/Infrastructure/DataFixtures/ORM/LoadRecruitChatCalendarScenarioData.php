@@ -297,6 +297,10 @@ final class LoadRecruitChatCalendarScenarioData extends Fixture implements Order
 
         /** @var User $johnRoot */
         $johnRoot = $this->getReference('User-john-root', User::class);
+        /** @var User $johnUser */
+        $johnUser = $this->getReference('User-john-user', User::class);
+        /** @var User $johnAdmin */
+        $johnAdmin = $this->getReference('User-john-admin', User::class);
 
         $otherOwner = $johnRootRecruitApplication->getJob()->getOwner();
         if (!$otherOwner instanceof User) {
@@ -308,6 +312,12 @@ final class LoadRecruitChatCalendarScenarioData extends Fixture implements Order
         $this->ensureParticipant($manager, $conversation, $johnRoot);
         if ($johnRoot->getId() !== $otherOwner->getId()) {
             $this->ensureParticipant($manager, $conversation, $otherOwner);
+        }
+        if ($johnRoot->getId() !== $johnUser->getId()) {
+            $this->ensureParticipant($manager, $conversation, $johnUser);
+        }
+        if ($johnRoot->getId() !== $johnAdmin->getId()) {
+            $this->ensureParticipant($manager, $conversation, $johnAdmin);
         }
 
         $johnRootMessage = $manager->getRepository(ChatMessage::class)->findOneBy([
@@ -351,6 +361,35 @@ final class LoadRecruitChatCalendarScenarioData extends Fixture implements Order
                 ->setUser($johnRoot)
                 ->setReaction('✅');
             $manager->persist($reaction);
+        }
+
+        $johnUserMessage = $manager->getRepository(ChatMessage::class)->findOneBy([
+            'conversation' => $conversation,
+            'content' => 'Salut John, je peux partager un retour sur le processus de recrutement.',
+        ]);
+
+        if (!$johnUserMessage instanceof ChatMessage) {
+            $johnUserMessage = (new ChatMessage())
+                ->setConversation($conversation)
+                ->setSender($johnUser)
+                ->setContent('Salut John, je peux partager un retour sur le processus de recrutement.')
+                ->setAttachments([])
+                ->setReadAt(new DateTimeImmutable());
+            $manager->persist($johnUserMessage);
+        }
+
+        $johnAdminReaction = $manager->getRepository(ChatMessageReaction::class)->findOneBy([
+            'message' => $johnUserMessage,
+            'user' => $johnAdmin,
+            'reaction' => '👀',
+        ]);
+
+        if (!$johnAdminReaction instanceof ChatMessageReaction) {
+            $johnAdminReaction = (new ChatMessageReaction())
+                ->setMessage($johnUserMessage)
+                ->setUser($johnAdmin)
+                ->setReaction('👀');
+            $manager->persist($johnAdminReaction);
         }
 
         $event = $this->ensureJohnRootEvent($manager, $calendar, $johnRoot);
