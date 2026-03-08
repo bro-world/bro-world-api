@@ -39,6 +39,36 @@ class ResumeCreateController
     }
 
     #[Route(path: '/v1/recruit/resumes', methods: [Request::METHOD_POST])]
+    #[OA\Post(
+        summary: 'Crée un CV avec sections (experiences, skills, etc.).',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'experiences', type: 'array', items: new OA\Items(type: 'object')),
+                    new OA\Property(property: 'educations', type: 'array', items: new OA\Items(type: 'object')),
+                    new OA\Property(property: 'skills', type: 'array', items: new OA\Items(type: 'object')),
+                    new OA\Property(property: 'languages', type: 'array', items: new OA\Items(type: 'object')),
+                    new OA\Property(property: 'certifications', type: 'array', items: new OA\Items(type: 'object')),
+                    new OA\Property(property: 'projects', type: 'array', items: new OA\Items(type: 'object')),
+                    new OA\Property(property: 'references', type: 'array', items: new OA\Items(type: 'object')),
+                    new OA\Property(property: 'hobbies', type: 'array', items: new OA\Items(type: 'object')),
+                ],
+                example: [
+                    'experiences' => [
+                        ['title' => 'Backend Developer', 'description' => 'API Symfony'],
+                    ],
+                    'skills' => [
+                        ['title' => 'PHP', 'description' => '8+ years'],
+                    ],
+                ],
+            ),
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'CV créé.'),
+            new OA\Response(response: 400, description: 'Payload invalide.'),
+        ],
+    )]
     public function __invoke(Request $request, User $loggedInUser): JsonResponse
     {
         /** @var array<string, mixed> $payload */
