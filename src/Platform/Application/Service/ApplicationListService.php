@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Platform\Application\Service;
 
 use App\General\Domain\Service\Interfaces\ElasticsearchServiceInterface;
+use App\General\Application\Service\CacheKeyConventionService;
+use App\Platform\Application\Projection\ApplicationProjection;
 use App\Platform\Domain\Entity\Application;
 use App\Platform\Domain\Repository\Interfaces\ApplicationRepositoryInterface;
 use App\User\Domain\Entity\User;
@@ -12,6 +14,7 @@ use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Throwable;
 
 readonly class ApplicationListService
@@ -20,6 +23,7 @@ readonly class ApplicationListService
         private ApplicationRepositoryInterface $applicationRepository,
         private CacheInterface                 $cache,
         private ElasticsearchServiceInterface  $elasticsearchService,
+        private CacheKeyConventionService $cacheKeyConventionService,
     ) {
     }
 
@@ -63,16 +67,14 @@ readonly class ApplicationListService
             'platformKey' => trim((string) $request->query->get('platformKey', '')),
         ];
 
-        $cacheKey = 'application_list_' . md5((string)json_encode([
-                'userId' => $loggedInUser?->getId(),
-                'page' => $page,
-                'limit' => $limit,
-                'filters' => $filters,
-            ], JSON_THROW_ON_ERROR));
+        $cacheKey = $this->cacheKeyConventionService->buildApplicationListKey($loggedInUser?->getId(), $page, $limit, $filters);
 
         /** @var array<string, mixed> $result */
         $result = $this->cache->get($cacheKey, function (ItemInterface $item) use ($loggedInUser, $filters, $page, $limit): array {
             $item->expiresAfter(120);
+            if (method_exists($item, 'tag') && $this->cache instanceof TagAwareCacheInterface) {
+                $item->tag($this->cacheKeyConventionService->applicationListTag());
+            }
 
             $esIds = $this->searchIdsFromElastic($filters);
             if ($esIds === []) {
@@ -165,7 +167,7 @@ readonly class ApplicationListService
             }
 
             $response = $this->elasticsearchService->search(
-                ElasticsearchServiceInterface::INDEX_PREFIX . '_*',
+                ApplicationProjection::INDEX_NAME,
                 [
                     'query' => ['bool' => ['must' => $must]],
                     '_source' => ['id'],

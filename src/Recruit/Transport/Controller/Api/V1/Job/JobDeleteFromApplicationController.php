@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Recruit\Transport\Controller\Api\V1\Job;
 
+use App\General\Application\Message\EntityDeleted;
 use App\Recruit\Domain\Entity\Job;
 use App\Recruit\Domain\Entity\Recruit;
 use App\Recruit\Domain\Repository\Interfaces\RecruitRepositoryInterface;
@@ -17,6 +18,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 #[AsController]
 #[OA\Tag(name: 'Recruit Job')]
@@ -26,6 +28,7 @@ class JobDeleteFromApplicationController
     public function __construct(
         private readonly RecruitRepositoryInterface $recruitRepository,
         private readonly JobRepository $jobRepository,
+        private readonly MessageBusInterface $messageBus,
     ) {
     }
 
@@ -61,6 +64,11 @@ class JobDeleteFromApplicationController
         }
 
         $this->jobRepository->remove($job);
+
+        $applicationSlugValue = $application?->getSlug() ?? '';
+        $this->messageBus->dispatch(new EntityDeleted('recruit_job', $jobId, context: [
+            'applicationSlug' => $applicationSlugValue,
+        ]));
 
         return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
     }

@@ -63,6 +63,11 @@ interface ElasticsearchServiceInterface
     public function search(string $index, array $body, int $from, int $size): mixed;
 
     /**
+     * Delete document from index.
+     */
+    public function delete(string $index, string $documentId): mixed;
+
+    /**
      * Create string with index name
      */
     public static function generateIndexName(?int $timestamp = null): string;

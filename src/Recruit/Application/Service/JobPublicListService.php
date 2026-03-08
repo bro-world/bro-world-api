@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Recruit\Application\Service;
 
 use App\General\Domain\Service\Interfaces\ElasticsearchServiceInterface;
+use App\General\Application\Service\CacheKeyConventionService;
 use App\Recruit\Domain\Entity\Application as RecruitApplication;
+use App\Recruit\Application\Projection\RecruitJobProjection;
 use App\Recruit\Domain\Entity\Job;
 use App\Recruit\Domain\Entity\Recruit;
 use App\Recruit\Domain\Entity\Resume;
@@ -20,6 +22,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Throwable;
 
 use function array_filter;
@@ -32,9 +35,7 @@ use function floor;
 use function in_array;
 use function is_array;
 use function is_string;
-use function json_encode;
 use function mb_strtolower;
-use function md5;
 use function max;
 use function preg_match;
 use function preg_split;
@@ -50,6 +51,7 @@ class JobPublicListService
         private readonly EntityManagerInterface $entityManager,
         private readonly CacheInterface $cache,
         private readonly ElasticsearchServiceInterface $elasticsearchService,
+        private readonly CacheKeyConventionService $cacheKeyConventionService,
     ) {
     }
 
@@ -76,17 +78,14 @@ class JobPublicListService
             'q' => trim((string) $request->query->get('q', '')),
         ];
 
-        $cacheKey = 'recruit_job_public_' . md5((string)json_encode([
-                'page' => $page,
-                'limit' => $limit,
-                'filters' => $filters,
-                'applicationSlug' => $applicationSlug,
-                'userId' => $loggedInUser?->getId(),
-            ], JSON_THROW_ON_ERROR));
+        $cacheKey = $this->cacheKeyConventionService->buildRecruitJobPublicListKey($applicationSlug, $loggedInUser?->getId(), $page, $limit, $filters);
 
         /** @var array<string, mixed> $result */
         $result = $this->cache->get($cacheKey, function (ItemInterface $item) use ($page, $limit, $filters, $applicationSlug, $loggedInUser): array {
             $item->expiresAfter(120);
+            if (method_exists($item, 'tag') && $this->cache instanceof TagAwareCacheInterface) {
+                $item->tag($this->cacheKeyConventionService->recruitJobListTag($applicationSlug));
+            }
 
             $recruit = $this->resolveRecruitByApplicationSlug($applicationSlug);
 
@@ -317,7 +316,7 @@ class JobPublicListService
             }
 
             $response = $this->elasticsearchService->search(
-                ElasticsearchServiceInterface::INDEX_PREFIX . '_*',
+                RecruitJobProjection::INDEX_NAME,
                 [
                     'query' => [
                         'bool' => [

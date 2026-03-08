@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Recruit\Transport\Controller\Api\V1\Job;
 
+use App\General\Application\Message\EntityPatched;
 use App\Recruit\Domain\Entity\Job;
 use App\Recruit\Domain\Entity\Recruit;
 use App\Recruit\Domain\Enum\ContractType;
@@ -20,6 +21,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 use function is_array;
 use function is_int;
@@ -34,6 +36,7 @@ class JobPatchFromApplicationController
     public function __construct(
         private readonly RecruitRepositoryInterface $recruitRepository,
         private readonly JobRepository $jobRepository,
+        private readonly MessageBusInterface $messageBus,
     ) {
     }
 
@@ -86,6 +89,9 @@ class JobPatchFromApplicationController
         $this->applyPatchFields($job, $payload);
 
         $this->jobRepository->save($job);
+        $this->messageBus->dispatch(new EntityPatched('recruit_job', $job->getId(), context: [
+            'applicationSlug' => $application?->getSlug() ?? '',
+        ]));
 
         return new JsonResponse([
             'id' => $job->getId(),
