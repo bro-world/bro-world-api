@@ -23,11 +23,11 @@ class ApplicationUserConversationListController
     {
     }
 
-    #[Route(path: '/v1/chat/private/applications/{applicationSlug}/conversations', methods: [Request::METHOD_GET])]
-    public function __invoke(string $applicationSlug, User $loggedInUser): JsonResponse
+    #[Route(path: '/v1/chat/private/chats/{chatId}/conversations', methods: [Request::METHOD_GET])]
+    public function __invoke(string $chatId, User $loggedInUser): JsonResponse
     {
         return ConversationJsonResponseFactory::create(
-            $this->conversationListService->getByApplicationSlugAndUser($applicationSlug, $loggedInUser)
+            $this->conversationListService->getByChatIdAndUser($chatId, $loggedInUser)
         );
     }
 }

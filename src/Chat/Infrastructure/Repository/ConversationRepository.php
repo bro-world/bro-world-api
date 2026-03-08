@@ -24,19 +24,17 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
 
     protected static array $searchColumns = [
         'id',
-        'applicationSlug',
     ];
 
     public function __construct(protected ManagerRegistry $managerRegistry)
     {
     }
 
-    public function findOneByChatAndApplicationSlug(Chat $chat, string $applicationSlug): ?Entity
+    public function findOneByChat(Chat $chat): ?Entity
     {
         /** @var Entity|null $conversation */
         $conversation = $this->findOneBy([
             'chat' => $chat,
-            'applicationSlug' => $applicationSlug,
         ]);
 
         return $conversation;
@@ -53,23 +51,23 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
             ->getResult();
     }
 
-    public function findByApplicationSlug(string $applicationSlug): array
+    public function findByChatId(string $chatId): array
     {
         return $this->getConversationQueryBuilder()
-            ->andWhere('conversation.applicationSlug = :applicationSlug')
-            ->setParameter('applicationSlug', $applicationSlug)
+            ->andWhere('chat.id = :chatId')
+            ->setParameter('chatId', $chatId, UuidBinaryOrderedTimeType::NAME)
             ->orderBy('conversation.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
     }
 
-    public function findByApplicationSlugAndUser(string $applicationSlug, User $user): array
+    public function findByChatIdAndUser(string $chatId, User $user): array
     {
         return $this->getConversationQueryBuilder()
             ->innerJoin('conversation.participants', 'participant')
-            ->andWhere('conversation.applicationSlug = :applicationSlug')
+            ->andWhere('chat.id = :chatId')
             ->andWhere('participant.user = :user')
-            ->setParameter('applicationSlug', $applicationSlug)
+            ->setParameter('chatId', $chatId, UuidBinaryOrderedTimeType::NAME)
             ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
             ->orderBy('conversation.createdAt', 'DESC')
             ->getQuery()

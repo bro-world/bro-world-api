@@ -19,11 +19,11 @@ class ApplicationConversationListController
     {
     }
 
-    #[Route(path: '/v1/chat/applications/{applicationSlug}/conversations', methods: [Request::METHOD_GET])]
-    public function __invoke(string $applicationSlug): JsonResponse
+    #[Route(path: '/v1/chat/chats/{chatId}/conversations', methods: [Request::METHOD_GET])]
+    public function __invoke(string $chatId): JsonResponse
     {
         return ConversationJsonResponseFactory::create(
-            $this->conversationListService->getByApplicationSlug($applicationSlug)
+            $this->conversationListService->getByChatId($chatId)
         );
     }
 }

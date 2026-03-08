@@ -41,12 +41,7 @@ final class ApplicationDiscussionBootstrapService
             throw new DomainException('Cannot bootstrap discussion: chat is not provisioned for this application.');
         }
 
-        $applicationSlug = $platformApplication->getSlug();
-        if ($applicationSlug === '') {
-            throw new DomainException('Cannot bootstrap discussion: platform application slug is missing.');
-        }
-
-        $conversation = $this->conversationCreatorService->getOrCreate($chat, $applicationSlug);
+        $conversation = $this->conversationCreatorService->getOrCreate($chat);
         $this->conversationParticipantCreatorService->getOrCreate($conversation, $jobOwner);
         $this->conversationParticipantCreatorService->getOrCreate($conversation, $applicantUser);
     }

@@ -10,7 +10,7 @@ use App\User\Domain\Entity\User;
 
 interface ConversationRepositoryInterface
 {
-    public function findOneByChatAndApplicationSlug(Chat $chat, string $applicationSlug): ?Conversation;
+    public function findOneByChat(Chat $chat): ?Conversation;
 
     /**
      * @return array<int, Conversation>
@@ -20,10 +20,10 @@ interface ConversationRepositoryInterface
     /**
      * @return array<int, Conversation>
      */
-    public function findByApplicationSlug(string $applicationSlug): array;
+    public function findByChatId(string $chatId): array;
 
     /**
      * @return array<int, Conversation>
      */
-    public function findByApplicationSlugAndUser(string $applicationSlug, User $user): array;
+    public function findByChatIdAndUser(string $chatId, User $user): array;
 }

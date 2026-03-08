@@ -45,7 +45,6 @@ class ApplicationStatusUpdateControllerTest extends WebTestCase
 
         $conversation = $entityManager->getRepository(Conversation::class)->findOneBy([
             'chat' => $chat,
-            'applicationSlug' => $platformApplication->getSlug(),
         ]);
         self::assertInstanceOf(Conversation::class, $conversation);
 
@@ -89,7 +88,6 @@ class ApplicationStatusUpdateControllerTest extends WebTestCase
 
         $conversations = $entityManager->getRepository(Conversation::class)->findBy([
             'chat' => $chat,
-            'applicationSlug' => $platformApplication->getSlug(),
         ]);
         self::assertCount(1, $conversations);
 
@@ -134,7 +132,6 @@ class ApplicationStatusUpdateControllerTest extends WebTestCase
 
         $conversation = $entityManager->getRepository(Conversation::class)->findOneBy([
             'chat' => $chat,
-            'applicationSlug' => $platformApplication->getSlug(),
         ]);
 
         if ($conversation instanceof Conversation) {
