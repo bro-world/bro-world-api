@@ -27,7 +27,7 @@ use Throwable;
  * @package App\Configuration
  */
 #[ORM\Entity]
-#[ORM\Table(name: 'configuration')]
+#[ORM\Table(name: 'configuration_configuration')]
 #[ORM\UniqueConstraint(name: 'uq_configuration_user_key', columns: ['user_id', 'configuration_key'])]
 #[ORM\UniqueConstraint(name: 'uq_configuration_platform_key', columns: ['platform_id', 'configuration_key'])]
 #[ORM\UniqueConstraint(name: 'uq_configuration_plugin_key', columns: ['plugin_id', 'configuration_key'])]

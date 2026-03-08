@@ -20,7 +20,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Throwable;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'calendar')]
+#[ORM\Table(name: 'calendar_calendar')]
 #[ORM\ChangeTrackingPolicy('DEFERRED_EXPLICIT')]
 class Calendar implements EntityInterface
 {
