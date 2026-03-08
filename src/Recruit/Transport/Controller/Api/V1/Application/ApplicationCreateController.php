@@ -20,8 +20,6 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-use function is_string;
-use function strtoupper;
 
 #[AsController]
 #[OA\Tag(name: 'Recruit Application')]
@@ -45,7 +43,6 @@ class ApplicationCreateController
                 properties: [
                     new OA\Property(property: 'applicantId', type: 'string', format: 'uuid'),
                     new OA\Property(property: 'jobId', type: 'string', format: 'uuid'),
-                    new OA\Property(property: 'status', type: 'string', enum: ['WAITING']),
                 ],
             ),
         ),
@@ -61,8 +58,6 @@ class ApplicationCreateController
 
         $applicantId = $payload['applicantId'] ?? null;
         $jobId = $payload['jobId'] ?? null;
-        $status = $payload['status'] ?? null;
-
         if (!is_string($applicantId) || !Uuid::isValid($applicantId)) {
             throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Field "applicantId" must be a valid UUID.');
         }
@@ -70,11 +65,6 @@ class ApplicationCreateController
         if (!is_string($jobId) || !Uuid::isValid($jobId)) {
             throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Field "jobId" must be a valid UUID.');
         }
-
-        if ($status !== null && (!is_string($status) || strtoupper($status) !== ApplicationStatus::WAITING->value)) {
-            throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Field "status" cannot be changed and must be "WAITING" when provided.');
-        }
-
         $applicant = $this->applicantRepository->find($applicantId);
         if ($applicant === null) {
             throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Unknown "applicantId".');

@@ -75,8 +75,8 @@ final class LoadRecruitApplicationData extends Fixture implements OrderedFixture
         $this->createApplication(
             applicant: $johnUserApplicant,
             job: $jobIncomingForRoot,
-            reference: 'Recruit-Application-john-user-incoming-root-reviewing',
-            status: ApplicationStatus::REVIEWING
+            reference: 'Recruit-Application-john-user-incoming-root-in-progress',
+            status: ApplicationStatus::IN_PROGRESS
         );
 
         $this->createApplication(
@@ -91,6 +91,27 @@ final class LoadRecruitApplicationData extends Fixture implements OrderedFixture
             job: $jobIncomingForRoot,
             reference: 'Recruit-Application-john-logged-incoming-root-rejected',
             status: ApplicationStatus::REJECTED
+        );
+
+        $this->createApplication(
+            applicant: $johnAdminApplicant,
+            job: $jobOwnedByOtherUser,
+            reference: 'Recruit-Application-john-admin-on-other-owner-discussion',
+            status: ApplicationStatus::DISCUSSION
+        );
+
+        $this->createApplication(
+            applicant: $johnUserApplicant,
+            job: $jobOwnedByOtherUser,
+            reference: 'Recruit-Application-john-user-on-other-owner-invite-to-interview',
+            status: ApplicationStatus::INVITE_TO_INTERVIEW
+        );
+
+        $this->createApplication(
+            applicant: $johnApiApplicant,
+            job: $jobOwnedByOtherUser,
+            reference: 'Recruit-Application-john-api-on-other-owner-accepted',
+            status: ApplicationStatus::ACCEPTED
         );
 
         $this->createApplication(
