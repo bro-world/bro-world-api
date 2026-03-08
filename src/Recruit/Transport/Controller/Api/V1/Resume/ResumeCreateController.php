@@ -189,3 +189,16 @@ class ResumeCreateController
         }
     }
 }
+
+#[OA\Schema(
+    schema: 'RecruitResumeSectionInput',
+    type: 'object',
+    required: ['title'],
+    properties: [
+        new OA\Property(property: 'title', type: 'string', example: 'Backend Developer'),
+        new OA\Property(property: 'description', type: 'string', example: 'Symfony / API Platform'),
+    ],
+)]
+final class RecruitResumeSectionInputSchema
+{
+}
