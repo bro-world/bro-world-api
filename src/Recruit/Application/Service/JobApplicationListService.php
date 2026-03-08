@@ -9,6 +9,7 @@ use App\Recruit\Domain\Entity\Job;
 use App\Recruit\Infrastructure\Repository\JobRepository;
 use App\User\Domain\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -41,7 +42,7 @@ class JobApplicationListService
             ->innerJoin('applicant.user', 'user')->addSelect('user')
             ->leftJoin('applicant.resume', 'resume')->addSelect('resume')
             ->andWhere('application.job = :job')
-            ->setParameter('job', $job)
+            ->setParameter('job', $job->getId() , UuidBinaryOrderedTimeType::NAME)
             ->orderBy('application.createdAt', 'DESC')
             ->addOrderBy('application.id', 'DESC')
             ->getQuery()
