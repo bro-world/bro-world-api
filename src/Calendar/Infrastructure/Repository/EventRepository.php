@@ -11,6 +11,7 @@ use App\User\Domain\Entity\User;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
+use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 
 /**
  * @method Entity|null find(string $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null, ?string $entityManagerName = null)
@@ -36,7 +37,7 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
     {
         return $this->createBaseQueryBuilder()
             ->andWhere('event.user = :user OR calendar.user = :user')
-            ->setParameter('user', $user)
+            ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
             ->orderBy('event.startAt', 'ASC')
             ->getQuery()
             ->getResult();
@@ -60,7 +61,7 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
             ->andWhere('application.slug = :applicationSlug')
             ->andWhere('event.user = :user OR calendar.user = :user')
             ->setParameter('applicationSlug', $applicationSlug)
-            ->setParameter('user', $user)
+            ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
             ->orderBy('event.startAt', 'ASC')
             ->getQuery()
             ->getResult();
