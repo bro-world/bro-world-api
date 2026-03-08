@@ -6,8 +6,8 @@ namespace App\Platform\Application\Service;
 
 use App\General\Domain\Service\Interfaces\ElasticsearchServiceInterface;
 use App\Platform\Domain\Entity\Application;
+use App\Platform\Domain\Repository\Interfaces\ApplicationRepositoryInterface;
 use App\User\Domain\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -17,7 +17,7 @@ use Throwable;
 class ApplicationListService
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
+        private readonly ApplicationRepositoryInterface $applicationRepository,
         private readonly CacheInterface $cache,
         private readonly ElasticsearchServiceInterface $elasticsearchService,
     ) {
@@ -59,73 +59,20 @@ class ApplicationListService
         $result = $this->cache->get($cacheKey, function (ItemInterface $item) use ($loggedInUser, $filters, $page, $limit): array {
             $item->expiresAfter(120);
 
-            $qb = $this->entityManager
-                ->getRepository(Application::class)
-                ->createQueryBuilder('application')
-                ->leftJoin('application.platform', 'platform')
-                ->leftJoin('application.user', 'user')
-                ->leftJoin('application.applicationPlugins', 'applicationPlugin')
-                ->leftJoin('applicationPlugin.plugin', 'plugin')
-                ->addSelect('platform')
-                ->addSelect('user')
-                ->addSelect('applicationPlugin')
-                ->addSelect('plugin');
-
-            if ($loggedInUser === null) {
-                $qb->where('application.private = :publicApplication')
-                    ->setParameter('publicApplication', false);
-            } else {
-                $qb->where('application.private = :publicApplication')
-                    ->orWhere('application.user = :loggedInUser')
-                    ->setParameter('publicApplication', false)
-                    ->setParameter('loggedInUser', $loggedInUser);
-            }
-
-            if ($filters['platformKey'] !== '') {
-                $qb->andWhere('LOWER(platform.platformKey) = :platformKey')
-                    ->setParameter('platformKey', mb_strtolower($filters['platformKey']));
-            }
-
             $esIds = $this->searchIdsFromElastic($filters);
-            if ($esIds !== null) {
-                if ($esIds === []) {
-                    return [
-                        'items' => [],
-                        'pagination' => [
-                            'page' => $page,
-                            'limit' => $limit,
-                            'totalItems' => 0,
-                            'totalPages' => 0,
-                        ],
-                    ];
-                }
-
-                $qb->andWhere('application.id IN (:esIds)')
-                    ->setParameter('esIds', $esIds);
+            if ($esIds === []) {
+                return [
+                    'items' => [],
+                    'pagination' => [
+                        'page' => $page,
+                        'limit' => $limit,
+                        'totalItems' => 0,
+                        'totalPages' => 0,
+                    ],
+                ];
             }
 
-            if ($filters['title'] !== '') {
-                $qb->andWhere('LOWER(application.title) LIKE :title')
-                    ->setParameter('title', '%' . mb_strtolower($filters['title']) . '%');
-            }
-
-            if ($filters['description'] !== '') {
-                $qb->andWhere('LOWER(application.description) LIKE :description')
-                    ->setParameter('description', '%' . mb_strtolower($filters['description']) . '%');
-            }
-
-            if ($filters['platformName'] !== '') {
-                $qb->andWhere('LOWER(platform.name) LIKE :platformName')
-                    ->setParameter('platformName', '%' . mb_strtolower($filters['platformName']) . '%');
-            }
-
-            $qb->orderBy('application.title', 'ASC')
-                ->addOrderBy('application.id', 'ASC');
-
-            $query = $qb
-                ->setFirstResult(($page - 1) * $limit)
-                ->setMaxResults($limit)
-                ->getQuery();
+            $query = $this->applicationRepository->createListQuery($filters, $loggedInUser, $esIds, $page, $limit);
 
             $paginator = new Paginator($query, true);
             $totalItems = $paginator->count();
