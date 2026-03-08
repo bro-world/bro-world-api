@@ -30,4 +30,17 @@ class BlogRepository extends BaseRepository
 
         return $result instanceof Blog ? $result : null;
     }
+
+    public function findOneByApplicationSlug(string $applicationSlug): ?Blog
+    {
+        $result = $this->createQueryBuilder('blog')
+            ->innerJoin('blog.application', 'application')
+            ->addSelect('application')
+            ->where('application.slug = :applicationSlug')
+            ->setParameter('applicationSlug', $applicationSlug)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $result instanceof Blog ? $result : null;
+    }
 }
