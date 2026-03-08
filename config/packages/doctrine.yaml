@@ -118,6 +118,24 @@ doctrine:
                         dir: '%kernel.project_dir%/src/Quiz/Domain/Entity'
                         prefix: 'App\Quiz\Domain\Entity'
                         alias: Quiz
+                    Shop:
+                        type: attribute
+                        is_bundle: false
+                        dir: '%kernel.project_dir%/src/Shop/Domain/Entity'
+                        prefix: 'App\Shop\Domain\Entity'
+                        alias: Shop
+                    Crm:
+                        type: attribute
+                        is_bundle: false
+                        dir: '%kernel.project_dir%/src/Crm/Domain/Entity'
+                        prefix: 'App\Crm\Domain\Entity'
+                        alias: Crm
+                    School:
+                        type: attribute
+                        is_bundle: false
+                        dir: '%kernel.project_dir%/src/School/Domain/Entity'
+                        prefix: 'App\School\Domain\Entity'
+                        alias: School
                 dql:
                     datetime_functions:
                         datesub: DoctrineExtensions\Query\Mysql\DateSub
