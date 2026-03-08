@@ -1,0 +1,103 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Chat\Transport\Controller\Api\V1\Reaction;
+
+use App\Chat\Domain\Entity\ChatMessage;
+use App\Chat\Domain\Entity\ChatMessageReaction;
+use App\Chat\Domain\Entity\ConversationParticipant;
+use App\Chat\Infrastructure\Repository\ChatMessageReactionRepository;
+use App\Chat\Infrastructure\Repository\ChatMessageRepository;
+use App\Chat\Infrastructure\Repository\ConversationParticipantRepository;
+use App\User\Domain\Entity\User;
+use OpenApi\Attributes as OA;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[AsController]
+#[OA\Tag(name: 'Chat Message Reaction')]
+#[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
+class UserReactionMutationController
+{
+    public function __construct(
+        private readonly ChatMessageRepository $messageRepository,
+        private readonly ChatMessageReactionRepository $reactionRepository,
+        private readonly ConversationParticipantRepository $participantRepository,
+    ) {
+    }
+
+    #[Route(path: '/v1/chat/private/messages/{messageId}/reactions', methods: [Request::METHOD_POST])]
+    public function create(string $messageId, Request $request, User $loggedInUser): JsonResponse
+    {
+        $message = $this->findParticipantMessage($messageId, $loggedInUser);
+        $payload = $request->toArray();
+
+        $reactionType = $payload['reaction'] ?? null;
+        if (!is_string($reactionType) || $reactionType === '') {
+            throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Field "reaction" is required.');
+        }
+
+        $reaction = (new ChatMessageReaction())
+            ->setMessage($message)
+            ->setUser($loggedInUser)
+            ->setReaction($reactionType);
+
+        $this->reactionRepository->save($reaction);
+
+        return new JsonResponse(['id' => $reaction->getId()], JsonResponse::HTTP_CREATED);
+    }
+
+    #[Route(path: '/v1/chat/private/reactions/{reactionId}', methods: [Request::METHOD_PATCH])]
+    public function patch(string $reactionId, Request $request, User $loggedInUser): JsonResponse
+    {
+        $reaction = $this->findOwnReaction($reactionId, $loggedInUser);
+        $payload = $request->toArray();
+
+        if (isset($payload['reaction']) && is_string($payload['reaction']) && $payload['reaction'] !== '') {
+            $reaction->setReaction($payload['reaction']);
+            $this->reactionRepository->save($reaction);
+        }
+
+        return new JsonResponse(['id' => $reaction->getId()]);
+    }
+
+    #[Route(path: '/v1/chat/private/reactions/{reactionId}', methods: [Request::METHOD_DELETE])]
+    public function delete(string $reactionId, User $loggedInUser): JsonResponse
+    {
+        $reaction = $this->findOwnReaction($reactionId, $loggedInUser);
+        $this->reactionRepository->remove($reaction);
+
+        return new JsonResponse(status: JsonResponse::HTTP_NO_CONTENT);
+    }
+
+    private function findParticipantMessage(string $messageId, User $loggedInUser): ChatMessage
+    {
+        $message = $this->messageRepository->find($messageId);
+        if (!$message instanceof ChatMessage) {
+            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Message not found.');
+        }
+
+        $participant = $this->participantRepository->findOneByConversationAndUser($message->getConversation(), $loggedInUser);
+        if (!$participant instanceof ConversationParticipant) {
+            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Message not found.');
+        }
+
+        return $message;
+    }
+
+    private function findOwnReaction(string $reactionId, User $loggedInUser): ChatMessageReaction
+    {
+        $reaction = $this->reactionRepository->find($reactionId);
+        if (!$reaction instanceof ChatMessageReaction || $reaction->getUser()->getId() !== $loggedInUser->getId()) {
+            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Reaction not found.');
+        }
+
+        return $reaction;
+    }
+}
