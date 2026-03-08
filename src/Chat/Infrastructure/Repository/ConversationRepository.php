@@ -12,6 +12,7 @@ use App\User\Domain\Entity\User;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
+use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 
 /**
  * @method Entity|null find(string $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null, ?string $entityManagerName = null)
@@ -46,7 +47,7 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
         return $this->getConversationQueryBuilder()
             ->innerJoin('conversation.participants', 'participant')
             ->andWhere('participant.user = :user')
-            ->setParameter('user', $user)
+            ->setParameter('user', $user->getUuid(), UuidBinaryOrderedTimeType::NAME)
             ->orderBy('conversation.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
@@ -69,7 +70,7 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
             ->andWhere('conversation.applicationSlug = :applicationSlug')
             ->andWhere('participant.user = :user')
             ->setParameter('applicationSlug', $applicationSlug)
-            ->setParameter('user', $user)
+            ->setParameter('user', $user->getUuid(), UuidBinaryOrderedTimeType::NAME)
             ->orderBy('conversation.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
