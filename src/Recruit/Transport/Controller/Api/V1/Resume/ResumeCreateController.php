@@ -50,7 +50,6 @@ class ResumeCreateController
             new OA\MediaType(
                 mediaType: 'application/json',
                 schema: new OA\Schema(
-                    type: 'object',
                     properties: [
                         new OA\Property(property: 'experiences', type: 'array', items: new OA\Items(type: 'object', required: ['title'], properties: [new OA\Property(property: 'title', type: 'string'), new OA\Property(property: 'description', type: 'string')])),
                         new OA\Property(property: 'educations', type: 'array', items: new OA\Items(type: 'object', required: ['title'], properties: [new OA\Property(property: 'title', type: 'string'), new OA\Property(property: 'description', type: 'string')])),
@@ -61,6 +60,7 @@ class ResumeCreateController
                         new OA\Property(property: 'references', type: 'array', items: new OA\Items(type: 'object', required: ['title'], properties: [new OA\Property(property: 'title', type: 'string'), new OA\Property(property: 'description', type: 'string')])),
                         new OA\Property(property: 'hobbies', type: 'array', items: new OA\Items(type: 'object', required: ['title'], properties: [new OA\Property(property: 'title', type: 'string'), new OA\Property(property: 'description', type: 'string')])),
                     ],
+                    type: 'object',
                     example: [
                         'experiences' => [['title' => 'Backend Developer', 'description' => 'Symfony API']],
                         'skills' => [['title' => 'PHP', 'description' => '8.x']],
@@ -70,7 +70,6 @@ class ResumeCreateController
             new OA\MediaType(
                 mediaType: 'multipart/form-data',
                 schema: new OA\Schema(
-                    type: 'object',
                     properties: [
                         new OA\Property(property: 'document', type: 'string', format: 'binary', description: 'Fichier CV PDF.'),
                         new OA\Property(property: 'experiences', type: 'string', description: 'JSON stringifié: [{"title":"...","description":"..."}]'),
@@ -82,6 +81,7 @@ class ResumeCreateController
                         new OA\Property(property: 'references', type: 'string', description: 'JSON stringifié'),
                         new OA\Property(property: 'hobbies', type: 'string', description: 'JSON stringifié'),
                     ],
+                    type: 'object',
                 ),
             ),
         ],
@@ -90,11 +90,11 @@ class ResumeCreateController
         response: 201,
         description: 'Resume created',
         content: new OA\JsonContent(
-            type: 'object',
             properties: [
                 new OA\Property(property: 'id', type: 'string', format: 'uuid'),
                 new OA\Property(property: 'documentUrl', type: 'string', nullable: true),
             ],
+            type: 'object',
             example: [
                 'id' => '0195f9b4-7c29-7dd2-89f6-2f7d3ef2e9aa',
                 'documentUrl' => 'https://localhost/uploads/resumes/0af6fe1514bdbce22f637d970a6e6042.pdf',
@@ -192,12 +192,12 @@ class ResumeCreateController
 
 #[OA\Schema(
     schema: 'RecruitResumeSectionInput',
-    type: 'object',
     required: ['title'],
     properties: [
         new OA\Property(property: 'title', type: 'string', example: 'Backend Developer'),
         new OA\Property(property: 'description', type: 'string', example: 'Symfony / API Platform'),
     ],
+    type: 'object',
 )]
 final class RecruitResumeSectionInputSchema
 {
