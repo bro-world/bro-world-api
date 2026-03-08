@@ -4,42 +4,40 @@ declare(strict_types=1);
 
 namespace App\Recruit\Application\Service;
 
-use Symfony\Component\Filesystem\Filesystem;
+use App\Media\Application\Service\MediaUploaderService;
+use App\Media\Application\Service\MediaUploadValidationPolicy;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-use function bin2hex;
-use function random_bytes;
 use function str_contains;
 use function strtolower;
 
 class ResumeDocumentUploaderService
 {
-    public function __construct(
-        private readonly Filesystem $filesystem,
-        private readonly string $projectDir,
-    ) {
+    public function __construct(private readonly MediaUploaderService $mediaUploaderService)
+    {
     }
 
     public function upload(Request $request, UploadedFile $document, string $relativeDirectory): string
     {
-        if (!$document->isValid()) {
-            throw new HttpException(Response::HTTP_BAD_REQUEST, 'Invalid uploaded file.');
-        }
-
         if (!$this->isPdfFile($document)) {
             throw new HttpException(Response::HTTP_BAD_REQUEST, 'Uploaded file must be a PDF.');
         }
 
-        $fileName = bin2hex(random_bytes(16)) . '.pdf';
-        $targetDirectory = $this->projectDir . '/public' . $relativeDirectory;
+        $uploaded = $this->mediaUploaderService->upload(
+            $request,
+            [$document],
+            $relativeDirectory,
+            new MediaUploadValidationPolicy(
+                maxSizeInBytes: 10 * 1024 * 1024,
+                allowedMimeTypes: ['application/pdf'],
+                allowedExtensions: ['pdf'],
+            ),
+        );
 
-        $this->filesystem->mkdir($targetDirectory);
-        $document->move($targetDirectory, $fileName);
-
-        return $request->getSchemeAndHttpHost() . $relativeDirectory . '/' . $fileName;
+        return $uploaded[0]['url'];
     }
 
     private function isPdfFile(UploadedFile $document): bool
