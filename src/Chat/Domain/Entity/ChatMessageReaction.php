@@ -8,18 +8,19 @@ use App\General\Domain\Entity\Interfaces\EntityInterface;
 use App\General\Domain\Entity\Traits\Timestampable;
 use App\General\Domain\Entity\Traits\Uuid;
 use App\User\Domain\Entity\User;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Override;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Ramsey\Uuid\UuidInterface;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'conversation_participant')]
-#[ORM\UniqueConstraint(name: 'uq_conversation_participant_conversation_user', columns: ['conversation_id', 'user_id'])]
-#[ORM\Index(name: 'idx_conversation_participant_conversation_id', columns: ['conversation_id'])]
-#[ORM\Index(name: 'idx_conversation_participant_user_id', columns: ['user_id'])]
+#[ORM\Table(name: 'chat_message_reaction')]
+#[ORM\UniqueConstraint(name: 'uq_chat_message_reaction_message_user_type', columns: ['message_id', 'user_id', 'reaction'])]
+#[ORM\Index(name: 'idx_chat_message_reaction_message_id', columns: ['message_id'])]
+#[ORM\Index(name: 'idx_chat_message_reaction_user_id', columns: ['user_id'])]
 #[ORM\ChangeTrackingPolicy('DEFERRED_EXPLICIT')]
-class ConversationParticipant implements EntityInterface
+class ChatMessageReaction implements EntityInterface
 {
     use Timestampable;
     use Uuid;
@@ -28,13 +29,16 @@ class ConversationParticipant implements EntityInterface
     #[ORM\Column(name: 'id', type: UuidBinaryOrderedTimeType::NAME, unique: true)]
     private UuidInterface $id;
 
-    #[ORM\ManyToOne(targetEntity: Conversation::class, inversedBy: 'participants')]
-    #[ORM\JoinColumn(name: 'conversation_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
-    private Conversation $conversation;
+    #[ORM\ManyToOne(targetEntity: ChatMessage::class, inversedBy: 'reactions')]
+    #[ORM\JoinColumn(name: 'message_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    private ChatMessage $message;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private User $user;
+
+    #[ORM\Column(name: 'reaction', type: Types::STRING, length: 32)]
+    private string $reaction = '';
 
     public function __construct()
     {
@@ -47,14 +51,14 @@ class ConversationParticipant implements EntityInterface
         return $this->id->toString();
     }
 
-    public function getConversation(): Conversation
+    public function getMessage(): ChatMessage
     {
-        return $this->conversation;
+        return $this->message;
     }
 
-    public function setConversation(Conversation $conversation): self
+    public function setMessage(ChatMessage $message): self
     {
-        $this->conversation = $conversation;
+        $this->message = $message;
 
         return $this;
     }
@@ -67,6 +71,18 @@ class ConversationParticipant implements EntityInterface
     public function setUser(User $user): self
     {
         $this->user = $user;
+
+        return $this;
+    }
+
+    public function getReaction(): string
+    {
+        return $this->reaction;
+    }
+
+    public function setReaction(string $reaction): self
+    {
+        $this->reaction = $reaction;
 
         return $this;
     }
