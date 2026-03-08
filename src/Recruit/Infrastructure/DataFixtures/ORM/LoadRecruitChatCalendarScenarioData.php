@@ -55,6 +55,7 @@ final class LoadRecruitChatCalendarScenarioData extends Fixture implements Order
 
             if ($application->getTitle() === 'Recruit Talent Hub') {
                 $this->createDiscussionConversationScenario($manager, $application, $chat);
+                $this->createJohnRootConversationScenario($manager, $application, $chat, $calendar);
             }
         }
 
@@ -167,6 +168,54 @@ final class LoadRecruitChatCalendarScenarioData extends Fixture implements Order
         $manager->persist($event);
     }
 
+    private function ensureJohnRootEvent(ObjectManager $manager, Calendar $calendar, User $johnRoot): Event
+    {
+        $existing = $manager->getRepository(Event::class)->findOneBy([
+            'calendar' => $calendar,
+            'title' => 'Recruit event - john-root scenario',
+        ]);
+
+        if ($existing instanceof Event) {
+            return $existing;
+        }
+
+        $startAt = (new DateTimeImmutable())->modify('+3 day');
+
+        $event = (new Event())
+            ->setTitle('Recruit event - john-root scenario')
+            ->setDescription('Event dédié au scénario fixtures john-root pour tests fonctionnels.')
+            ->setLocation('Recruit HQ - Room Root')
+            ->setStartAt($startAt)
+            ->setEndAt($startAt->modify('+45 minutes'))
+            ->setTimezone('Europe/Paris')
+            ->setOrganizerName('John Root')
+            ->setOrganizerEmail('john.root@example.com')
+            ->setAttendees([
+                [
+                    'name' => 'John Root',
+                    'email' => 'john.root@example.com',
+                ],
+            ])
+            ->setReminders([
+                [
+                    'method' => 'email',
+                    'minutesBefore' => 15,
+                ],
+            ])
+            ->setMetadata([
+                'source' => 'fixtures',
+                'scenario' => 'john-root',
+            ])
+            ->setStatus(EventStatus::CONFIRMED)
+            ->setVisibility(EventVisibility::PRIVATE)
+            ->setUser($johnRoot)
+            ->setCalendar($calendar);
+
+        $manager->persist($event);
+
+        return $event;
+    }
+
     private function createDiscussionConversationScenario(ObjectManager $manager, PlatformApplication $application, Chat $chat): void
     {
         /** @var RecruitApplication $discussionApplication */
@@ -247,6 +296,92 @@ final class LoadRecruitChatCalendarScenarioData extends Fixture implements Order
             ->setReaction('👍');
 
         $manager->persist($reaction);
+    }
+
+    private function createJohnRootConversationScenario(
+        ObjectManager $manager,
+        PlatformApplication $application,
+        Chat $chat,
+        Calendar $calendar,
+    ): void {
+        /** @var RecruitApplication $johnRootRecruitApplication */
+        $johnRootRecruitApplication = $this->getReference('Recruit-Application-john-root-on-other-owner-waiting', RecruitApplication::class);
+
+        /** @var User $johnRoot */
+        $johnRoot = $this->getReference('User-john-root', User::class);
+
+        $otherOwner = $johnRootRecruitApplication->getJob()->getOwner();
+        if (!$otherOwner instanceof User) {
+            return;
+        }
+
+        $conversation = $manager->getRepository(Conversation::class)->findOneBy([
+            'chat' => $chat,
+            'applicationSlug' => $application->getSlug() . '-john-root-scenario',
+        ]);
+
+        if (!$conversation instanceof Conversation) {
+            $conversation = (new Conversation())
+                ->setChat($chat)
+                ->setApplicationSlug($application->getSlug() . '-john-root-scenario');
+
+            $manager->persist($conversation);
+        }
+
+        $this->ensureParticipant($manager, $conversation, $johnRoot);
+        if ($johnRoot->getId() !== $otherOwner->getId()) {
+            $this->ensureParticipant($manager, $conversation, $otherOwner);
+        }
+
+        $johnRootMessage = $manager->getRepository(ChatMessage::class)->findOneBy([
+            'conversation' => $conversation,
+            'content' => 'Bonjour, je confirme mon intérêt pour ce poste et mes disponibilités.',
+        ]);
+
+        if (!$johnRootMessage instanceof ChatMessage) {
+            $johnRootMessage = (new ChatMessage())
+                ->setConversation($conversation)
+                ->setSender($johnRoot)
+                ->setContent('Bonjour, je confirme mon intérêt pour ce poste et mes disponibilités.')
+                ->setAttachments([])
+                ->setReadAt(new DateTimeImmutable());
+            $manager->persist($johnRootMessage);
+        }
+
+        $ownerReplyMessage = $manager->getRepository(ChatMessage::class)->findOneBy([
+            'conversation' => $conversation,
+            'content' => 'Parfait, merci John. Je reviens vers vous rapidement pour la suite.',
+        ]);
+
+        if (!$ownerReplyMessage instanceof ChatMessage) {
+            $ownerReplyMessage = (new ChatMessage())
+                ->setConversation($conversation)
+                ->setSender($otherOwner)
+                ->setContent('Parfait, merci John. Je reviens vers vous rapidement pour la suite.')
+                ->setAttachments([]);
+            $manager->persist($ownerReplyMessage);
+        }
+
+        $reaction = $manager->getRepository(ChatMessageReaction::class)->findOneBy([
+            'message' => $ownerReplyMessage,
+            'user' => $johnRoot,
+            'reaction' => '✅',
+        ]);
+
+        if (!$reaction instanceof ChatMessageReaction) {
+            $reaction = (new ChatMessageReaction())
+                ->setMessage($ownerReplyMessage)
+                ->setUser($johnRoot)
+                ->setReaction('✅');
+            $manager->persist($reaction);
+        }
+
+        $event = $this->ensureJohnRootEvent($manager, $calendar, $johnRoot);
+
+        $this->addReference('Recruit-Conversation-john-root-scenario', $conversation);
+        $this->addReference('Recruit-Message-john-root-scenario-from-john-root', $johnRootMessage);
+        $this->addReference('Recruit-Message-john-root-scenario-from-owner', $ownerReplyMessage);
+        $this->addReference('Recruit-Event-john-root-scenario', $event);
     }
 
     private function ensureParticipant(ObjectManager $manager, Conversation $conversation, User $user): void
