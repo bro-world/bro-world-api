@@ -9,9 +9,9 @@ use App\Recruit\Domain\Entity\Recruit;
 use App\Recruit\Domain\Enum\ContractType;
 use App\Recruit\Domain\Enum\Schedule;
 use App\Recruit\Domain\Enum\WorkMode;
+use App\Recruit\Domain\Repository\Interfaces\RecruitRepositoryInterface;
 use App\Recruit\Infrastructure\Repository\JobRepository;
 use App\User\Domain\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,7 +31,7 @@ use function trim;
 class JobCreateFromApplicationController
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
+        private readonly RecruitRepositoryInterface $recruitRepository,
         private readonly JobRepository $jobRepository,
     ) {
     }
@@ -203,15 +203,7 @@ class JobCreateFromApplicationController
 
     private function resolveRecruitByApplicationSlug(string $applicationSlug): Recruit
     {
-        $recruit = $this->entityManager
-            ->getRepository(Recruit::class)
-            ->createQueryBuilder('recruit')
-            ->innerJoin('recruit.application', 'application')
-            ->addSelect('application')
-            ->where('application.slug = :applicationSlug')
-            ->setParameter('applicationSlug', $applicationSlug)
-            ->getQuery()
-            ->getOneOrNullResult();
+        $recruit = $this->recruitRepository->findOneByApplicationSlug($applicationSlug);
 
         if (!$recruit instanceof Recruit) {
             throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Unknown "applicationSlug".');
