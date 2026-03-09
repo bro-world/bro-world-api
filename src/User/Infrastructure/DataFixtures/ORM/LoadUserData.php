@@ -36,6 +36,10 @@ final class LoadUserData extends Fixture implements OrderedFixtureInterface
         'john-user' => '20000000-0000-1000-8000-000000000004',
         'john-admin' => '20000000-0000-1000-8000-000000000005',
         'john-root' => '20000000-0000-1000-8000-000000000006',
+        'alice' => '20000000-0000-1000-8000-000000000007',
+        'bob' => '20000000-0000-1000-8000-000000000008',
+        'charlie' => '20000000-0000-1000-8000-000000000009',
+        'diana' => '20000000-0000-1000-8000-00000000000a',
     ];
 
     public function __construct(
@@ -59,6 +63,9 @@ final class LoadUserData extends Fixture implements OrderedFixtureInterface
                 ...$this->rolesService->getRoles(),
             ],
         );
+
+        $this->createAdditionalUsers($manager);
+
         // Flush database changes
         $manager->flush();
     }
@@ -113,5 +120,54 @@ final class LoadUserData extends Fixture implements OrderedFixtureInterface
         $this->addReference('User-' . $entity->getUsername(), $entity);
 
         return true;
+    }
+
+    /**
+     * @throws Throwable
+     */
+    private function createAdditionalUsers(ObjectManager $manager): void
+    {
+        $users = [
+            [
+                'username' => 'alice',
+                'firstName' => 'Alice',
+                'lastName' => 'Martin',
+            ],
+            [
+                'username' => 'bob',
+                'firstName' => 'Bob',
+                'lastName' => 'Durand',
+            ],
+            [
+                'username' => 'charlie',
+                'firstName' => 'Charlie',
+                'lastName' => 'Bernard',
+            ],
+            [
+                'username' => 'diana',
+                'firstName' => 'Diana',
+                'lastName' => 'Moreau',
+            ],
+        ];
+
+        foreach ($users as $userData) {
+            $entity = new User()
+                ->setUsername($userData['username'])
+                ->setFirstName($userData['firstName'])
+                ->setLastName($userData['lastName'])
+                ->setEmail($userData['username'] . '@test.com')
+                ->setLanguage(Language::EN)
+                ->setLocale(Locale::EN)
+                ->setPlainPassword('password-' . $userData['username']);
+
+            PhpUnitUtil::setProperty(
+                'id',
+                UuidHelper::fromString(self::$uuids[$userData['username']]),
+                $entity
+            );
+
+            $manager->persist($entity);
+            $this->addReference('User-' . $entity->getUsername(), $entity);
+        }
     }
 }
