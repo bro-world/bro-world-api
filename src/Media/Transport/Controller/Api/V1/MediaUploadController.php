@@ -40,14 +40,51 @@ class MediaUploadController
                 type: 'object',
                 properties: [
                     new OA\Property(property: 'file', type: 'string', format: 'binary'),
-                    new OA\Property(property: 'files', type: 'array', items: new OA\Items(type: 'string', format: 'binary')),
+                    new OA\Property(property: 'files[]', type: 'array', items: new OA\Items(type: 'string', format: 'binary')),
                 ],
             ),
         ),
     )]
-    #[OA\Response(response: 201, description: 'Fichiers uploadés')]
+    #[OA\Response(
+        response: 201,
+        description: 'Fichiers uploadés',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(
+                    property: 'files',
+                    type: 'array',
+                    items: new OA\Items(
+                        type: 'object',
+                        properties: [
+                            new OA\Property(property: 'url', type: 'string', example: '/uploads/media/3fa85f64.jpg'),
+                            new OA\Property(property: 'originalName', type: 'string', example: 'document.pdf'),
+                            new OA\Property(property: 'mimeType', type: 'string', example: 'application/pdf'),
+                            new OA\Property(property: 'size', type: 'integer', example: 24576),
+                        ],
+                    ),
+                ),
+            ],
+            example: [
+                'files' => [
+                    [
+                        'url' => '/uploads/media/photo-1.jpg',
+                        'originalName' => 'photo-1.jpg',
+                        'mimeType' => 'image/jpeg',
+                        'size' => 125631,
+                    ],
+                    [
+                        'url' => '/uploads/media/cv.pdf',
+                        'originalName' => 'cv.pdf',
+                        'mimeType' => 'application/pdf',
+                        'size' => 84521,
+                    ],
+                ],
+            ],
+        ),
+    )]
     #[OA\Response(response: 400, description: 'Aucun fichier ou fichier invalide. Stratégie all-or-nothing: si un fichier est invalide, aucun n\'est enregistré.')]
     #[OA\Response(response: 401, description: 'Authentication required')]
+    #[OA\Response(response: 403, description: 'Access denied')]
     public function __invoke(Request $request): JsonResponse
     {
         $files = $this->extractFiles($request);
