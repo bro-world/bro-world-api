@@ -9,6 +9,7 @@ use App\General\Application\Message\EntityPatched;
 use App\General\Domain\Service\Interfaces\ElasticsearchServiceInterface;
 use App\Log\Infrastructure\Repository\LogLoginRepository;
 use App\User\Application\Security\SecurityUser;
+use App\Log\Domain\Entity\LogLogin;
 use App\User\Domain\Entity\Social;
 use App\User\Domain\Entity\User;
 use App\User\Domain\Entity\UserProfile;
@@ -55,10 +56,10 @@ readonly class UserMeService
             $qb = $this->logLoginRepository->createQueryBuilder('log')
                 ->andWhere('log.user = :user')
                 ->setParameter('user', $user)
-                ->orderBy('log.date', 'DESC')
+                ->orderBy('log.time', 'DESC')
                 ->setMaxResults(10);
 
-            return array_map(static function ($log): array {
+            return array_map(static function (LogLogin $log): array {
                 $device = $log->getDeviceName() ?? 'desktop';
                 $icon = $device === 'smartphone' ? 'mdi-cellphone' : 'mdi-desktop-classic';
 
@@ -118,14 +119,21 @@ readonly class UserMeService
         if (array_key_exists('phone', $payload)) { $profile->setPhone($this->nullableString($payload['phone'])); }
 
         if (array_key_exists('socials', $payload) && is_array($payload['socials'])) {
-            $user->getSocials()->clear();
+            foreach ($user->getSocials()->toArray() as $social) {
+                $user->removeSocial($social);
+                $this->entityManager->remove($social);
+            }
+
             foreach ($payload['socials'] as $socialData) {
                 if (!is_array($socialData) || !isset($socialData['provider'], $socialData['providerId'])) {
                     continue;
                 }
+
                 $social = new Social();
-                $social->setProvider((string) $socialData['provider']);
-                $social->setProviderId((string) $socialData['providerId']);
+                $social
+                    ->setProvider((string) $socialData['provider'])
+                    ->setProviderId((string) $socialData['providerId']);
+
                 $user->addSocial($social);
                 $this->entityManager->persist($social);
             }

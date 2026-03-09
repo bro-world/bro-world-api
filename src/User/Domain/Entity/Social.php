@@ -51,10 +51,39 @@ class Social implements EntityInterface
         return $this->id->toString();
     }
 
-    public function getUser(): User { return $this->user; }
-    public function setUser(User $user): self { $this->user = $user; return $this; }
-    public function getProvider(): string { return $this->provider; }
-    public function setProvider(string $provider): self { $this->provider = $provider; return $this; }
-    public function getProviderId(): string { return $this->providerId; }
-    public function setProviderId(string $providerId): self { $this->providerId = $providerId; return $this; }
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    public function setUser(User $user): self
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
+    public function getProvider(): string
+    {
+        return $this->provider;
+    }
+
+    public function setProvider(string $provider): self
+    {
+        $this->provider = $provider;
+
+        return $this;
+    }
+
+    public function getProviderId(): string
+    {
+        return $this->providerId;
+    }
+
+    public function setProviderId(string $providerId): self
+    {
+        $this->providerId = $providerId;
+
+        return $this;
+    }
 }

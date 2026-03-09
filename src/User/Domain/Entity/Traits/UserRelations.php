@@ -84,13 +84,13 @@ trait UserRelations
     ])]
     protected Collection | ArrayCollection $configurations;
 
-    #[ORM\OneToOne(targetEntity: UserProfile::class, mappedBy: 'user')]
+    #[ORM\OneToOne(targetEntity: UserProfile::class, mappedBy: 'user', cascade: ['persist', 'remove'], orphanRemoval: true)]
     protected ?UserProfile $profile = null;
 
     /**
      * @var Collection<int, Social>|ArrayCollection<int, Social>
      */
-    #[ORM\OneToMany(targetEntity: Social::class, mappedBy: 'user')]
+    #[ORM\OneToMany(targetEntity: Social::class, mappedBy: 'user', cascade: ['persist', 'remove'], orphanRemoval: true)]
     protected Collection | ArrayCollection $socials;
 
     /**
@@ -203,7 +203,9 @@ trait UserRelations
 
     public function removeSocial(Social $social): self
     {
-        $this->socials->removeElement($social);
+        if ($this->socials->contains($social)) {
+            $this->socials->removeElement($social);
+        }
 
         return $this;
     }

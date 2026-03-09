@@ -73,19 +73,82 @@ class UserProfile implements EntityInterface
     {
         $this->user = $user;
 
+        if ($user->getProfile() !== $this) {
+            $user->setProfile($this);
+        }
+
         return $this;
     }
 
-    public function getTitle(): ?string { return $this->title; }
-    public function setTitle(?string $title): self { $this->title = $title; return $this; }
-    public function getInformation(): ?string { return $this->information; }
-    public function setInformation(?string $information): self { $this->information = $information; return $this; }
-    public function getGender(): ?string { return $this->gender; }
-    public function setGender(?string $gender): self { $this->gender = $gender; return $this; }
-    public function getBirthday(): ?DateTimeImmutable { return $this->birthday; }
-    public function setBirthday(?DateTimeImmutable $birthday): self { $this->birthday = $birthday; return $this; }
-    public function getLocation(): ?string { return $this->location; }
-    public function setLocation(?string $location): self { $this->location = $location; return $this; }
-    public function getPhone(): ?string { return $this->phone; }
-    public function setPhone(?string $phone): self { $this->phone = $phone; return $this; }
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(?string $title): self
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    public function getInformation(): ?string
+    {
+        return $this->information;
+    }
+
+    public function setInformation(?string $information): self
+    {
+        $this->information = $information;
+
+        return $this;
+    }
+
+    public function getGender(): ?string
+    {
+        return $this->gender;
+    }
+
+    public function setGender(?string $gender): self
+    {
+        $this->gender = $gender;
+
+        return $this;
+    }
+
+    public function getBirthday(): ?DateTimeImmutable
+    {
+        return $this->birthday;
+    }
+
+    public function setBirthday(?DateTimeImmutable $birthday): self
+    {
+        $this->birthday = $birthday;
+
+        return $this;
+    }
+
+    public function getLocation(): ?string
+    {
+        return $this->location;
+    }
+
+    public function setLocation(?string $location): self
+    {
+        $this->location = $location;
+
+        return $this;
+    }
+
+    public function getPhone(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function setPhone(?string $phone): self
+    {
+        $this->phone = $phone;
+
+        return $this;
+    }
 }
