@@ -158,10 +158,15 @@ when@dev:
         App\Quiz\Infrastructure\DataFixtures\:
             resource: '../src/Quiz/Infrastructure/DataFixtures/*'
 
+        App\Notification\Infrastructure\DataFixtures\:
+            resource: '../src/Notification/Infrastructure/DataFixtures/*'
+
         App\Shop\Infrastructure\DataFixtures\:
             resource: '../src/Shop/Infrastructure/DataFixtures/*'
+
         App\Crm\Infrastructure\DataFixtures\:
             resource: '../src/Crm/Infrastructure/DataFixtures/*'
+
         App\School\Infrastructure\DataFixtures\:
             resource: '../src/School/Infrastructure/DataFixtures/*'
 

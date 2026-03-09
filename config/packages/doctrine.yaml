@@ -136,6 +136,12 @@ doctrine:
                         dir: '%kernel.project_dir%/src/School/Domain/Entity'
                         prefix: 'App\School\Domain\Entity'
                         alias: School
+                    Notification:
+                        type: attribute
+                        is_bundle: false
+                        dir: '%kernel.project_dir%/src/Notification/Domain/Entity'
+                        prefix: 'App\Notification\Domain\Entity'
+                        alias: Notification
                 dql:
                     datetime_functions:
                         datesub: DoctrineExtensions\Query\Mysql\DateSub

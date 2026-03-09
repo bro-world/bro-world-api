@@ -34,15 +34,14 @@ final readonly class NotificationController
 
     #[Route('/v1/notifications', methods: [Request::METHOD_GET])]
     #[OA\Get(summary: 'List notifications for the logged-in user.')]
-    #[OA\Parameter(name: 'limit', in: 'query', required: false, description: 'Max number of items to return (default: 50).', schema: new OA\Schema(type: 'integer', minimum: 1, example: 20))]
-    #[OA\Parameter(name: 'offset', in: 'query', required: false, description: 'Pagination offset (default: 0).', schema: new OA\Schema(type: 'integer', minimum: 0, example: 0))]
+    #[OA\Parameter(name: 'limit', description: 'Max number of items to return (default: 50).', in: 'query', required: false, schema: new OA\Schema(type: 'integer', minimum: 1, example: 20))]
+    #[OA\Parameter(name: 'offset', description: 'Pagination offset (default: 0).', in: 'query', required: false, schema: new OA\Schema(type: 'integer', minimum: 0, example: 0))]
     #[OA\Response(
         response: 200,
         description: 'Notifications list.',
         content: new OA\JsonContent(
             type: 'array',
             items: new OA\Items(
-                type: 'object',
                 properties: [
                     new OA\Property(property: 'id', type: 'string', format: 'uuid'),
                     new OA\Property(property: 'title', type: 'string', example: 'System maintenance'),
@@ -55,16 +54,17 @@ final readonly class NotificationController
                         oneOf: [
                             new OA\Schema(type: 'null', example: null),
                             new OA\Schema(
-                                type: 'object',
                                 properties: [
                                     new OA\Property(property: 'firstName', type: 'string', example: 'John'),
                                     new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
                                     new OA\Property(property: 'photo', type: 'string', nullable: true, example: '/uploads/profile/avatar.jpg'),
                                 ],
+                                type: 'object',
                             ),
                         ],
                     ),
                 ],
+                type: 'object',
             ),
             example: [
                 [
@@ -105,7 +105,7 @@ final readonly class NotificationController
 
     #[Route('/v1/notifications/{id}', methods: [Request::METHOD_GET])]
     #[OA\Get(summary: 'Get a notification detail by id.')]
-    #[OA\Parameter(name: 'id', in: 'path', required: true, description: 'Notification UUID.', schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Parameter(name: 'id', description: 'Notification UUID.', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Response(response: 200, description: 'Notification detail.')]
     #[OA\Response(response: 401, description: 'Authentication required.')]
     #[OA\Response(response: 403, description: 'You cannot access this notification.')]
@@ -135,8 +135,8 @@ final readonly class NotificationController
                 new OA\Property(property: 'description', type: 'string', example: 'A maintenance window is planned for tonight.'),
                 new OA\Property(property: 'type', type: 'string', example: 'system'),
                 new OA\Property(property: 'toId', type: 'string', format: 'uuid', example: '20000000-0000-1000-8000-000000000004'),
-                new OA\Property(property: 'recipientId', type: 'string', format: 'uuid', nullable: true, example: null),
-                new OA\Property(property: 'fromId', type: 'string', format: 'uuid', nullable: true, example: '20000000-0000-1000-8000-000000000006'),
+                new OA\Property(property: 'recipientId', type: 'string', format: 'uuid', example: null, nullable: true),
+                new OA\Property(property: 'fromId', type: 'string', format: 'uuid', example: '20000000-0000-1000-8000-000000000006', nullable: true),
             ],
             example: [
                 'title' => 'Profile warning',

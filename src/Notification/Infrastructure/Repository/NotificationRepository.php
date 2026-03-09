@@ -8,6 +8,7 @@ use App\General\Infrastructure\Repository\BaseRepository;
 use App\Notification\Domain\Entity\Notification;
 use App\User\Domain\Entity\User;
 use Doctrine\Persistence\ManagerRegistry;
+use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 
 /**
  * @method Notification|null find(string $id, $lockMode = null, ?int $lockVersion = null, ?string $entityManagerName = null)
@@ -24,7 +25,7 @@ class NotificationRepository extends BaseRepository
     {
         $result = $this->createQueryBuilder('n')
             ->andWhere('n.recipient = :recipient')
-            ->setParameter('recipient', $user)
+            ->setParameter('recipient', $user->getId(), UuidBinaryOrderedTimeType::NAME)
             ->orderBy('n.createdAt', 'DESC')
             ->setFirstResult($offset)
             ->setMaxResults($limit)
