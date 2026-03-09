@@ -8,6 +8,7 @@ use App\User\Domain\Entity\User;
 use App\User\Domain\Entity\UserFriendRelation;
 use App\User\Domain\Enum\FriendStatus;
 use Doctrine\ORM\EntityManagerInterface;
+use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -123,7 +124,7 @@ readonly class UserFriendService
             ->join('r.addressee', 'addressee')
             ->where('(r.requester = :me OR r.addressee = :me)')
             ->andWhere('r.status = :status')
-            ->setParameter('me', $loggedInUser)
+            ->setParameter('me', $loggedInUser->getId(), UuidBinaryOrderedTimeType::NAME)
             ->setParameter('status', FriendStatus::ACCEPTED->value);
 
         /** @var array<int,UserFriendRelation> $relations */
@@ -139,6 +140,7 @@ readonly class UserFriendService
                 'username' => $friend->getUsername(),
                 'firstName' => $friend->getFirstName(),
                 'lastName' => $friend->getLastName(),
+                'photo' => $relation->getRequester()->getPhoto(),
             ];
         }, $relations);
     }
@@ -152,7 +154,7 @@ readonly class UserFriendService
             ->join('r.requester', 'requester')
             ->where('r.addressee = :me')
             ->andWhere('r.status = :status')
-            ->setParameter('me', $loggedInUser)
+            ->setParameter('me', $loggedInUser->getId(), UuidBinaryOrderedTimeType::NAME)
             ->setParameter('status', FriendStatus::PENDING->value);
 
         /** @var array<int,UserFriendRelation> $relations */
@@ -163,6 +165,7 @@ readonly class UserFriendService
             'username' => $relation->getRequester()->getUsername(),
             'firstName' => $relation->getRequester()->getFirstName(),
             'lastName' => $relation->getRequester()->getLastName(),
+            'photo' => $relation->getRequester()->getPhoto(),
         ], $relations);
     }
 
