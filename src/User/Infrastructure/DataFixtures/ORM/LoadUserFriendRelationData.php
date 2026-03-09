@@ -9,12 +9,11 @@ use App\User\Domain\Entity\UserFriendRelation;
 use App\User\Domain\Enum\FriendStatus;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
-use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Override;
 use Throwable;
 
-final class LoadUserFriendRelationData extends Fixture implements OrderedFixtureInterface, DependentFixtureInterface
+final class LoadUserFriendRelationData extends Fixture implements DependentFixtureInterface
 {
     /**
      * @throws Throwable
@@ -50,12 +49,6 @@ final class LoadUserFriendRelationData extends Fixture implements OrderedFixture
         $manager->persist($accepted);
         $manager->persist($blocked);
         $manager->flush();
-    }
-
-    #[Override]
-    public function getOrder(): int
-    {
-        return 4;
     }
 
     /** @return array<int, class-string> */
