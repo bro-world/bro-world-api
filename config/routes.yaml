@@ -129,11 +129,19 @@ media-controllers:
     type: attribute
     prefix: /api
     defaults:
-        _format: json    
+        _format: json
 notification-controllers:
     resource:
         path: ../src/Notification/Transport/Controller/Api/
         namespace: App\Notification\Transport\Controller\Api
+    type: attribute
+    prefix: /api
+    defaults:
+        _format: json
+page-controllers:
+    resource:
+        path: ../src/Page/Transport/Controller/Api/
+        namespace: App\Page\Transport\Controller\Api
     type: attribute
     prefix: /api
     defaults:

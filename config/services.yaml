@@ -170,6 +170,9 @@ when@dev:
         App\School\Infrastructure\DataFixtures\:
             resource: '../src/School/Infrastructure/DataFixtures/*'
 
+        App\Page\Infrastructure\DataFixtures\:
+            resource: '../src/Page/Infrastructure/DataFixtures/*'
+
         App\Tests\TestCase\:
             resource: '../tests/TestCase/*'
 
