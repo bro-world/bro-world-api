@@ -11,6 +11,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
 final readonly class BlogReadController
@@ -18,7 +20,7 @@ final readonly class BlogReadController
     public function __construct(private BlogReadService $blogReadService) {}
 
     #[Route('/v1/blogs/general', methods: [Request::METHOD_GET])]
-    #[OA\Get(security: [])]
+    #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
     #[OA\Tag(name: 'Blog')]
     #[OA\Response(
         response: 200,

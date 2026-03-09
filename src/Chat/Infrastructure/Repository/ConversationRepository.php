@@ -47,7 +47,7 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
         return $this->applyListFilters($this->getConversationQueryBuilder(), $filters, $esIds)
             ->innerJoin('conversation.participants', 'participant')
             ->andWhere('participant.user = :user')
-            ->setParameter('user', $user)
+            ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
             ->orderBy('conversation.createdAt', 'DESC')
             ->setFirstResult($offset)
             ->setMaxResults($limit)
@@ -60,7 +60,7 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
         return (int) $this->applyListFilters($this->getConversationCountQueryBuilder(), $filters, $esIds)
             ->innerJoin('conversation.participants', 'participant')
             ->andWhere('participant.user = :user')
-            ->setParameter('user', $user)
+            ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
             ->getQuery()
             ->getSingleScalarResult();
     }
@@ -97,7 +97,7 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
             ->andWhere('chat.id = :chatId')
             ->andWhere('participant.user = :user')
             ->setParameter('chatId', $chatId, UuidBinaryOrderedTimeType::NAME)
-            ->setParameter('user', $user)
+            ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
             ->orderBy('conversation.createdAt', 'DESC')
             ->setFirstResult($offset)
             ->setMaxResults($limit)
@@ -112,7 +112,7 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
             ->andWhere('chat.id = :chatId')
             ->andWhere('participant.user = :user')
             ->setParameter('chatId', $chatId, UuidBinaryOrderedTimeType::NAME)
-            ->setParameter('user', $user)
+            ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
             ->getQuery()
             ->getSingleScalarResult();
     }
