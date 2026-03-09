@@ -64,7 +64,82 @@ final class LoadRecruitChatCalendarScenarioData extends Fixture implements Order
             }
         }
 
+        $this->createJohnRootPrivateDirectMessageScenarios($manager);
+
         $manager->flush();
+    }
+
+    private function createJohnRootPrivateDirectMessageScenarios(ObjectManager $manager): void
+    {
+        /** @var User $johnRoot */
+        $johnRoot = $this->getReference('User-john-root', User::class);
+        /** @var User $johnAdmin */
+        $johnAdmin = $this->getReference('User-john-admin', User::class);
+        /** @var User $johnUser */
+        $johnUser = $this->getReference('User-john-user', User::class);
+        /** @var User $johnApi */
+        $johnApi = $this->getReference('User-john-api', User::class);
+
+        $privateConversationSetups = [
+            [
+                'application' => $this->getReference('Application-crm-pipeline-pro', PlatformApplication::class),
+                'partner' => $johnAdmin,
+                'firstMessage' => 'Hello John Admin, on peut échanger en privé sur les prochaines étapes ?',
+                'replyMessage' => 'Oui, je te confirme le plan et je garde cette conversation en direct.',
+                'rootReaction' => '🤝',
+                'partnerReaction' => '✅',
+            ],
+            [
+                'application' => $this->getReference('Application-shop-orders-watch', PlatformApplication::class),
+                'partner' => $johnUser,
+                'firstMessage' => 'Salut John User, je te partage ici les points sensibles côté commandes.',
+                'replyMessage' => 'Parfait, je m’en occupe et je te fais un retour rapidement.',
+                'rootReaction' => '👍',
+                'partnerReaction' => '👀',
+            ],
+            [
+                'application' => $this->getReference('Application-school-course-flow', PlatformApplication::class),
+                'partner' => $johnApi,
+                'firstMessage' => 'Hello John API, on valide ensemble la synchro de ce soir en privé ?',
+                'replyMessage' => 'Oui, je lance la synchro et je confirme dès que c’est terminé.',
+                'rootReaction' => '🚀',
+                'partnerReaction' => '👌',
+            ],
+        ];
+
+        foreach ($privateConversationSetups as $index => $setup) {
+            /** @var PlatformApplication $application */
+            $application = $setup['application'];
+            /** @var User $partner */
+            $partner = $setup['partner'];
+
+            $chat = $this->ensureChat($manager, $application);
+            $conversation = $this->ensureConversation($manager, $chat);
+
+            $this->ensureParticipant($manager, $conversation, $johnRoot);
+            $this->ensureParticipant($manager, $conversation, $partner);
+
+            $firstMessage = $this->ensureMessage(
+                $manager,
+                $conversation,
+                $johnRoot,
+                $setup['firstMessage'],
+                []
+            );
+
+            $replyMessage = $this->ensureMessage(
+                $manager,
+                $conversation,
+                $partner,
+                $setup['replyMessage'],
+                []
+            );
+
+            $this->ensureReaction($manager, $firstMessage, $partner, $setup['partnerReaction']);
+            $this->ensureReaction($manager, $replyMessage, $johnRoot, $setup['rootReaction']);
+
+            $this->addReference('Recruit-Conversation-john-root-private-' . ($index + 1), $conversation);
+        }
     }
 
     private function ensurePluginAttached(ObjectManager $manager, PlatformApplication $application, Plugin $plugin): void
