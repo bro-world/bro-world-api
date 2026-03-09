@@ -46,11 +46,11 @@ final readonly class BlogReadController
             ]],
         ]),
     )]
-    public function general(Request $request): JsonResponse
+    public function general(Request $request, User $loggedInUser): JsonResponse
     {
         $user = $this->getCurrentUserFromRequest($request);
 
-        return new JsonResponse($this->blogReadService->getGeneralBlogWithTree($user));
+        return new JsonResponse($this->blogReadService->getGeneralBlogWithTree($loggedInUser));
     }
 
     #[Route('/v1/blogs/application/{applicationSlug}', methods: [Request::METHOD_GET])]
