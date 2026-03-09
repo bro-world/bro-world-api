@@ -33,6 +33,66 @@ final readonly class NotificationController
     ) {}
 
     #[Route('/v1/notifications', methods: [Request::METHOD_GET])]
+    #[OA\Get(summary: 'List notifications for the logged-in user.')]
+    #[OA\Parameter(name: 'limit', in: 'query', required: false, description: 'Max number of items to return (default: 50).', schema: new OA\Schema(type: 'integer', minimum: 1, example: 20))]
+    #[OA\Parameter(name: 'offset', in: 'query', required: false, description: 'Pagination offset (default: 0).', schema: new OA\Schema(type: 'integer', minimum: 0, example: 0))]
+    #[OA\Response(
+        response: 200,
+        description: 'Notifications list.',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(
+                type: 'object',
+                properties: [
+                    new OA\Property(property: 'id', type: 'string', format: 'uuid'),
+                    new OA\Property(property: 'title', type: 'string', example: 'System maintenance'),
+                    new OA\Property(property: 'description', type: 'string', example: 'A maintenance window is planned for tonight.'),
+                    new OA\Property(property: 'type', type: 'string', example: 'system'),
+                    new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
+                    new OA\Property(
+                        property: 'from',
+                        nullable: true,
+                        oneOf: [
+                            new OA\Schema(type: 'null', example: null),
+                            new OA\Schema(
+                                type: 'object',
+                                properties: [
+                                    new OA\Property(property: 'firstName', type: 'string', example: 'John'),
+                                    new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
+                                    new OA\Property(property: 'photo', type: 'string', nullable: true, example: '/uploads/profile/avatar.jpg'),
+                                ],
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+            example: [
+                [
+                    'id' => '70000000-0000-1000-8000-000000000001',
+                    'title' => 'System maintenance',
+                    'description' => 'A maintenance window is planned for tonight.',
+                    'type' => 'system',
+                    'createdAt' => '2026-03-10T10:00:00+00:00',
+                    'from' => null,
+                ],
+                [
+                    'id' => '70000000-0000-1000-8000-000000000002',
+                    'title' => 'Profile warning',
+                    'description' => 'Your profile is missing a required document.',
+                    'type' => 'warning',
+                    'createdAt' => '2026-03-10T10:05:00+00:00',
+                    'from' => [
+                        'firstName' => 'John',
+                        'lastName' => 'Doe',
+                        'photo' => '/uploads/profile/avatar.jpg',
+                    ],
+                ],
+            ],
+        ),
+    )]
+    #[OA\Response(response: 400, description: 'Invalid query parameters.')]
+    #[OA\Response(response: 401, description: 'Authentication required.')]
+    #[OA\Response(response: 403, description: 'Access denied.')]
     public function list(Request $request, User $loggedInUser): JsonResponse
     {
         $limit = max(1, (int) $request->query->get('limit', 50));
@@ -44,6 +104,12 @@ final readonly class NotificationController
     }
 
     #[Route('/v1/notifications/{id}', methods: [Request::METHOD_GET])]
+    #[OA\Get(summary: 'Get a notification detail by id.')]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, description: 'Notification UUID.', schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Response(response: 200, description: 'Notification detail.')]
+    #[OA\Response(response: 401, description: 'Authentication required.')]
+    #[OA\Response(response: 403, description: 'You cannot access this notification.')]
+    #[OA\Response(response: 404, description: 'Notification not found.')]
     public function detail(string $id, User $loggedInUser): JsonResponse
     {
         $notification = $this->notificationRepository->find($id);
@@ -59,6 +125,33 @@ final readonly class NotificationController
     }
 
     #[Route('/v1/notifications', methods: [Request::METHOD_POST])]
+    #[OA\Post(summary: 'Create a notification.')]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['title', 'type', 'toId'],
+            properties: [
+                new OA\Property(property: 'title', type: 'string', example: 'System maintenance'),
+                new OA\Property(property: 'description', type: 'string', example: 'A maintenance window is planned for tonight.'),
+                new OA\Property(property: 'type', type: 'string', example: 'system'),
+                new OA\Property(property: 'toId', type: 'string', format: 'uuid', example: '20000000-0000-1000-8000-000000000004'),
+                new OA\Property(property: 'recipientId', type: 'string', format: 'uuid', nullable: true, example: null),
+                new OA\Property(property: 'fromId', type: 'string', format: 'uuid', nullable: true, example: '20000000-0000-1000-8000-000000000006'),
+            ],
+            example: [
+                'title' => 'Profile warning',
+                'description' => 'Your profile is missing a required document.',
+                'type' => 'warning',
+                'toId' => '20000000-0000-1000-8000-000000000005',
+                'fromId' => '20000000-0000-1000-8000-000000000006',
+            ],
+        ),
+    )]
+    #[OA\Response(response: 201, description: 'Notification created.')]
+    #[OA\Response(response: 400, description: 'Validation error or unknown users.')]
+    #[OA\Response(response: 401, description: 'Authentication required.')]
+    #[OA\Response(response: 403, description: 'Access denied.')]
+    #[OA\Response(response: 404, description: 'Related resource not found.')]
     public function create(Request $request): JsonResponse
     {
         $payload = $request->toArray();

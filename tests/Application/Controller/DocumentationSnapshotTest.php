@@ -34,6 +34,9 @@ class DocumentationSnapshotTest extends WebTestCase
             '/v1/recruit/company' => ['get', 'post'],
             '/v1/calendar/private/events' => ['get', 'post'],
             '/v1/chat/private/messages/{messageId}' => ['patch', 'delete'],
+            '/v1/notifications' => ['get', 'post'],
+            '/v1/notifications/{id}' => ['get'],
+            '/v1/media/upload' => ['post'],
         ];
 
         foreach ($snapshot as $path => $methods) {
