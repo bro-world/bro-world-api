@@ -117,6 +117,9 @@ readonly class UserMeService
         }
         if (array_key_exists('location', $payload)) { $profile->setLocation($this->nullableString($payload['location'])); }
         if (array_key_exists('phone', $payload)) { $profile->setPhone($this->nullableString($payload['phone'])); }
+        if (array_key_exists('firstName', $payload)) { $user->setFirstName($this->nullableString($payload['firstName'])); }
+        if (array_key_exists('lastName', $payload)) { $user->setLastName($this->nullableString($payload['lastName'])); }
+        if (array_key_exists('email', $payload)) { $user->setEmail($this->nullableString($payload['email'])); }
 
         if (array_key_exists('socials', $payload) && is_array($payload['socials'])) {
             foreach ($user->getSocials()->toArray() as $social) {
