@@ -128,8 +128,8 @@ class UserMessageMutationController
         ]);
     }
 
-    #[Route(path: '/v1/chat/private/conversations/{conversationId}/messages', methods: [Request::METHOD_POST])]
-    public function create(string $conversationId, Request $request, User $loggedInUser): JsonResponse
+    #[Route(path: '/v1/chat/private/conversations/{conversation}/messages', methods: [Request::METHOD_POST])]
+    public function create(Conversation $conversation, Request $request, User $loggedInUser): JsonResponse
     {
         $payload = $request->toArray();
         $content = $payload['content'] ?? null;
@@ -137,11 +137,11 @@ class UserMessageMutationController
             throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Field "content" is required.');
         }
 
-        $operationId = Uuid::v4()->toRfc4122();
+        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
         $this->messageService->sendMessage(new CreateMessageCommand(
             operationId: $operationId,
             actorUserId: $loggedInUser->getId(),
-            conversationId: $conversationId,
+            conversationId: $conversation->getId(),
             content: $content,
         ));
 
@@ -171,7 +171,7 @@ class UserMessageMutationController
             $read = $payload['read'];
         }
 
-        $operationId = Uuid::v4()->toRfc4122();
+        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
         $this->messageService->sendMessage(new PatchMessageCommand(
             operationId: $operationId,
             actorUserId: $loggedInUser->getId(),
@@ -186,7 +186,7 @@ class UserMessageMutationController
     #[Route(path: '/v1/chat/private/messages/{messageId}', methods: [Request::METHOD_DELETE])]
     public function delete(string $messageId, User $loggedInUser): JsonResponse
     {
-        $operationId = Uuid::v4()->toRfc4122();
+        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
         $this->messageService->sendMessage(new DeleteMessageCommand(
             operationId: $operationId,
             actorUserId: $loggedInUser->getId(),

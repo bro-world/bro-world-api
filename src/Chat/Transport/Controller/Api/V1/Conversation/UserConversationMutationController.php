@@ -53,7 +53,7 @@ class UserConversationMutationController
             throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Field "userId" is required.');
         }
 
-        $operationId = Uuid::v4()->toRfc4122();
+        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
         $this->messageService->sendMessage(new CreateConversationCommand(
             operationId: $operationId,
             actorUserId: $loggedInUser->getId(),
@@ -73,7 +73,7 @@ class UserConversationMutationController
             throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Field "userId" is required.');
         }
 
-        $operationId = Uuid::v4()->toRfc4122();
+        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
         $this->messageService->sendMessage(new PatchConversationCommand(
             operationId: $operationId,
             actorUserId: $loggedInUser->getId(),
@@ -87,7 +87,7 @@ class UserConversationMutationController
     #[Route(path: '/v1/chat/private/conversations/{conversationId}', methods: [Request::METHOD_DELETE])]
     public function delete(string $conversationId, User $loggedInUser): JsonResponse
     {
-        $operationId = Uuid::v4()->toRfc4122();
+        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
         $this->messageService->sendMessage(new DeleteConversationCommand(
             operationId: $operationId,
             actorUserId: $loggedInUser->getId(),

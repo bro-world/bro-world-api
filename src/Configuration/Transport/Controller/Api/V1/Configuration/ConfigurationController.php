@@ -115,7 +115,7 @@ class ConfigurationController extends Controller
             throw ValidationErrorFactory::badRequest('Invalid payload for configuration creation.');
         }
 
-        $operationId = Uuid::v4()->toRfc4122();
+        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
         $this->messageService->sendMessage(new CreateConfigurationCommand($operationId, $restDto));
 
         return new JsonResponse(['operationId' => $operationId], Response::HTTP_ACCEPTED);
@@ -135,7 +135,7 @@ class ConfigurationController extends Controller
             throw ValidationErrorFactory::badRequest('Invalid payload for configuration patch.');
         }
 
-        $operationId = Uuid::v4()->toRfc4122();
+        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
         $this->messageService->sendMessage(new PatchConfigurationCommand($operationId, $id, $restDto));
 
         return new JsonResponse(['operationId' => $operationId, 'id' => $id], Response::HTTP_ACCEPTED);
@@ -147,7 +147,7 @@ class ConfigurationController extends Controller
             throw ValidationErrorFactory::badRequest('Field "id" must be a valid UUID.');
         }
 
-        $operationId = Uuid::v4()->toRfc4122();
+        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
         $this->messageService->sendMessage(new DeleteConfigurationCommand($operationId, $id));
 
         return new JsonResponse(['operationId' => $operationId, 'id' => $id], Response::HTTP_ACCEPTED);

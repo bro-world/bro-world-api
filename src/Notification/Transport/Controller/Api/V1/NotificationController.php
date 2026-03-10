@@ -128,7 +128,7 @@ final readonly class NotificationController
     #[OA\Response(response: 403, description: 'Access denied.')]
     public function markAllAsRead(User $loggedInUser): JsonResponse
     {
-        $operationId = Uuid::v4()->toRfc4122();
+        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
         $this->messageService->sendMessage(new MarkAllNotificationsAsReadCommand(
             operationId: $operationId,
             actorUserId: $loggedInUser->getId(),
@@ -138,16 +138,15 @@ final readonly class NotificationController
     }
 
 
-    #[Route('/v1/notifications/{id}', methods: [Request::METHOD_GET])]
+    #[Route('/v1/notifications/{notification}', methods: [Request::METHOD_GET])]
     #[OA\Get(summary: 'Get a notification detail by id.')]
     #[OA\Parameter(name: 'id', description: 'Notification UUID.', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Response(response: 200, description: 'Notification detail.')]
     #[OA\Response(response: 401, description: 'Authentication required.')]
     #[OA\Response(response: 403, description: 'You cannot access this notification.')]
     #[OA\Response(response: 404, description: 'Notification not found.')]
-    public function detail(string $id, User $loggedInUser): JsonResponse
+    public function detail(User $loggedInUser, Notification $notification): JsonResponse
     {
-        $notification = $this->notificationRepository->find($id);
         if (!$notification instanceof Notification) {
             throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Notification not found.');
         }
@@ -217,7 +216,7 @@ final readonly class NotificationController
             throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Field "fromId" must be a non-empty string when provided.');
         }
 
-        $operationId = Uuid::v4()->toRfc4122();
+        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
         $this->messageService->sendMessage(new CreateNotificationCommand(
             operationId: $operationId,
             title: $title,

@@ -44,7 +44,7 @@ class ApplicationOwnerEventMutationController
         $endAt = $this->requireDate($payload, 'endAt');
         $this->assertDateRange($startAt, $endAt);
 
-        $operationId = Uuid::v4()->toRfc4122();
+        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
         $this->messageService->sendMessage(new CreateEventCommand(
             operationId: $operationId,
             actorUserId: $loggedInUser->getId(),
@@ -74,7 +74,7 @@ class ApplicationOwnerEventMutationController
             $this->assertDateRange($startAt, $endAt);
         }
 
-        $operationId = Uuid::v4()->toRfc4122();
+        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
         $this->messageService->sendMessage(new PatchEventCommand(
             operationId: $operationId,
             actorUserId: $loggedInUser->getId(),
@@ -95,7 +95,7 @@ class ApplicationOwnerEventMutationController
         $this->assertApplicationSlug($applicationSlug);
         $this->assertUuid($eventId, 'eventId');
 
-        $operationId = Uuid::v4()->toRfc4122();
+        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
         $this->messageService->sendMessage(new DeleteEventCommand(
             operationId: $operationId,
             actorUserId: $loggedInUser->getId(),
@@ -112,7 +112,7 @@ class ApplicationOwnerEventMutationController
         $this->assertApplicationSlug($applicationSlug);
         $this->assertUuid($eventId, 'eventId');
 
-        $operationId = Uuid::v4()->toRfc4122();
+        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
         $this->messageService->sendMessage(new CancelEventCommand(
             operationId: $operationId,
             actorUserId: $loggedInUser->getId(),
