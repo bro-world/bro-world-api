@@ -27,6 +27,11 @@ use Override;
 
 final class LoadRecruitChatCalendarScenarioData extends Fixture implements OrderedFixtureInterface
 {
+    /**
+     * @var array<string, Chat>
+     */
+    private array $ensuredChats = [];
+
     #[Override]
     public function load(ObjectManager $manager): void
     {
@@ -187,21 +192,30 @@ final class LoadRecruitChatCalendarScenarioData extends Fixture implements Order
 
     private function ensureChat(ObjectManager $manager, PlatformApplication $application): Chat
     {
+        $application->ensureGeneratedSlug();
+        $slug = $application->getSlug();
+
+        if (isset($this->ensuredChats[$slug])) {
+            return $this->ensuredChats[$slug];
+        }
+
         $existing = $manager->getRepository(Chat::class)->findOneBy([
             'application' => $application,
         ]);
 
         if ($existing instanceof Chat) {
+            $this->ensuredChats[$slug] = $existing;
+
             return $existing;
         }
 
-        $application->ensureGeneratedSlug();
-
         $chat = (new Chat())
             ->setApplication($application)
-            ->setApplicationSlug($application->getSlug());
+            ->setApplicationSlug($slug);
 
         $manager->persist($chat);
+
+        $this->ensuredChats[$slug] = $chat;
 
         return $chat;
     }
