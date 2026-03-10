@@ -7,6 +7,7 @@ namespace App\Chat\Transport\Controller\Api\V1\Conversation;
 use App\Chat\Application\Service\ConversationListService;
 use App\User\Domain\Entity\User;
 use OpenApi\Attributes as OA;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
@@ -23,6 +24,10 @@ class UserConversationListController
     {
     }
 
+    /**
+     * @throws \JsonException
+     * @throws InvalidArgumentException
+     */
     #[Route(path: '/v1/chat/private/conversations', methods: [Request::METHOD_GET])]
     public function __invoke(Request $request, User $loggedInUser): JsonResponse
     {

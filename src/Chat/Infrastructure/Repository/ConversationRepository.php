@@ -44,7 +44,14 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
     {
         $offset = max(0, ($page - 1) * $limit);
 
-        return $this->applyListFilters($this->getConversationQueryBuilder(), $filters, $esIds)
+        return $this->applyListFilters(
+            $this->createQueryBuilder('conversation')
+                ->addSelect('chat')
+                ->innerJoin('conversation.chat', 'chat')
+                ->leftJoin('conversation.messages', 'messages'),
+            $filters,
+            $esIds
+        )
             ->innerJoin('conversation.participants', 'participant')
             ->andWhere('participant.user = :user')
             ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
