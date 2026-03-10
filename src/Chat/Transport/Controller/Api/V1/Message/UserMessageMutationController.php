@@ -26,10 +26,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
     path: '/v1/chat/private/conversations/{conversationId}/messages',
     operationId: 'chat_message_create',
     summary: 'Créer un message',
-    tags: ['Chat Message'],
-    parameters: [
-        new OA\Parameter(name: 'conversationId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000')),
-    ],
     requestBody: new OA\RequestBody(
         required: true,
         content: new OA\JsonContent(
@@ -40,6 +36,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
             example: ['content' => 'Bonjour, dispo pour un entretien demain ?']
         )
     ),
+    tags: ['Chat Message'],
+    parameters: [
+        new OA\Parameter(name: 'conversationId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000')),
+    ],
     responses: [
         new OA\Response(
             response: 201,
@@ -62,10 +62,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
     path: '/v1/chat/private/messages/{messageId}',
     operationId: 'chat_message_patch',
     summary: 'Modifier son message (update)',
-    tags: ['Chat Message'],
-    parameters: [
-        new OA\Parameter(name: 'messageId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000')),
-    ],
     requestBody: new OA\RequestBody(
         required: true,
         content: new OA\JsonContent(
@@ -76,6 +72,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
             example: ['content' => 'Bonjour, finalement mercredi 10h ?', 'read' => true]
         )
     ),
+    tags: ['Chat Message'],
+    parameters: [
+        new OA\Parameter(name: 'messageId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000')),
+    ],
     responses: [
         new OA\Response(
             response: 200,
