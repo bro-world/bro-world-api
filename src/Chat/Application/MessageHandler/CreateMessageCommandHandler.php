@@ -12,6 +12,7 @@ use App\Chat\Infrastructure\Repository\ChatMessageRepository;
 use App\Chat\Infrastructure\Repository\ConversationParticipantRepository;
 use App\Chat\Infrastructure\Repository\ConversationRepository;
 use App\General\Application\Service\CacheInvalidationService;
+use App\General\Application\Service\MercurePublisher;
 use App\User\Domain\Entity\User;
 use App\User\Infrastructure\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,12 +28,14 @@ final readonly class CreateMessageCommandHandler
         private UserRepository $userRepository,
         private ChatMessageRepository $messageRepository,
         private CacheInvalidationService $cacheInvalidationService,
+        private MercurePublisher $mercurePublisher,
     ) {
     }
 
     public function __invoke(CreateMessageCommand $command): void
     {
-        $chatId = $this->messageRepository->getEntityManager()->getConnection()->transactional(function () use ($command): string {
+        /** @var array{chatId: string, message: ChatMessage} $result */
+        $result = $this->messageRepository->getEntityManager()->getConnection()->transactional(function () use ($command): array {
             $actor = $this->userRepository->find($command->actorUserId);
             if (!$actor instanceof User) {
                 throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'User not found.');
@@ -49,10 +52,22 @@ final readonly class CreateMessageCommandHandler
 
             $this->messageRepository->save($message);
 
-            return $conversation->getChat()->getId();
+            return [
+                'chatId' => $conversation->getChat()->getId(),
+                'message' => $message,
+            ];
         });
 
-        $this->cacheInvalidationService->invalidateConversationCaches($chatId, $command->actorUserId);
+        $this->cacheInvalidationService->invalidateConversationCaches($result['chatId'], $command->actorUserId);
+
+        $this->mercurePublisher->publish('/conversations/' . $command->conversationId . '/messages', [
+            'id' => $result['message']->getId(),
+            'conversationId' => $command->conversationId,
+            'senderId' => $result['message']->getSender()->getId(),
+            'content' => $result['message']->getContent(),
+            'attachments' => $result['message']->getAttachments(),
+            'createdAt' => $result['message']->getCreatedAt()?->format(DATE_ATOM),
+        ]);
     }
 
     private function findParticipantConversation(string $conversationId, User $actor): Conversation

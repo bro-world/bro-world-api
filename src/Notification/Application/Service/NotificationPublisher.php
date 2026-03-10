@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Notification\Application\Service;
 
+use App\General\Application\Service\MercurePublisher;
 use App\Notification\Domain\Entity\Notification;
 use App\Notification\Infrastructure\Repository\NotificationRepository;
 use App\User\Domain\Entity\User;
@@ -11,7 +12,8 @@ use App\User\Domain\Entity\User;
 final readonly class NotificationPublisher
 {
     public function __construct(
-        private NotificationRepository $notificationRepository
+        private NotificationRepository $notificationRepository,
+        private MercurePublisher $mercurePublisher,
     ) {
     }
 
@@ -29,5 +31,15 @@ final readonly class NotificationPublisher
             ->setRecipient($recipient);
 
         $this->notificationRepository->save($notification);
+
+        $this->mercurePublisher->publish('/users/' . $recipient->getId() . '/notifications', [
+            'id' => $notification->getId(),
+            'title' => $notification->getTitle(),
+            'description' => $notification->getDescription(),
+            'type' => $notification->getType(),
+            'recipientId' => $recipient->getId(),
+            'fromId' => $from->getId(),
+            'createdAt' => $notification->getCreatedAt()?->format(DATE_ATOM),
+        ]);
     }
 }

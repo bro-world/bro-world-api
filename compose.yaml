@@ -39,6 +39,7 @@ services:
             - elasticsearch
             - redis
             - mail
+            - mercure
         networks:
             - symfony
 
@@ -146,6 +147,22 @@ services:
         ports:
             - "8025:8025"
             - "1025:1025"
+        networks:
+            - symfony
+
+    mercure:
+        image: dunglas/mercure:latest
+        container_name: ${COMPOSE_PROJECT_NAME}-mercure
+        restart: always
+        environment:
+            SERVER_NAME: ':80'
+            MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_JWT_SECRET}
+            MERCURE_SUBSCRIBER_JWT_KEY: ${MERCURE_JWT_SECRET}
+            MERCURE_EXTRA_DIRECTIVES: |
+                cors_origins *
+                anonymous
+        ports:
+            - "${MERCURE_PORT}:80"
         networks:
             - symfony
 
