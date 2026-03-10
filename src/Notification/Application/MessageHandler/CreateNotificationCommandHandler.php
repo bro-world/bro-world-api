@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Notification\Application\MessageHandler;
 
 use App\General\Application\Message\EntityCreated;
+use App\General\Application\Service\MercurePublisher;
 use App\General\Domain\Service\Interfaces\MessageServiceInterface;
 use App\Notification\Application\Message\CreateNotificationCommand;
 use App\Notification\Domain\Entity\Notification;
@@ -24,6 +25,7 @@ final readonly class CreateNotificationCommandHandler
         private NotificationRepository $notificationRepository,
         private UserRepository $userRepository,
         private MessageServiceInterface $messageService,
+        private MercurePublisher $mercurePublisher,
     ) {
     }
 
@@ -64,5 +66,15 @@ final readonly class CreateNotificationCommandHandler
                 'recipientId' => $notification->getRecipient()->getId(),
             ],
         ));
+
+        $this->mercurePublisher->publish('/users/' . $notification->getRecipient()->getId() . '/notifications', [
+            'id' => $notification->getId(),
+            'title' => $notification->getTitle(),
+            'description' => $notification->getDescription(),
+            'type' => $notification->getType(),
+            'recipientId' => $notification->getRecipient()->getId(),
+            'fromId' => $notification->getFrom()?->getId(),
+            'createdAt' => $notification->getCreatedAt()?->format(DATE_ATOM),
+        ]);
     }
 }

@@ -39,6 +39,7 @@ services:
             - rabbitmq
             - elasticsearch
             - redis
+            - mercure
         networks:
             - symfony
 
@@ -134,6 +135,22 @@ services:
         restart: always
         volumes:
             - ./var/redis:/data:delegated
+        networks:
+            - symfony
+
+    mercure:
+        image: dunglas/mercure:latest
+        container_name: ${COMPOSE_PROJECT_NAME}-mercure
+        restart: always
+        environment:
+            SERVER_NAME: ':80'
+            MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_JWT_SECRET}
+            MERCURE_SUBSCRIBER_JWT_KEY: ${MERCURE_JWT_SECRET}
+            MERCURE_EXTRA_DIRECTIVES: |
+                cors_origins *
+                anonymous
+        ports:
+            - "${MERCURE_PORT}:80"
         networks:
             - symfony
 
