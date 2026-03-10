@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Blog\Application\MessageHandler;
 
 use App\Blog\Application\Message\CreateBlogReactionCommand;
+use App\Blog\Application\Service\BlogNotificationService;
 use App\Blog\Domain\Entity\BlogComment;
 use App\Blog\Domain\Entity\BlogReaction;
 use App\Blog\Infrastructure\Repository\BlogCommentRepository;
@@ -22,6 +23,7 @@ final readonly class CreateBlogReactionCommandHandler
         private BlogReactionRepository $reactionRepository,
         private BlogCommentRepository $commentRepository,
         private UserRepository $userRepository,
+        private BlogNotificationService $blogNotificationService,
     ) {}
 
     public function __invoke(CreateBlogReactionCommand $command): void
@@ -38,5 +40,7 @@ final readonly class CreateBlogReactionCommandHandler
             ->setAuthor($user)
             ->setType($command->type)
         );
+
+        $this->blogNotificationService->notifyReactionCreated($comment, $user, $command->type);
     }
 }
