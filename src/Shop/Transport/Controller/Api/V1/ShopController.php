@@ -188,7 +188,20 @@ final readonly class ShopController
     #[Route('/v1/shop/applications/{applicationSlug}/products', methods: [Request::METHOD_POST])]
     #[OA\Post(summary: 'POST /v1/shop/applications/{applicationSlug}/products', tags: ['Shop'], parameters: [new OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))], responses: [new OA\Response(response: 201, description: 'Success.'), new OA\Response(response: 400, description: 'Bad request.'), new OA\Response(response: 401, description: 'Unauthorized.'), new OA\Response(response: 404, description: 'Not found.'), new OA\Response(response: 422, description: 'Validation error.')])]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'), example: 'shop-ops-center')]
-    #[OA\RequestBody(required: true, content: new OA\JsonContent(example: ['name' => 'Clavier mecanique', 'price' => 129.9, 'categoryId' => null, 'tagIds' => []]))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            type: 'object',
+            required: ['name', 'price'],
+            properties: [
+                new OA\Property(property: 'name', type: 'string', minLength: 1, example: 'Clavier mecanique'),
+                new OA\Property(property: 'price', type: 'number', format: 'float', example: 129.9),
+                new OA\Property(property: 'categoryId', type: 'string', format: 'uuid', nullable: true, example: null),
+                new OA\Property(property: 'tagIds', type: 'array', items: new OA\Items(type: 'string', format: 'uuid'), example: []),
+            ],
+            example: ['name' => 'Clavier mecanique', 'price' => 129.9, 'categoryId' => null, 'tagIds' => []],
+        )
+    )]
     #[OA\Response(response: 201, description: 'Product created for the application shop.', content: new OA\JsonContent(example: ['id' => 'uuid', 'shopId' => 'uuid', 'applicationSlug' => 'shop-ops-center']))]
     public function createProductByApplication(string $applicationSlug, Request $request): JsonResponse
     {
