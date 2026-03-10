@@ -7,7 +7,6 @@ namespace App\General\Infrastructure\Rest;
 use App\General\Domain\Rest\UuidHelper;
 use Closure;
 use Doctrine\ORM\Query\Expr\Composite;
-use Doctrine\ORM\Query\Expr\Literal;
 use Doctrine\ORM\QueryBuilder;
 use InvalidArgumentException;
 use Ramsey\Uuid\Exception\InvalidUuidStringException;
@@ -19,7 +18,6 @@ use function array_map;
 use function array_walk;
 use function call_user_func_array;
 use function is_array;
-use function is_numeric;
 use function str_contains;
 use function strcmp;
 use function strtolower;
@@ -317,7 +315,7 @@ class RepositoryHelper
      * @param array<int, string> $parameters
      * @param array<int, mixed> $value
      *
-     * @return array<int, array<int, Literal>|string>
+     * @return array<int, string>
      */
     private static function getParameters(
         QueryBuilder $queryBuilder,
@@ -341,12 +339,8 @@ class RepositoryHelper
                 syslog(LOG_INFO, $exception->getMessage());
             }
 
-            $parameters[] = array_map(
-                static fn (string $value): Literal => $queryBuilder->expr()->literal(
-                    is_numeric($value) ? (int)$value : $value
-                ),
-                $value
-            );
+            $parameters[] = '?' . self::$parameterCount;
+            $queryBuilder->setParameter(self::$parameterCount, $value);
         }
 
         return $parameters;
@@ -371,7 +365,7 @@ class RepositoryHelper
     /**
      * @param array<int, string> $parameters
      *
-     * @return array<int, array<int, Literal>|string>
+     * @return array<int, string>
      */
     private static function getComparisonParameters(
         QueryBuilder $queryBuilder,
