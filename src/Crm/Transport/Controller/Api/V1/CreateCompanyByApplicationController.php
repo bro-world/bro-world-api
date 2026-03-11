@@ -8,10 +8,12 @@ use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\Company;
 use App\General\Application\Message\EntityCreated;
 use Doctrine\ORM\EntityManagerInterface;
+use JsonException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
@@ -29,16 +31,19 @@ final readonly class CreateCompanyByApplicationController
     ) {
     }
 
+    /**
+     * @throws JsonException
+     * @throws ExceptionInterface
+     */
     #[Route('/v1/crm/applications/{applicationSlug}/companies', methods: [Request::METHOD_POST])]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
-    #[OA\Post(summary: 'POST /v1/crm/applications/{applicationSlug}/companies', tags: ['Crm'])]
     public function __invoke(string $applicationSlug, Request $request): JsonResponse
     {
         $request->attributes->set('applicationSlug', $applicationSlug);
         $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
-        $payload = (array)json_decode((string)$request->getContent(), true);
+        $payload = (array)json_decode((string)$request->getContent(), true, 512, JSON_THROW_ON_ERROR);
 
-        $company = (new Company())
+        $company = new Company()
             ->setCrm($crm)
             ->setName((string)($payload['name'] ?? ''))
             ->setIndustry(isset($payload['industry']) ? (string)$payload['industry'] : null)
