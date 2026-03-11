@@ -8,6 +8,8 @@ use App\Chat\Application\Message\FindOrCreateConversationWithUserCommand;
 use App\Chat\Domain\Entity\Chat;
 use App\Chat\Domain\Entity\Conversation;
 use App\Chat\Domain\Entity\ConversationParticipant;
+use App\Chat\Domain\Enum\ConversationParticipantRole;
+use App\Chat\Domain\Enum\ConversationType;
 use App\Chat\Infrastructure\Repository\ChatRepository;
 use App\Chat\Infrastructure\Repository\ConversationParticipantRepository;
 use App\Chat\Infrastructure\Repository\ConversationRepository;
@@ -61,11 +63,19 @@ final readonly class FindOrCreateConversationWithUserCommandHandler
                 throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'No chat available for these users in a shared application scope.');
             }
 
-            $conversation = (new Conversation())->setChat($chat);
+            $conversation = (new Conversation())
+                ->setChat($chat)
+                ->setType(ConversationType::DIRECT);
             $this->conversationRepository->save($conversation, false);
-            $this->participantRepository->save((new ConversationParticipant())->setConversation($conversation)->setUser($actor), false);
+            $this->participantRepository->save((new ConversationParticipant())
+                ->setConversation($conversation)
+                ->setUser($actor)
+                ->setRole(ConversationParticipantRole::OWNER), false);
             if ($targetUser->getId() !== $actor->getId()) {
-                $this->participantRepository->save((new ConversationParticipant())->setConversation($conversation)->setUser($targetUser), false);
+                $this->participantRepository->save((new ConversationParticipant())
+                    ->setConversation($conversation)
+                    ->setUser($targetUser)
+                    ->setRole(ConversationParticipantRole::MEMBER), false);
             }
 
             $this->conversationRepository->getEntityManager()->flush();

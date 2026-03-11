@@ -6,6 +6,7 @@ namespace App\Chat\Infrastructure\Repository;
 
 use App\Chat\Domain\Entity\Chat;
 use App\Chat\Domain\Entity\Conversation as Entity;
+use App\Chat\Domain\Enum\ConversationType;
 use App\Chat\Domain\Repository\Interfaces\ConversationRepositoryInterface;
 use App\General\Infrastructure\Repository\BaseRepository;
 use App\User\Domain\Entity\User;
@@ -49,14 +50,16 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
             $this->createQueryBuilder('conversation')
                 ->addSelect('chat')
                 ->innerJoin('conversation.chat', 'chat')
-                ->leftJoin('conversation.messages', 'messages'),
+                ->leftJoin('conversation.messages', 'messages', 'WITH', 'messages.deletedAt IS NULL'),
             $filters,
             $esIds
         )
             ->innerJoin('conversation.participants', 'participant')
             ->andWhere('participant.user = :user')
+            ->andWhere('conversation.archivedAt IS NULL')
             ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
-            ->orderBy('conversation.createdAt', 'DESC')
+            ->orderBy('conversation.lastMessageAt', 'DESC')
+            ->addOrderBy('conversation.createdAt', 'DESC')
             ->setFirstResult($offset)
             ->setMaxResults($limit)
             ->getQuery()
@@ -68,6 +71,7 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
         return (int)$this->applyListFilters($this->getConversationCountQueryBuilder(), $filters, $esIds)
             ->innerJoin('conversation.participants', 'participant')
             ->andWhere('participant.user = :user')
+            ->andWhere('conversation.archivedAt IS NULL')
             ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
             ->getQuery()
             ->getSingleScalarResult();
@@ -79,8 +83,10 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
 
         return $this->applyListFilters($this->getConversationQueryBuilder(), $filters, $esIds)
             ->andWhere('chat.id = :chatId')
+            ->andWhere('conversation.archivedAt IS NULL')
             ->setParameter('chatId', $chatId, UuidBinaryOrderedTimeType::NAME)
-            ->orderBy('conversation.createdAt', 'DESC')
+            ->orderBy('conversation.lastMessageAt', 'DESC')
+            ->addOrderBy('conversation.createdAt', 'DESC')
             ->setFirstResult($offset)
             ->setMaxResults($limit)
             ->getQuery()
@@ -91,6 +97,7 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
     {
         return (int)$this->applyListFilters($this->getConversationCountQueryBuilder(), $filters, $esIds)
             ->andWhere('chat.id = :chatId')
+            ->andWhere('conversation.archivedAt IS NULL')
             ->setParameter('chatId', $chatId, UuidBinaryOrderedTimeType::NAME)
             ->getQuery()
             ->getSingleScalarResult();
@@ -104,9 +111,11 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
             ->innerJoin('conversation.participants', 'participant')
             ->andWhere('chat.id = :chatId')
             ->andWhere('participant.user = :user')
+            ->andWhere('conversation.archivedAt IS NULL')
             ->setParameter('chatId', $chatId, UuidBinaryOrderedTimeType::NAME)
             ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
-            ->orderBy('conversation.createdAt', 'DESC')
+            ->orderBy('conversation.lastMessageAt', 'DESC')
+            ->addOrderBy('conversation.createdAt', 'DESC')
             ->setFirstResult($offset)
             ->setMaxResults($limit)
             ->getQuery()
@@ -119,6 +128,7 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
             ->innerJoin('conversation.participants', 'participant')
             ->andWhere('chat.id = :chatId')
             ->andWhere('participant.user = :user')
+            ->andWhere('conversation.archivedAt IS NULL')
             ->setParameter('chatId', $chatId, UuidBinaryOrderedTimeType::NAME)
             ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
             ->getQuery()
@@ -132,16 +142,20 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
             ->innerJoin('conversation.chat', 'chat')
             ->innerJoin('conversation.participants', 'participants')
             ->innerJoin('participants.user', 'participantUser')
-            ->leftJoin('conversation.messages', 'messages')
+            ->leftJoin('conversation.messages', 'messages', 'WITH', 'messages.deletedAt IS NULL')
             ->leftJoin('messages.sender', 'sender')
             ->leftJoin('messages.reactions', 'reactions')
             ->leftJoin('reactions.user', 'reactionUser')
             ->where('participantUser IN (:users)')
+            ->andWhere('conversation.type = :conversationType')
             ->setParameter('users', [$firstUser, $secondUser])
+            ->setParameter('conversationType', ConversationType::DIRECT)
             ->groupBy('conversation.id')
             ->having('COUNT(DISTINCT participantUser.id) = 2')
             ->andHaving('COUNT(DISTINCT participants.id) = 2')
-            ->orderBy('conversation.createdAt', 'DESC')
+            ->andWhere('conversation.archivedAt IS NULL')
+            ->orderBy('conversation.lastMessageAt', 'DESC')
+            ->addOrderBy('conversation.createdAt', 'DESC')
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
@@ -156,10 +170,11 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
             ->innerJoin('conversation.chat', 'chat')
             ->leftJoin('conversation.participants', 'participants')
             ->leftJoin('participants.user', 'participantUser')
-            ->leftJoin('conversation.messages', 'messages')
+            ->leftJoin('conversation.messages', 'messages', 'WITH', 'messages.deletedAt IS NULL')
             ->leftJoin('messages.sender', 'sender')
             ->leftJoin('messages.reactions', 'reactions')
             ->leftJoin('reactions.user', 'reactionUser')
+            ->andWhere('conversation.archivedAt IS NULL')
             ->distinct();
     }
 
@@ -168,7 +183,8 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
         return $this->createQueryBuilder('conversation')
             ->select('COUNT(DISTINCT conversation.id)')
             ->innerJoin('conversation.chat', 'chat')
-            ->leftJoin('conversation.messages', 'messages');
+            ->leftJoin('conversation.messages', 'messages', 'WITH', 'messages.deletedAt IS NULL')
+            ->andWhere('conversation.archivedAt IS NULL');
     }
 
     private function applyListFilters(QueryBuilder $queryBuilder, array $filters, ?array $esIds): QueryBuilder

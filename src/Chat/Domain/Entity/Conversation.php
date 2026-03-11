@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Chat\Domain\Entity;
 
+use App\Chat\Domain\Enum\ConversationType;
 use App\General\Domain\Entity\Interfaces\EntityInterface;
 use App\General\Domain\Entity\Traits\Timestampable;
 use App\General\Domain\Entity\Traits\Uuid;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Override;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
@@ -17,6 +20,7 @@ use Ramsey\Uuid\UuidInterface;
 #[ORM\Entity]
 #[ORM\Table(name: 'chat_conversation')]
 #[ORM\Index(name: 'idx_conversation_chat_id', columns: ['chat_id'])]
+#[ORM\Index(name: 'idx_conversation_chat_type_last_message_at', columns: ['chat_id', 'type', 'last_message_at'])]
 #[ORM\ChangeTrackingPolicy('DEFERRED_EXPLICIT')]
 class Conversation implements EntityInterface
 {
@@ -30,6 +34,20 @@ class Conversation implements EntityInterface
     #[ORM\ManyToOne(targetEntity: Chat::class, inversedBy: 'conversations')]
     #[ORM\JoinColumn(name: 'chat_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private Chat $chat;
+
+    #[ORM\Column(name: 'type', type: Types::STRING, length: 25, enumType: ConversationType::class, options: [
+        'default' => ConversationType::DIRECT->value,
+    ])]
+    private ConversationType $type = ConversationType::DIRECT;
+
+    #[ORM\Column(name: 'title', type: Types::STRING, length: 255, nullable: true)]
+    private ?string $title = null;
+
+    #[ORM\Column(name: 'last_message_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?DateTimeImmutable $lastMessageAt = null;
+
+    #[ORM\Column(name: 'archived_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?DateTimeImmutable $archivedAt = null;
 
     /**
      * @var Collection<int, ConversationParticipant>
@@ -67,6 +85,54 @@ class Conversation implements EntityInterface
     public function setChat(Chat $chat): self
     {
         $this->chat = $chat;
+
+        return $this;
+    }
+
+    public function getType(): ConversationType
+    {
+        return $this->type;
+    }
+
+    public function setType(ConversationType $type): self
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(?string $title): self
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    public function getLastMessageAt(): ?DateTimeImmutable
+    {
+        return $this->lastMessageAt;
+    }
+
+    public function setLastMessageAt(?DateTimeImmutable $lastMessageAt): self
+    {
+        $this->lastMessageAt = $lastMessageAt;
+
+        return $this;
+    }
+
+    public function getArchivedAt(): ?DateTimeImmutable
+    {
+        return $this->archivedAt;
+    }
+
+    public function setArchivedAt(?DateTimeImmutable $archivedAt): self
+    {
+        $this->archivedAt = $archivedAt;
 
         return $this;
     }

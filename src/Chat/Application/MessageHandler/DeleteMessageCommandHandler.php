@@ -26,7 +26,8 @@ final readonly class DeleteMessageCommandHandler
         $chatId = $this->messageRepository->getEntityManager()->getConnection()->transactional(function () use ($command): string {
             $message = $this->findOwnMessage($command->messageId, $command->actorUserId);
             $chatId = $message->getConversation()->getChat()->getId();
-            $this->messageRepository->remove($message);
+            $message->setDeletedAt(new \DateTimeImmutable());
+            $this->messageRepository->save($message);
 
             return $chatId;
         });
@@ -37,7 +38,7 @@ final readonly class DeleteMessageCommandHandler
     private function findOwnMessage(string $messageId, string $actorUserId): ChatMessage
     {
         $message = $this->messageRepository->find($messageId);
-        if (!$message instanceof ChatMessage || $message->getSender()->getId() !== $actorUserId) {
+        if (!$message instanceof ChatMessage || $message->getSender()->getId() !== $actorUserId || $message->getDeletedAt() !== null) {
             throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Message not found.');
         }
 
