@@ -44,6 +44,8 @@ final readonly class DeleteEventCommandHandler
                 if ($event->getCalendar()?->getApplication()?->getId() !== $application->getId()) {
                     throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Event not found.');
                 }
+            } elseif ($event->getCalendar()?->getApplication() !== null) {
+                throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Event not found.');
             }
 
             $this->eventRepository->remove($event);

@@ -45,6 +45,8 @@ final readonly class CancelEventCommandHandler
                 if ($event->getCalendar()?->getApplication()?->getId() !== $application->getId()) {
                     throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Event not found.');
                 }
+            } elseif ($event->getCalendar()?->getApplication() !== null) {
+                throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Event not found.');
             }
 
             $event->setIsCancelled(true)->setStatus(EventStatus::CANCELLED);
