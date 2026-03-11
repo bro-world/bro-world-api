@@ -25,8 +25,11 @@ final readonly class GetGeneralBlogController
 
     #[Route('/v1/blogs/general', methods: [Request::METHOD_GET])]
     #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-    public function __invoke(User $loggedInUser): JsonResponse
+    public function __invoke(User $loggedInUser, Request $request): JsonResponse
     {
-        return new JsonResponse($this->blogReadService->getGeneralBlogWithTree($loggedInUser));
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = max(1, min(100, $request->query->getInt('limit', 20)));
+
+        return new JsonResponse($this->blogReadService->getGeneralBlogWithTree($loggedInUser, $page, $limit));
     }
 }
