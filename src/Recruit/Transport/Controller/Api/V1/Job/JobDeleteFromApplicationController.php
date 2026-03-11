@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Recruit\Transport\Controller\Api\V1\Job;
 
 use App\General\Application\Message\EntityDeleted;
+use App\Recruit\Application\Service\RecruitResolverService;
 use App\Recruit\Domain\Entity\Job;
-use App\Recruit\Domain\Entity\Recruit;
-use App\Recruit\Domain\Repository\Interfaces\RecruitRepositoryInterface;
 use App\Recruit\Infrastructure\Repository\JobRepository;
 use App\User\Domain\Entity\User;
 use OpenApi\Attributes as OA;
@@ -26,7 +25,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class JobDeleteFromApplicationController
 {
     public function __construct(
-        private readonly RecruitRepositoryInterface $recruitRepository,
+        private readonly RecruitResolverService $recruitResolverService,
         private readonly JobRepository $jobRepository,
         private readonly MessageBusInterface $messageBus,
     ) {
@@ -47,7 +46,7 @@ class JobDeleteFromApplicationController
     )]
     public function __invoke(string $applicationSlug, string $jobId, User $loggedInUser): JsonResponse
     {
-        $recruit = $this->resolveRecruitByApplicationSlug($applicationSlug);
+        $recruit = $this->recruitResolverService->resolveByApplicationSlug($applicationSlug);
         $application = $recruit->getApplication();
 
         if ($application?->getUser()?->getId() !== $loggedInUser->getId()) {
@@ -71,16 +70,5 @@ class JobDeleteFromApplicationController
         ]));
 
         return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
-    }
-
-    private function resolveRecruitByApplicationSlug(string $applicationSlug): Recruit
-    {
-        $recruit = $this->recruitRepository->findOneByApplicationSlug($applicationSlug);
-
-        if (!$recruit instanceof Recruit) {
-            throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Unknown "applicationSlug".');
-        }
-
-        return $recruit;
     }
 }

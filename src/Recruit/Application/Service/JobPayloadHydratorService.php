@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Recruit\Transport\Controller\Api\V1\Job;
+namespace App\Recruit\Application\Service;
 
 use App\Recruit\Domain\Entity\Job;
 use App\Recruit\Domain\Enum\ContractType;
@@ -19,12 +19,12 @@ use function is_string;
 use function sprintf;
 use function trim;
 
-trait JobPayloadHydratorTrait
+class JobPayloadHydratorService
 {
     /**
      * @param array<string, mixed> $payload
      */
-    private function applyJobFields(Job $job, array $payload, bool $allowTitleEmpty = false): void
+    public function applyJobFields(Job $job, array $payload, bool $allowTitleEmpty = false): void
     {
         $title = $payload['title'] ?? null;
         if ($title !== null) {

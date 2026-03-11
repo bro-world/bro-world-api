@@ -5,15 +5,8 @@ declare(strict_types=1);
 namespace App\Recruit\Transport\Controller\Api\V1\Resume;
 
 use App\Recruit\Application\Service\ResumeDocumentUploaderService;
-use App\Recruit\Domain\Entity\Certification;
-use App\Recruit\Domain\Entity\Education;
-use App\Recruit\Domain\Entity\Experience;
-use App\Recruit\Domain\Entity\Hobby;
-use App\Recruit\Domain\Entity\Language;
-use App\Recruit\Domain\Entity\Project;
-use App\Recruit\Domain\Entity\Reference;
+use App\Recruit\Application\Service\ResumePayloadService;
 use App\Recruit\Domain\Entity\Resume;
-use App\Recruit\Domain\Entity\Skill;
 use App\Recruit\Infrastructure\Repository\ResumeRepository;
 use App\User\Domain\Entity\User;
 use OpenApi\Attributes as OA;
@@ -21,15 +14,9 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-
-use function is_array;
-use function is_string;
-use function json_decode;
-use function trim;
 
 #[AsController]
 #[OA\Tag(name: 'Recruit Resume')]
@@ -39,6 +26,7 @@ class ResumeCreateController
     public function __construct(
         private readonly ResumeRepository $resumeRepository,
         private readonly ResumeDocumentUploaderService $resumeDocumentUploaderService,
+        private readonly ResumePayloadService $resumePayloadService,
     ) {
     }
 
@@ -111,7 +99,7 @@ class ResumeCreateController
     #[OA\Response(response: 401, description: 'Authentication required')]
     public function __invoke(Request $request, User $loggedInUser): JsonResponse
     {
-        $payload = $this->extractPayload($request);
+        $payload = $this->resumePayloadService->extractPayload($request);
 
         $resume = (new Resume())->setOwner($loggedInUser);
 
@@ -122,14 +110,7 @@ class ResumeCreateController
             $resume->setDocumentUrl($documentUrl);
         }
 
-        $this->hydrateSections($payload, 'experiences', static fn (): Experience => new Experience(), static fn (Resume $entity, Experience $item) => $entity->addExperience($item), $resume);
-        $this->hydrateSections($payload, 'educations', static fn (): Education => new Education(), static fn (Resume $entity, Education $item) => $entity->addEducation($item), $resume);
-        $this->hydrateSections($payload, 'skills', static fn (): Skill => new Skill(), static fn (Resume $entity, Skill $item) => $entity->addSkill($item), $resume);
-        $this->hydrateSections($payload, 'languages', static fn (): Language => new Language(), static fn (Resume $entity, Language $item) => $entity->addLanguage($item), $resume);
-        $this->hydrateSections($payload, 'certifications', static fn (): Certification => new Certification(), static fn (Resume $entity, Certification $item) => $entity->addCertification($item), $resume);
-        $this->hydrateSections($payload, 'projects', static fn (): Project => new Project(), static fn (Resume $entity, Project $item) => $entity->addProject($item), $resume);
-        $this->hydrateSections($payload, 'references', static fn (): Reference => new Reference(), static fn (Resume $entity, Reference $item) => $entity->addReference($item), $resume);
-        $this->hydrateSections($payload, 'hobbies', static fn (): Hobby => new Hobby(), static fn (Resume $entity, Hobby $item) => $entity->addHobby($item), $resume);
+        $this->resumePayloadService->hydrateResumeSections($resume, $payload);
 
         $this->resumeRepository->save($resume);
 
@@ -137,64 +118,6 @@ class ResumeCreateController
             'id' => $resume->getId(),
             'documentUrl' => $resume->getDocumentUrl(),
         ], JsonResponse::HTTP_CREATED);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function extractPayload(Request $request): array
-    {
-        if ($request->request->count() > 0) {
-            /** @var array<string, mixed> $payload */
-            $payload = $request->request->all();
-
-            foreach (['experiences', 'educations', 'skills', 'languages', 'certifications', 'projects', 'references', 'hobbies'] as $field) {
-                if (is_string($payload[$field] ?? null)) {
-                    $decoded = json_decode($payload[$field], true);
-                    $payload[$field] = is_array($decoded) ? $decoded : [];
-                }
-            }
-
-            return $payload;
-        }
-
-        return $request->toArray();
-    }
-
-    /**
-     * @param array<string, mixed> $payload
-     * @param callable(): object $factory
-     * @param callable(Resume, object): void $adder
-     */
-    private function hydrateSections(array $payload, string $field, callable $factory, callable $adder, Resume $resume): void
-    {
-        $sections = $payload[$field] ?? [];
-
-        if (!is_array($sections)) {
-            throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Field "' . $field . '" must be an array.');
-        }
-
-        foreach ($sections as $index => $sectionData) {
-            if (!is_array($sectionData)) {
-                throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Field "' . $field . '[' . $index . ']" must be an object.');
-            }
-
-            $title = $sectionData['title'] ?? null;
-            $description = $sectionData['description'] ?? '';
-
-            if (!is_string($title) || trim($title) === '') {
-                throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Field "' . $field . '[' . $index . '].title" must be a non-empty string.');
-            }
-
-            if (!is_string($description)) {
-                throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Field "' . $field . '[' . $index . '].description" must be a string.');
-            }
-
-            $section = $factory();
-            $section->setTitle(trim($title));
-            $section->setDescription(trim($description));
-            $adder($resume, $section);
-        }
     }
 }
 
