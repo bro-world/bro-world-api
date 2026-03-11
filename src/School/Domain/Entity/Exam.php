@@ -7,6 +7,9 @@ namespace App\School\Domain\Entity;
 use App\General\Domain\Entity\Interfaces\EntityInterface;
 use App\General\Domain\Entity\Traits\Timestampable;
 use App\General\Domain\Entity\Traits\Uuid;
+use App\School\Domain\Enum\ExamStatus;
+use App\School\Domain\Enum\ExamType;
+use App\School\Domain\Enum\Term;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -39,6 +42,15 @@ class Exam implements EntityInterface
 
     #[ORM\Column(name: 'title', type: Types::STRING, length: 255)]
     private string $title = '';
+
+    #[ORM\Column(name: 'type', type: Types::STRING, length: 32, enumType: ExamType::class)]
+    private ExamType $type = ExamType::QUIZ;
+
+    #[ORM\Column(name: 'status', type: Types::STRING, length: 32, enumType: ExamStatus::class)]
+    private ExamStatus $status = ExamStatus::DRAFT;
+
+    #[ORM\Column(name: 'term', type: Types::STRING, length: 32, enumType: Term::class)]
+    private Term $term = Term::TERM_1;
 
     /** @var Collection<int, Grade>|ArrayCollection<int, Grade> */
     #[ORM\OneToMany(targetEntity: Grade::class, mappedBy: 'exam')]
@@ -82,6 +94,36 @@ class Exam implements EntityInterface
     public function setTitle(string $title): self
     {
         $this->title = $title;
+
+        return $this;
+    }
+    public function getType(): ExamType
+    {
+        return $this->type;
+    }
+    public function setType(ExamType $type): self
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+    public function getStatus(): ExamStatus
+    {
+        return $this->status;
+    }
+    public function setStatus(ExamStatus $status): self
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+    public function getTerm(): Term
+    {
+        return $this->term;
+    }
+    public function setTerm(Term $term): self
+    {
+        $this->term = $term;
 
         return $this;
     }

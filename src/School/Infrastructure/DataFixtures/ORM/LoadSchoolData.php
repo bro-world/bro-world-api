@@ -12,6 +12,9 @@ use App\School\Domain\Entity\School;
 use App\School\Domain\Entity\SchoolClass;
 use App\School\Domain\Entity\Student;
 use App\School\Domain\Entity\Teacher;
+use App\School\Domain\Enum\ExamStatus;
+use App\School\Domain\Enum\ExamType;
+use App\School\Domain\Enum\Term;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -65,11 +68,17 @@ final class LoadSchoolData extends Fixture implements OrderedFixtureInterface
             $examMath = (new Exam())
                 ->setSchoolClass($classA)
                 ->setTeacher($teacherMath)
-                ->setTitle('Examen Mathematiques - Trimestre 1');
+                ->setTitle('Examen Mathematiques - Trimestre 1')
+                ->setType(ExamType::MIDTERM)
+                ->setStatus(ExamStatus::PUBLISHED)
+                ->setTerm(Term::TERM_1);
             $examFrench = (new Exam())
                 ->setSchoolClass($classB)
                 ->setTeacher($teacherFrench)
-                ->setTitle('Examen Francais - Trimestre 1');
+                ->setTitle('Examen Francais - Trimestre 1')
+                ->setType(ExamType::QUIZ)
+                ->setStatus(ExamStatus::DRAFT)
+                ->setTerm(Term::TERM_1);
             $manager->persist($examMath);
             $manager->persist($examFrench);
 
