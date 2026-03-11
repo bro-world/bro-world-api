@@ -14,7 +14,6 @@ use App\Chat\Domain\Entity\ChatMessageReaction;
 use App\Chat\Domain\Entity\Conversation;
 use App\Chat\Domain\Entity\ConversationParticipant;
 use App\Platform\Domain\Entity\Application as PlatformApplication;
-use App\Platform\Domain\Entity\ApplicationPlugin;
 use App\Platform\Domain\Entity\Plugin;
 use App\Recruit\Domain\Entity\Application as RecruitApplication;
 use App\Recruit\Domain\Enum\ApplicationStatus;
@@ -43,30 +42,23 @@ final class LoadRecruitChatCalendarScenarioData extends Fixture implements Order
         /** @var User $johnRoot */
         $johnRoot = $this->getReference('User-john-root', User::class);
 
-        $recruitApplications = [
-            $this->getReference('Application-recruit-talent-hub', PlatformApplication::class),
-            $this->getReference('Application-recruit-hiring-pipeline', PlatformApplication::class),
-            $this->getReference('Application-recruit-interview-desk', PlatformApplication::class),
-        ];
+        $chatEnabledApplications = $this->getApplicationsByPlugin($manager, $chatPlugin);
+        $calendarEnabledApplications = $this->getApplicationsByPlugin($manager, $calendarPlugin);
 
-        foreach ($recruitApplications as $application) {
-            if (!$application instanceof PlatformApplication) {
-                continue;
-            }
-
-            $this->ensurePluginAttached($manager, $application, $chatPlugin);
-            $this->ensurePluginAttached($manager, $application, $calendarPlugin);
-
+        foreach ($chatEnabledApplications as $application) {
             $chat = $this->ensureChat($manager, $application);
-            $calendar = $this->ensureCalendar($manager, $application);
-
-            $this->ensureApplicationCalendarEvents($manager, $application, $calendar);
-            $this->ensureJohnRootPrivateEvents($manager, $application, $calendar, $johnRoot);
 
             if ($application->getTitle() === 'Recruit Talent Hub') {
+                $calendar = $this->ensureCalendar($manager, $application);
                 $this->createDiscussionConversationScenario($manager, $chat);
                 $this->createJohnRootConversationScenario($manager, $chat, $calendar);
             }
+        }
+
+        foreach ($calendarEnabledApplications as $application) {
+            $calendar = $this->ensureCalendar($manager, $application);
+            $this->ensureApplicationCalendarEvents($manager, $application, $calendar);
+            $this->ensureJohnRootPrivateEvents($manager, $application, $calendar, $johnRoot);
         }
 
         $this->createJohnRootPrivateDirectMessageScenarios($manager);
@@ -176,23 +168,22 @@ final class LoadRecruitChatCalendarScenarioData extends Fixture implements Order
         $this->addReference('Recruit-Conversation-direct-john-root-john-admin', $conversation);
     }
 
-    private function ensurePluginAttached(ObjectManager $manager, PlatformApplication $application, Plugin $plugin): void
+
+    /**
+     * @return list<PlatformApplication>
+     */
+    private function getApplicationsByPlugin(ObjectManager $manager, Plugin $plugin): array
     {
-        $existing = $manager->getRepository(ApplicationPlugin::class)->findOneBy([
-            'application' => $application,
-            'plugin' => $plugin,
-        ]);
+        $results = $manager->getRepository(PlatformApplication::class)
+            ->createQueryBuilder('application')
+            ->innerJoin('application.applicationPlugins', 'applicationPlugin')
+            ->andWhere('applicationPlugin.plugin = :plugin')
+            ->setParameter('plugin', $plugin)
+            ->orderBy('application.title', 'ASC')
+            ->getQuery()
+            ->getResult();
 
-        if ($existing instanceof ApplicationPlugin) {
-            return;
-        }
-
-        $applicationPlugin = (new ApplicationPlugin())
-            ->setApplication($application)
-            ->setPlugin($plugin);
-
-        $application->addApplicationPlugin($applicationPlugin);
-        $manager->persist($applicationPlugin);
+        return array_values(array_filter($results, static fn (mixed $item): bool => $item instanceof PlatformApplication));
     }
 
     private function ensureChat(ObjectManager $manager, PlatformApplication $application): Chat

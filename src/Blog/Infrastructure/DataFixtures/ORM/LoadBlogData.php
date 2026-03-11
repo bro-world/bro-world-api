@@ -11,6 +11,7 @@ use App\Blog\Domain\Entity\BlogReaction;
 use App\Blog\Domain\Entity\BlogTag;
 use App\Blog\Domain\Enum\BlogType;
 use App\Platform\Domain\Entity\Application;
+use App\Platform\Domain\Entity\Plugin;
 use App\User\Domain\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
@@ -27,12 +28,16 @@ final class LoadBlogData extends Fixture implements OrderedFixtureInterface
         $johnRoot = $this->getReference('User-john-root', User::class);
         $johnAdmin = $this->getReference('User-john-admin', User::class);
         $johnUser = $this->getReference('User-john-user', User::class);
+        $blogPlugin = $this->getReference('Plugin-Knowledge-Base-Connector', Plugin::class);
 
-        $applications = [
-            $this->getReference('Application-shop-ops-center', Application::class),
-            $this->getReference('Application-crm-sales-hub', Application::class),
-            $this->getReference('Application-school-campus-core', Application::class),
-        ];
+        $applications = $manager->getRepository(Application::class)
+            ->createQueryBuilder('application')
+            ->innerJoin('application.applicationPlugins', 'applicationPlugin')
+            ->andWhere('applicationPlugin.plugin = :plugin')
+            ->setParameter('plugin', $blogPlugin)
+            ->orderBy('application.title', 'ASC')
+            ->getQuery()
+            ->getResult();
 
         $generalBlog = (new Blog())
             ->setTitle('General Blog Root')
@@ -43,6 +48,10 @@ final class LoadBlogData extends Fixture implements OrderedFixtureInterface
         /** @var list<Blog> $blogs */
         $blogs = [$generalBlog];
         foreach ($applications as $index => $application) {
+            if (!$application instanceof Application) {
+                continue;
+            }
+
             $blog = (new Blog())
                 ->setTitle(sprintf('Application Blog %d', $index + 1))
                 ->setOwner($johnRoot)

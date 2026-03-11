@@ -46,7 +46,7 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
             'uuid' => '60000000-0000-1000-8000-000000000001',
             'key' => 'crm-sales-hub',
             'title' => 'CRM Sales Hub',
-            'description' => 'Espace commercial pour suivre le pipeline et les opportunites.',
+            'description' => 'Workspace CRM pour piloter les leads et opportunites commerciales.',
             'status' => PlatformStatus::ACTIVE,
             'private' => false,
             'ownerReference' => 'User-john-root',
@@ -54,36 +54,23 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
             'appConfigurations' => [
                 [
                     'uuid' => '61000000-0000-1000-8000-000000000001',
-                    'key' => 'application.crm.theme',
+                    'key' => 'application.crm.dashboard',
                     'value' => [
-                        'theme' => 'dark',
+                        'pipelineView' => 'kanban',
+                        'timezone' => 'Europe/Paris',
                     ],
                 ],
             ],
-            'plugins' => [
-                [
-                    'uuid' => '62000000-0000-1000-8000-000000000001',
-                    'reference' => 'Plugin-CRM-Assistant',
-                    'configurations' => [
-                        [
-                            'uuid' => '63000000-0000-1000-8000-000000000001',
-                            'key' => 'plugin.crm-assistant.mode',
-                            'value' => [
-                                'assistant' => 'sales',
-                            ],
-                        ],
-                    ],
-                ],
-            ],
+            'plugins' => [],
         ],
         [
             'uuid' => '60000000-0000-1000-8000-000000000002',
             'key' => 'crm-pipeline-pro',
             'title' => 'CRM Pipeline Pro',
-            'description' => 'Vue avancee des etapes de conversion et relances.',
+            'description' => 'Vue avancee des etapes de conversion et relances clients.',
             'status' => PlatformStatus::MAINTENANCE,
             'private' => true,
-            'ownerReference' => 'User-john-admin',
+            'ownerReference' => 'User-john-root',
             'platformReference' => 'Platform-CR-CRM 1',
             'appConfigurations' => [
                 [
@@ -97,12 +84,12 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
             'plugins' => [
                 [
                     'uuid' => '62000000-0000-1000-8000-000000000002',
-                    'reference' => 'Plugin-Analytics-Booster',
+                    'reference' => 'Plugin-CRM-Assistant',
                     'configurations' => [
                         [
                             'uuid' => '63000000-0000-1000-8000-000000000002',
-                            'key' => 'plugin.analytics.widgets',
-                            'value' => ['pipeline', 'wonDeals'],
+                            'key' => 'plugin.chat.channels',
+                            'value' => ['sales-war-room', 'vip-clients'],
                         ],
                     ],
                 ],
@@ -115,7 +102,7 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
             'description' => 'Gestion des demandes clients et suivi de satisfaction.',
             'status' => PlatformStatus::ACTIVE,
             'private' => false,
-            'ownerReference' => 'User-john-user',
+            'ownerReference' => 'User-john-root',
             'platformReference' => 'Platform-CR-CRM 2',
             'appConfigurations' => [
                 [
@@ -129,12 +116,23 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
             'plugins' => [
                 [
                     'uuid' => '62000000-0000-1000-8000-000000000003',
-                    'reference' => 'Plugin-Knowledge-Base-Connector',
+                    'reference' => 'Plugin-CRM-Assistant',
                     'configurations' => [
                         [
                             'uuid' => '63000000-0000-1000-8000-000000000003',
-                            'key' => 'plugin.kb.categories',
-                            'value' => ['support', 'faq'],
+                            'key' => 'plugin.chat.moderation',
+                            'value' => ['autoArchiveHours' => 72],
+                        ],
+                    ],
+                ],
+                [
+                    'uuid' => '62000000-0000-1000-8000-000000000013',
+                    'reference' => 'Plugin-Analytics-Booster',
+                    'configurations' => [
+                        [
+                            'uuid' => '63000000-0000-1000-8000-000000000013',
+                            'key' => 'plugin.calendar.interviews',
+                            'value' => ['defaultDurationMinutes' => 30],
                         ],
                     ],
                 ],
@@ -165,9 +163,9 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
                     'configurations' => [
                         [
                             'uuid' => '63000000-0000-1000-8000-000000000004',
-                            'key' => 'plugin.kb.sync',
+                            'key' => 'plugin.blog.publication',
                             'value' => [
-                                'intervalMinutes' => 30,
+                                'moderation' => 'pre',
                             ],
                         ],
                     ],
@@ -181,7 +179,7 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
             'description' => 'Travail sur les fiches produits et categories.',
             'status' => PlatformStatus::DISABLED,
             'private' => true,
-            'ownerReference' => 'User-john-api',
+            'ownerReference' => 'User-john-root',
             'platformReference' => 'Platform-SH-Shop Principal',
             'appConfigurations' => [
                 [
@@ -201,7 +199,7 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
             'description' => 'Suivi des commandes et incidents de paiement.',
             'status' => PlatformStatus::MAINTENANCE,
             'private' => false,
-            'ownerReference' => 'User-john-logged',
+            'ownerReference' => 'User-john-root',
             'platformReference' => 'Platform-SH-Shop Principal',
             'appConfigurations' => [
                 [
@@ -215,13 +213,26 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
             'plugins' => [
                 [
                     'uuid' => '62000000-0000-1000-8000-000000000006',
-                    'reference' => 'Plugin-Analytics-Booster',
+                    'reference' => 'Plugin-Knowledge-Base-Connector',
                     'configurations' => [
                         [
                             'uuid' => '63000000-0000-1000-8000-000000000006',
-                            'key' => 'plugin.analytics.orders',
+                            'key' => 'plugin.blog.orders',
                             'value' => [
                                 'daily' => true,
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'uuid' => '62000000-0000-1000-8000-000000000014',
+                    'reference' => 'Plugin-Quiz-Master',
+                    'configurations' => [
+                        [
+                            'uuid' => '63000000-0000-1000-8000-000000000014',
+                            'key' => 'plugin.quiz.learning',
+                            'value' => [
+                                'questionPool' => 'order-quality',
                             ],
                         ],
                     ],
@@ -246,7 +257,21 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
                     ],
                 ],
             ],
-            'plugins' => [],
+            'plugins' => [
+                [
+                    'uuid' => '62000000-0000-1000-8000-000000000015',
+                    'reference' => 'Plugin-Quiz-Master',
+                    'configurations' => [
+                        [
+                            'uuid' => '63000000-0000-1000-8000-000000000015',
+                            'key' => 'plugin.quiz.classroom',
+                            'value' => [
+                                'difficultyCurve' => 'adaptive',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ],
         [
             'uuid' => '60000000-0000-1000-8000-000000000008',
@@ -255,7 +280,7 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
             'description' => 'Flux des cours et suivi de progression pedagogique.',
             'status' => PlatformStatus::ACTIVE,
             'private' => true,
-            'ownerReference' => 'User-john-admin',
+            'ownerReference' => 'User-john-root',
             'platformReference' => 'Platform-SC-School Principal',
             'appConfigurations' => [
                 [
@@ -269,13 +294,26 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
             'plugins' => [
                 [
                     'uuid' => '62000000-0000-1000-8000-000000000008',
-                    'reference' => 'Plugin-Private-Beta-Plugin',
+                    'reference' => 'Plugin-Analytics-Booster',
                     'configurations' => [
                         [
                             'uuid' => '63000000-0000-1000-8000-000000000008',
-                            'key' => 'plugin.beta.flags',
+                            'key' => 'plugin.calendar.classes',
                             'value' => [
-                                'classAssistant' => true,
+                                'syncTeachers' => true,
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'uuid' => '62000000-0000-1000-8000-000000000016',
+                    'reference' => 'Plugin-CRM-Assistant',
+                    'configurations' => [
+                        [
+                            'uuid' => '63000000-0000-1000-8000-000000000016',
+                            'key' => 'plugin.chat.classrooms',
+                            'value' => [
+                                'channels' => ['classe-a', 'classe-b'],
                             ],
                         ],
                     ],
@@ -289,7 +327,7 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
             'description' => 'Saisie des notes et evaluation continue.',
             'status' => PlatformStatus::MAINTENANCE,
             'private' => false,
-            'ownerReference' => 'User-john-user',
+            'ownerReference' => 'User-john-root',
             'platformReference' => 'Platform-SC-School Principal',
             'appConfigurations' => [
                 [
@@ -327,9 +365,48 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
                     'configurations' => [
                         [
                             'uuid' => '63000000-0000-1000-8000-000000000010',
-                            'key' => 'plugin.crm-assistant.recruit',
+                            'key' => 'plugin.chat.recruit',
                             'value' => [
                                 'rankingHelp' => true,
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'uuid' => '62000000-0000-1000-8000-000000000017',
+                    'reference' => 'Plugin-Analytics-Booster',
+                    'configurations' => [
+                        [
+                            'uuid' => '63000000-0000-1000-8000-000000000017',
+                            'key' => 'plugin.calendar.recruit',
+                            'value' => [
+                                'interviewSlots' => 6,
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'uuid' => '62000000-0000-1000-8000-000000000018',
+                    'reference' => 'Plugin-Knowledge-Base-Connector',
+                    'configurations' => [
+                        [
+                            'uuid' => '63000000-0000-1000-8000-000000000018',
+                            'key' => 'plugin.blog.recruit',
+                            'value' => [
+                                'editorialWorkflow' => 'team-review',
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'uuid' => '62000000-0000-1000-8000-000000000019',
+                    'reference' => 'Plugin-Quiz-Master',
+                    'configurations' => [
+                        [
+                            'uuid' => '63000000-0000-1000-8000-000000000019',
+                            'key' => 'plugin.quiz.recruit',
+                            'value' => [
+                                'skillsAssessment' => true,
                             ],
                         ],
                     ],
@@ -343,7 +420,7 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
             'description' => 'Pipeline de recrutement avec etapes de qualification.',
             'status' => PlatformStatus::ACTIVE,
             'private' => true,
-            'ownerReference' => 'User-john-admin',
+            'ownerReference' => 'User-john-root',
             'platformReference' => 'Platform-RE-Recruit Principal',
             'appConfigurations' => [
                 [
@@ -357,11 +434,11 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
             'plugins' => [
                 [
                     'uuid' => '62000000-0000-1000-8000-000000000011',
-                    'reference' => 'Plugin-Private-Beta-Plugin',
+                    'reference' => 'Plugin-Analytics-Booster',
                     'configurations' => [
                         [
                             'uuid' => '63000000-0000-1000-8000-000000000011',
-                            'key' => 'plugin.beta.recruit',
+                            'key' => 'plugin.calendar.pipeline',
                             'value' => [
                                 'cvParsingV2' => true,
                             ],
@@ -377,7 +454,7 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
             'description' => 'Gestion des entretiens et feedbacks candidats.',
             'status' => PlatformStatus::DISABLED,
             'private' => false,
-            'ownerReference' => 'User-john-user',
+            'ownerReference' => 'User-john-root',
             'platformReference' => 'Platform-RE-Recruit Principal',
             'appConfigurations' => [
                 [
@@ -388,8 +465,53 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
                     ],
                 ],
             ],
-            'plugins' => [],
+            'plugins' => [
+                [
+                    'uuid' => '62000000-0000-1000-8000-000000000020',
+                    'reference' => 'Plugin-CRM-Assistant',
+                    'configurations' => [
+                        [
+                            'uuid' => '63000000-0000-1000-8000-000000000020',
+                            'key' => 'plugin.chat.interview',
+                            'value' => [
+                                'privateThreads' => true,
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'uuid' => '62000000-0000-1000-8000-000000000021',
+                    'reference' => 'Plugin-Knowledge-Base-Connector',
+                    'configurations' => [
+                        [
+                            'uuid' => '63000000-0000-1000-8000-000000000021',
+                            'key' => 'plugin.blog.interview',
+                            'value' => [
+                                'feedbackTemplates' => true,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ],
+    ];
+
+    /**
+     * @var array<non-empty-string, non-empty-string>
+     */
+    public static array $uuids = [
+        'crm-sales-hub' => '60000000-0000-1000-8000-000000000001',
+        'crm-pipeline-pro' => '60000000-0000-1000-8000-000000000002',
+        'crm-support-desk' => '60000000-0000-1000-8000-000000000003',
+        'shop-ops-center' => '60000000-0000-1000-8000-000000000004',
+        'shop-catalog-lab' => '60000000-0000-1000-8000-000000000005',
+        'shop-orders-watch' => '60000000-0000-1000-8000-000000000006',
+        'school-campus-core' => '60000000-0000-1000-8000-000000000007',
+        'school-course-flow' => '60000000-0000-1000-8000-000000000008',
+        'school-grade-track' => '60000000-0000-1000-8000-000000000009',
+        'recruit-talent-hub' => '60000000-0000-1000-8000-000000000010',
+        'recruit-hiring-pipeline' => '60000000-0000-1000-8000-000000000011',
+        'recruit-interview-desk' => '60000000-0000-1000-8000-000000000012',
     ];
 
     /**
@@ -477,5 +599,10 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
     public function getOrder(): int
     {
         return 7;
+    }
+
+    public static function getUuidByKey(string $key): string
+    {
+        return self::$uuids[$key];
     }
 }

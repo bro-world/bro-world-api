@@ -7,6 +7,7 @@ namespace App\Quiz\Infrastructure\DataFixtures\ORM;
 use App\Configuration\Domain\Entity\Configuration;
 use App\Configuration\Domain\Enum\ConfigurationScope;
 use App\Platform\Domain\Entity\Application;
+use App\Platform\Domain\Entity\Plugin;
 use App\Quiz\Domain\Entity\Quiz;
 use App\Quiz\Domain\Entity\QuizAnswer;
 use App\Quiz\Domain\Entity\QuizQuestion;
@@ -26,14 +27,22 @@ final class LoadQuizData extends Fixture implements OrderedFixtureInterface
             $this->getReference('User-john-admin', User::class),
             $this->getReference('User-john-user', User::class),
         ];
+        $quizPlugin = $this->getReference('Plugin-Quiz-Master', Plugin::class);
 
-        $applications = [
-            $this->getReference('Application-shop-ops-center', Application::class),
-            $this->getReference('Application-crm-sales-hub', Application::class),
-            $this->getReference('Application-school-campus-core', Application::class),
-        ];
+        $applications = $manager->getRepository(Application::class)
+            ->createQueryBuilder('application')
+            ->innerJoin('application.applicationPlugins', 'applicationPlugin')
+            ->andWhere('applicationPlugin.plugin = :plugin')
+            ->setParameter('plugin', $quizPlugin)
+            ->orderBy('application.title', 'ASC')
+            ->getQuery()
+            ->getResult();
 
         foreach ($applications as $applicationIndex => $application) {
+            if (!$application instanceof Application) {
+                continue;
+            }
+
             $configuration = (new Configuration())
                 ->setApplication($application)
                 ->setConfigurationKey('quiz.module.configuration')
