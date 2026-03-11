@@ -18,7 +18,7 @@ use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
-#[OA\Tag(name: 'Chat Message')]
+#[OA\Tag(name: 'Chat Conversation')]
 #[OA\Patch(
     path: '/v1/chat/private/messages/{messageId}',
     operationId: 'chat_message_patch',

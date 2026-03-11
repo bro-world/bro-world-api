@@ -19,20 +19,20 @@ use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
-#[OA\Tag(name: 'Chat Message Reaction')]
-#[OA\Patch(path: '/v1/chat/private/reactions/{reactionId}', operationId: 'chat_reaction_patch', summary: 'Modifier une réaction', tags: ['Chat Message Reaction'], parameters: [new OA\Parameter(name: 'reactionId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000'))], requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [new OA\Property(property: 'reaction', type: 'string', enum: ChatReactionType::VALUES, example: 'love')], example: [
+#[OA\Tag(name: 'Chat Conversation')]
+#[OA\Patch(path: '/v1/chat/private/reactions/{reactionId}', operationId: 'chat_reaction_patch', summary: 'Modifier une réaction', requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(properties: [new OA\Property(property: 'reaction', type: 'string', enum: ChatReactionType::VALUES, example: 'love')], example: [
     'reaction' => 'love',
-])), responses: [new OA\Response(response: 200, description: 'Réaction modifiée', content: new OA\JsonContent(example: [
+])), tags: ['Chat Message Reaction'], parameters: [new OA\Parameter(name: 'reactionId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000'))], responses: [new OA\Response(response: 200, description: 'Réaction modifiée', content: new OA\JsonContent(example: [
     'id' => '8f210e56-6550-4b61-b7f3-8994f5f6dc41',
 ])), new OA\Response(response: 404, description: 'Réaction introuvable')])]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-class PatchReactionController
+readonly class PatchReactionController
 {
     public function __construct(
-        private readonly ChatMessageReactionRepositoryInterface $reactionRepository,
-        private readonly ChatAccessResolverService $chatAccessResolverService,
-        private readonly ReactionPayloadService $reactionPayloadService,
-        private readonly CacheInvalidationService $cacheInvalidationService,
+        private ChatMessageReactionRepositoryInterface $reactionRepository,
+        private ChatAccessResolverService              $chatAccessResolverService,
+        private ReactionPayloadService                 $reactionPayloadService,
+        private CacheInvalidationService               $cacheInvalidationService,
     ) {
     }
 

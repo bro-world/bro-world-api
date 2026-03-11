@@ -11,6 +11,8 @@ use App\Chat\Domain\Enum\ChatReactionType;
 use App\Chat\Domain\Repository\Interfaces\ChatMessageReactionRepositoryInterface;
 use App\General\Application\Service\CacheInvalidationService;
 use App\User\Domain\Entity\User;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,30 +22,34 @@ use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
-#[OA\Tag(name: 'Chat Message Reaction')]
-#[OA\Post(path: '/v1/chat/private/messages/{messageId}/reactions', operationId: 'chat_reaction_create', summary: 'Créer une réaction', tags: ['Chat Message Reaction'], parameters: [new OA\Parameter(name: 'messageId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000'))], requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['reaction'], properties: [new OA\Property(property: 'reaction', type: 'string', enum: ChatReactionType::VALUES, example: 'like')], example: [
+#[OA\Tag(name: 'Chat Conversation')]
+#[OA\Post(path: '/v1/chat/private/messages/{messageId}/reactions', operationId: 'chat_reaction_create', summary: 'Créer une réaction', requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['reaction'], properties: [new OA\Property(property: 'reaction', type: 'string', enum: ChatReactionType::VALUES, example: 'like')], example: [
     'reaction' => 'like',
-])), responses: [new OA\Response(response: 201, description: 'Réaction créée', content: new OA\JsonContent(example: [
+])), tags: ['Chat Message Reaction'], parameters: [new OA\Parameter(name: 'messageId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000'))], responses: [new OA\Response(response: 201, description: 'Réaction créée', content: new OA\JsonContent(example: [
     'id' => '8f210e56-6550-4b61-b7f3-8994f5f6dc41',
 ])), new OA\Response(response: 400, description: 'Payload invalide'), new OA\Response(response: 404, description: 'Message introuvable')])]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-class CreateReactionController
+readonly class CreateReactionController
 {
     public function __construct(
-        private readonly ChatMessageReactionRepositoryInterface $reactionRepository,
-        private readonly ChatAccessResolverService $chatAccessResolverService,
-        private readonly ReactionPayloadService $reactionPayloadService,
-        private readonly CacheInvalidationService $cacheInvalidationService,
+        private ChatMessageReactionRepositoryInterface $reactionRepository,
+        private ChatAccessResolverService              $chatAccessResolverService,
+        private ReactionPayloadService                 $reactionPayloadService,
+        private CacheInvalidationService               $cacheInvalidationService,
     ) {
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     #[Route(path: '/v1/chat/private/messages/{messageId}/reactions', methods: [Request::METHOD_POST])]
     public function __invoke(string $messageId, Request $request, User $loggedInUser): JsonResponse
     {
         $message = $this->chatAccessResolverService->resolveAccessibleMessage($messageId, $loggedInUser);
         $reactionType = $this->reactionPayloadService->extractRequiredReaction($request->toArray());
 
-        $reaction = (new ChatMessageReaction())
+        $reaction = new ChatMessageReaction()
             ->setMessage($message)
             ->setUser($loggedInUser)
             ->setReaction($reactionType);
