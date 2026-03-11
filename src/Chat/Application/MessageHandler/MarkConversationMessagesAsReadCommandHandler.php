@@ -28,15 +28,21 @@ final readonly class MarkConversationMessagesAsReadCommandHandler
 
     public function __invoke(MarkConversationMessagesAsReadCommand $command): void
     {
-        $conversation = $this->findParticipantConversation($command->conversationId, $command->actorUserId);
+        [$conversation, $participant] = $this->findParticipantConversation($command->conversationId, $command->actorUserId);
 
         $updated = $this->messageRepository->markConversationMessagesAsRead($conversation->getId(), $command->actorUserId);
+        $participant->setLastReadMessageAt(new \DateTimeImmutable());
+        $this->participantRepository->save($participant);
+
         if ($updated > 0) {
             $this->cacheInvalidationService->invalidateConversationCaches($conversation->getChat()->getId(), $command->actorUserId);
         }
     }
 
-    private function findParticipantConversation(string $conversationId, string $actorUserId): Conversation
+    /**
+     * @return array{Conversation, ConversationParticipant}
+     */
+    private function findParticipantConversation(string $conversationId, string $actorUserId): array
     {
         $conversation = $this->conversationRepository->find($conversationId);
         if (!$conversation instanceof Conversation) {
@@ -51,6 +57,6 @@ final readonly class MarkConversationMessagesAsReadCommandHandler
             throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Conversation not found.');
         }
 
-        return $conversation;
+        return [$conversation, $participant];
     }
 }

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Chat\Application\MessageHandler;
 
 use App\Chat\Application\Message\CreateConversationCommand;
+use App\Chat\Domain\Enum\ConversationParticipantRole;
+use App\Chat\Domain\Enum\ConversationType;
 use App\Chat\Domain\Entity\Chat;
 use App\Chat\Domain\Entity\Conversation;
 use App\Chat\Domain\Entity\ConversationParticipant;
@@ -50,12 +52,20 @@ final readonly class CreateConversationCommandHandler
                 throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Unknown userId.');
             }
 
-            $conversation = (new Conversation())->setChat($chat);
+            $conversation = (new Conversation())
+                ->setChat($chat)
+                ->setType(ConversationType::DIRECT);
             $this->conversationRepository->save($conversation, false);
 
-            $this->participantRepository->save((new ConversationParticipant())->setConversation($conversation)->setUser($actor), false);
+            $this->participantRepository->save((new ConversationParticipant())
+                ->setConversation($conversation)
+                ->setUser($actor)
+                ->setRole(ConversationParticipantRole::OWNER), false);
             if ($targetUser->getId() !== $actor->getId()) {
-                $this->participantRepository->save((new ConversationParticipant())->setConversation($conversation)->setUser($targetUser), false);
+                $this->participantRepository->save((new ConversationParticipant())
+                    ->setConversation($conversation)
+                    ->setUser($targetUser)
+                    ->setRole(ConversationParticipantRole::MEMBER), false);
             }
 
             $entityManager->flush();

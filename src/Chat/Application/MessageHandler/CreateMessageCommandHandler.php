@@ -48,7 +48,11 @@ final readonly class CreateMessageCommandHandler
                 ->setSender($actor)
                 ->setContent($command->content)
                 ->setAttachments([])
+                ->setMetadata([])
                 ->setRead(false);
+
+            $conversation->setLastMessageAt(new \DateTimeImmutable());
+            $this->conversationRepository->save($conversation, false);
 
             $this->messageRepository->save($message);
 

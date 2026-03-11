@@ -29,6 +29,7 @@ final readonly class PatchMessageCommandHandler
             $updated = false;
             if ($command->content !== null) {
                 $message->setContent($command->content);
+                $message->setEditedAt(new \DateTimeImmutable());
                 $updated = true;
             }
 
@@ -55,7 +56,7 @@ final readonly class PatchMessageCommandHandler
     private function findOwnMessage(string $messageId, string $actorUserId): ChatMessage
     {
         $message = $this->messageRepository->find($messageId);
-        if (!$message instanceof ChatMessage || $message->getSender()->getId() !== $actorUserId) {
+        if (!$message instanceof ChatMessage || $message->getSender()->getId() !== $actorUserId || $message->getDeletedAt() !== null) {
             throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Message not found.');
         }
 

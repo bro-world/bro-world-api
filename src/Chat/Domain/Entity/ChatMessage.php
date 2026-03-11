@@ -22,6 +22,7 @@ use Ramsey\Uuid\UuidInterface;
 #[ORM\Index(name: 'idx_chat_message_conversation_id', columns: ['conversation_id'])]
 #[ORM\Index(name: 'idx_chat_message_created_at', columns: ['created_at'])]
 #[ORM\Index(name: 'idx_chat_message_sender_id', columns: ['sender_id'])]
+#[ORM\Index(name: 'idx_chat_message_conversation_created_deleted', columns: ['conversation_id', 'created_at', 'deleted_at'])]
 #[ORM\ChangeTrackingPolicy('DEFERRED_EXPLICIT')]
 class ChatMessage implements EntityInterface
 {
@@ -51,11 +52,23 @@ class ChatMessage implements EntityInterface
     #[ORM\Column(name: 'read_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?DateTimeImmutable $readAt = null;
 
+    #[ORM\Column(name: 'edited_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?DateTimeImmutable $editedAt = null;
+
+    #[ORM\Column(name: 'deleted_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?DateTimeImmutable $deletedAt = null;
+
     /**
      * @var array<int, array<string, mixed>>
      */
     #[ORM\Column(name: 'attachments', type: Types::JSON)]
     private array $attachments = [];
+
+    /**
+     * @var array<string, mixed>
+     */
+    #[ORM\Column(name: 'metadata', type: Types::JSON)]
+    private array $metadata = [];
 
     /**
      * @var Collection<int, ChatMessageReaction>
@@ -135,6 +148,30 @@ class ChatMessage implements EntityInterface
         return $this;
     }
 
+    public function getEditedAt(): ?DateTimeImmutable
+    {
+        return $this->editedAt;
+    }
+
+    public function setEditedAt(?DateTimeImmutable $editedAt): self
+    {
+        $this->editedAt = $editedAt;
+
+        return $this;
+    }
+
+    public function getDeletedAt(): ?DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+    public function setDeletedAt(?DateTimeImmutable $deletedAt): self
+    {
+        $this->deletedAt = $deletedAt;
+
+        return $this;
+    }
+
     /**
      * @return array<int, array<string, mixed>>
      */
@@ -149,6 +186,24 @@ class ChatMessage implements EntityInterface
     public function setAttachments(array $attachments): self
     {
         $this->attachments = $attachments;
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getMetadata(): array
+    {
+        return $this->metadata;
+    }
+
+    /**
+     * @param array<string, mixed> $metadata
+     */
+    public function setMetadata(array $metadata): self
+    {
+        $this->metadata = $metadata;
 
         return $this;
     }

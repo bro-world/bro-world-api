@@ -32,6 +32,7 @@ class ChatMessageRepository extends BaseRepository
             ->set('m.readAt', ':readAt')
             ->where('m.conversation = :conversationId')
             ->andWhere('m.sender != :actorUserId')
+            ->andWhere('m.deletedAt IS NULL')
             ->andWhere('m.read = :unread')
             ->setParameter('read', true)
             ->setParameter('unread', false)

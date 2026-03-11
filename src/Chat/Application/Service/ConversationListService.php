@@ -205,9 +205,27 @@ final readonly class ConversationListService
         $connectedUserId = $connectedUser?->getId();
 
         return array_map(function (Conversation $conversation) use ($connectedUserId): array {
+            $connectedParticipant = null;
+            if ($connectedUserId !== null) {
+                foreach ($conversation->getParticipants() as $participant) {
+                    if ($participant->getUser()->getId() === $connectedUserId) {
+                        $connectedParticipant = $participant;
+                        break;
+                    }
+                }
+            }
+
+            $lastReadMessageAt = $connectedParticipant?->getLastReadMessageAt();
+            $visibleMessages = array_values(array_filter(
+                $conversation->getMessages()->toArray(),
+                static fn (ChatMessage $message): bool => $message->getDeletedAt() === null
+            ));
+
             return [
                 'id' => $conversation->getId(),
                 'chatId' => $conversation->getChat()?->getId(),
+                'type' => $conversation->getType()->value,
+                'title' => $conversation->getTitle(),
                 'participants' => array_map(
                     function (ConversationParticipant $participant) use ($connectedUserId): array {
                         $participantUser = $participant->getUser();
@@ -227,14 +245,14 @@ final readonly class ConversationListService
                     $conversation->getParticipants()->toArray()
                 ),
                 'unreadMessagesCount' => array_reduce(
-                    $conversation->getMessages()->toArray(),
-                    static function (int $carry, ChatMessage $message) use ($connectedUserId): int {
+                    $visibleMessages,
+                    static function (int $carry, ChatMessage $message) use ($connectedUserId, $lastReadMessageAt): int {
                         if ($connectedUserId === null) {
                             return $carry;
                         }
 
                         $isOwner = $message->getSender()->getId() === $connectedUserId;
-                        if ($isOwner || $message->isRead()) {
+                        if ($isOwner || ($lastReadMessageAt !== null && $message->getCreatedAt() <= $lastReadMessageAt)) {
                             return $carry;
                         }
 
@@ -258,8 +276,11 @@ final readonly class ConversationListService
                                 'owner' => $connectedUserId !== null && $senderId === $connectedUserId,
                             ],
                             'attachments' => $message->getAttachments(),
+                            'metadata' => $message->getMetadata(),
                             'read' => $message->isRead(),
                             'readAt' => $message->getReadAt()?->format(DATE_ATOM),
+                            'editedAt' => $message->getEditedAt()?->format(DATE_ATOM),
+                            'deletedAt' => $message->getDeletedAt()?->format(DATE_ATOM),
                             'createdAt' => $message->getCreatedAt()?->format(DATE_ATOM),
                             'reactions' => array_map(
                                 static fn (ChatMessageReaction $reaction): array => [
@@ -271,8 +292,10 @@ final readonly class ConversationListService
                             ),
                         ];
                     },
-                    $conversation->getMessages()->toArray()
+                    $visibleMessages
                 ),
+                'lastMessageAt' => $conversation->getLastMessageAt()?->format(DATE_ATOM),
+                'archivedAt' => $conversation->getArchivedAt()?->format(DATE_ATOM),
                 'createdAt' => $conversation->getCreatedAt()?->format(DATE_ATOM),
             ];
         }, $conversations);
