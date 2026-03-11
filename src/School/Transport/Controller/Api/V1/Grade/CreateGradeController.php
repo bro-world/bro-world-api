@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\School\Transport\Controller\Api\V1\Grade;
 
 use App\School\Application\Service\CreateGradeService;
+use App\School\Transport\Controller\Api\V1\Input\CreateGradeInput;
+use App\School\Transport\Controller\Api\V1\Input\SchoolInputValidator;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,19 +20,28 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
 final readonly class CreateGradeController
 {
-    public function __construct(private CreateGradeService $createGradeService)
-    {
+    public function __construct(
+        private CreateGradeService $createGradeService,
+        private SchoolInputValidator $inputValidator,
+    ) {
     }
 
     #[Route('/v1/school/grades', methods: [Request::METHOD_POST])]
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = (array)json_decode((string)$request->getContent(), true);
-        $grade = $this->createGradeService->create(
-            (float)($payload['score'] ?? 0),
-            is_string($payload['studentId'] ?? null) ? $payload['studentId'] : null,
-            is_string($payload['examId'] ?? null) ? $payload['examId'] : null,
-        );
+        $payload = $request->toArray();
+
+        $input = new CreateGradeInput();
+        $input->score = (float)($payload['score'] ?? 0);
+        $input->studentId = is_string($payload['studentId'] ?? null) ? $payload['studentId'] : '';
+        $input->examId = is_string($payload['examId'] ?? null) ? $payload['examId'] : '';
+
+        $validationResponse = $this->inputValidator->validate($input);
+        if ($validationResponse instanceof JsonResponse) {
+            return $validationResponse;
+        }
+
+        $grade = $this->createGradeService->create($input->score, $input->studentId, $input->examId);
 
         return new JsonResponse(['id' => $grade->getId()], JsonResponse::HTTP_CREATED);
     }

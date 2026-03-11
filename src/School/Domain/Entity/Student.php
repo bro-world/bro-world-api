@@ -17,6 +17,7 @@ use Ramsey\Uuid\UuidInterface;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'school_student')]
+#[ORM\Index(name: 'idx_school_student_class_id', columns: ['class_id'])]
 #[ORM\ChangeTrackingPolicy('DEFERRED_EXPLICIT')]
 class Student implements EntityInterface
 {
@@ -28,7 +29,7 @@ class Student implements EntityInterface
     private UuidInterface $id;
 
     #[ORM\ManyToOne(targetEntity: SchoolClass::class, inversedBy: 'students')]
-    #[ORM\JoinColumn(name: 'class_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    #[ORM\JoinColumn(name: 'class_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private ?SchoolClass $schoolClass = null;
 
     #[ORM\Column(name: 'name', type: Types::STRING, length: 255)]

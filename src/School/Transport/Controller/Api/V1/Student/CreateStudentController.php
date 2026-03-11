@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\School\Transport\Controller\Api\V1\Student;
 
 use App\School\Application\Service\CreateStudentService;
+use App\School\Transport\Controller\Api\V1\Input\CreateStudentInput;
+use App\School\Transport\Controller\Api\V1\Input\SchoolInputValidator;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,15 +20,27 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
 final readonly class CreateStudentController
 {
-    public function __construct(private CreateStudentService $createStudentService)
-    {
+    public function __construct(
+        private CreateStudentService $createStudentService,
+        private SchoolInputValidator $inputValidator,
+    ) {
     }
 
     #[Route('/v1/school/students', methods: [Request::METHOD_POST])]
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = (array)json_decode((string)$request->getContent(), true);
-        $student = $this->createStudentService->create((string)($payload['name'] ?? ''), is_string($payload['classId'] ?? null) ? $payload['classId'] : null);
+        $payload = $request->toArray();
+
+        $input = new CreateStudentInput();
+        $input->name = (string)($payload['name'] ?? '');
+        $input->classId = is_string($payload['classId'] ?? null) ? $payload['classId'] : '';
+
+        $validationResponse = $this->inputValidator->validate($input);
+        if ($validationResponse instanceof JsonResponse) {
+            return $validationResponse;
+        }
+
+        $student = $this->createStudentService->create($input->name, $input->classId);
 
         return new JsonResponse(['id' => $student->getId()], JsonResponse::HTTP_CREATED);
     }
