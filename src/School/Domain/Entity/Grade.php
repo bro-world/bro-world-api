@@ -15,6 +15,9 @@ use Ramsey\Uuid\UuidInterface;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'school_grade')]
+#[ORM\Index(name: 'idx_school_grade_student_id', columns: ['student_id'])]
+#[ORM\Index(name: 'idx_school_grade_exam_id', columns: ['exam_id'])]
+#[ORM\UniqueConstraint(name: 'uniq_school_grade_exam_student', columns: ['exam_id', 'student_id'])]
 #[ORM\ChangeTrackingPolicy('DEFERRED_EXPLICIT')]
 class Grade implements EntityInterface
 {
@@ -26,11 +29,11 @@ class Grade implements EntityInterface
     private UuidInterface $id;
 
     #[ORM\ManyToOne(targetEntity: Student::class, inversedBy: 'grades')]
-    #[ORM\JoinColumn(name: 'student_id', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'student_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private ?Student $student = null;
 
     #[ORM\ManyToOne(targetEntity: Exam::class, inversedBy: 'grades')]
-    #[ORM\JoinColumn(name: 'exam_id', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'exam_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private ?Exam $exam = null;
 
     #[ORM\Column(name: 'score', type: Types::FLOAT)]
