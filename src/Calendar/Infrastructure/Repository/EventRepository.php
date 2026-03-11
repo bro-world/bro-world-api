@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Calendar\Infrastructure\Repository;
 
 use App\Calendar\Domain\Entity\Event as Entity;
+use App\Calendar\Domain\Enum\EventVisibility;
 use App\Calendar\Domain\Repository\Interfaces\EventRepositoryInterface;
 use App\General\Infrastructure\Repository\BaseRepository;
 use App\User\Domain\Entity\User;
@@ -64,7 +65,10 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         return $this->applyListFilters($this->createBaseQueryBuilder(), $filters, $esIds)
             ->innerJoin('calendar.application', 'application')
             ->andWhere('application.slug = :applicationSlug')
+            ->andWhere('event.visibility = :visibilityPublic')
+            ->andWhere('event.isCancelled = false')
             ->setParameter('applicationSlug', $applicationSlug)
+            ->setParameter('visibilityPublic', EventVisibility::PUBLIC->value)
             ->orderBy('event.startAt', 'ASC')
             ->setFirstResult($offset)
             ->setMaxResults($limit)
@@ -77,7 +81,10 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         return (int)$this->applyListFilters($this->createCountQueryBuilder(), $filters, $esIds)
             ->innerJoin('calendar.application', 'application')
             ->andWhere('application.slug = :applicationSlug')
+            ->andWhere('event.visibility = :visibilityPublic')
+            ->andWhere('event.isCancelled = false')
             ->setParameter('applicationSlug', $applicationSlug)
+            ->setParameter('visibilityPublic', EventVisibility::PUBLIC->value)
             ->getQuery()
             ->getSingleScalarResult();
     }
