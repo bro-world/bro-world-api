@@ -40,6 +40,15 @@ readonly class UserPublicListService
             'q' => trim((string)$request->query->get('q', '')),
         ];
 
+        if ($filters['q'] === '') {
+            $users = $this->findUsers(null, null);
+
+            return [
+                'users' => $users,
+                'filters' => [],
+            ];
+        }
+
         $cacheKey = $this->cacheKeyConventionService->buildPublicUserListKey($filters);
 
         /** @var array<int, array<string, string|null>> $users */
@@ -55,31 +64,7 @@ readonly class UserPublicListService
                 return [];
             }
 
-            $qb = $this->userRepository->createQueryBuilder('user')
-                ->select('user')
-                ->orderBy('user.createdAt', 'DESC');
-
-            if ($esIds !== null) {
-                $qb->andWhere('user.id IN (:ids)')
-                    ->setParameter('ids', $esIds);
-            }
-
-            if ($filters['q'] !== '' && $esIds === null) {
-                $qb
-                    ->andWhere('LOWER(user.email) LIKE LOWER(:q) OR LOWER(user.firstName) LIKE LOWER(:q) OR LOWER(user.lastName) LIKE LOWER(:q)')
-                    ->setParameter('q', '%' . $filters['q'] . '%');
-            }
-
-            /** @var array<int, User> $entities */
-            $entities = $qb->getQuery()->getResult();
-
-            return array_map(static fn (User $user): array => [
-                'id' => $user->getId(),
-                'email' => $user->getEmail(),
-                'firstName' => $user->getFirstName(),
-                'lastName' => $user->getLastName(),
-                'photo' => $user->getPhoto(),
-            ], $entities);
+            return $this->findUsers($esIds, $filters['q']);
         });
 
         return [
@@ -89,8 +74,39 @@ readonly class UserPublicListService
     }
 
     /**
-     * @return array<int, string>|null
+     * @param array<int, string>|null $esIds
+     *
+     * @return array<int, array<string, string|null>>
      */
+    private function findUsers(?array $esIds, ?string $query): array
+    {
+        $qb = $this->userRepository->createQueryBuilder('user')
+            ->select('user')
+            ->orderBy('user.createdAt', 'DESC');
+
+        if ($esIds !== null) {
+            $qb->andWhere('user.id IN (:ids)')
+                ->setParameter('ids', $esIds);
+        }
+
+        if ($query !== null && $esIds === null) {
+            $qb
+                ->andWhere('LOWER(user.email) LIKE LOWER(:q) OR LOWER(user.firstName) LIKE LOWER(:q) OR LOWER(user.lastName) LIKE LOWER(:q)')
+                ->setParameter('q', '%' . $query . '%');
+        }
+
+        /** @var array<int, User> $entities */
+        $entities = $qb->getQuery()->getResult();
+
+        return array_map(static fn (User $user): array => [
+            'id' => $user->getId(),
+            'email' => $user->getEmail(),
+            'firstName' => $user->getFirstName(),
+            'lastName' => $user->getLastName(),
+            'photo' => $user->getPhoto(),
+        ], $entities);
+    }
+
     private function searchIdsFromElastic(string $query): ?array
     {
         try {
