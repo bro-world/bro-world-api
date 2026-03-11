@@ -16,7 +16,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-#[OA\Tag(name: 'Recruit Salary Management')]
+#[OA\Tag(name: 'Recruit Management')]
 class SalaryIdsController extends Controller
 {
     public function __construct(

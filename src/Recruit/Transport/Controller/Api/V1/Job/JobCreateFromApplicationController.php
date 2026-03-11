@@ -26,13 +26,13 @@ use function trim;
 #[AsController]
 #[OA\Tag(name: 'Recruit Job')]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-class JobCreateFromApplicationController
+readonly class JobCreateFromApplicationController
 {
     public function __construct(
-        private readonly ApplicationJobAccessService $applicationJobAccessService,
-        private readonly JobRepository $jobRepository,
-        private readonly MessageBusInterface $messageBus,
-        private readonly JobPayloadHydratorService $jobPayloadHydratorService,
+        private ApplicationJobAccessService $applicationJobAccessService,
+        private JobRepository               $jobRepository,
+        private MessageBusInterface         $messageBus,
+        private JobPayloadHydratorService   $jobPayloadHydratorService,
     ) {
     }
 

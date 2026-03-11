@@ -17,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-#[OA\Tag(name: 'Recruit Company Management')]
+#[OA\Tag(name: 'Recruit Management')]
 class CompanyViewController extends Controller
 {
     public function __construct(

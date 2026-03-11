@@ -21,12 +21,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[AsController]
 #[OA\Tag(name: 'Recruit Resume')]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-class ResumeCreateController
+readonly class ResumeCreateController
 {
     public function __construct(
-        private readonly ResumeRepository $resumeRepository,
-        private readonly ResumeDocumentUploaderService $resumeDocumentUploaderService,
-        private readonly ResumePayloadService $resumePayloadService,
+        private ResumeRepository              $resumeRepository,
+        private ResumeDocumentUploaderService $resumeDocumentUploaderService,
+        private ResumePayloadService          $resumePayloadService,
     ) {
     }
 
@@ -65,15 +65,15 @@ class ResumeCreateController
                 mediaType: 'multipart/form-data',
                 schema: new OA\Schema(
                     properties: [
-                        new OA\Property(property: 'document', type: 'string', format: 'binary', description: 'Fichier CV PDF.'),
-                        new OA\Property(property: 'experiences', type: 'string', description: 'JSON stringifié: [{"title":"...","description":"..."}]'),
-                        new OA\Property(property: 'educations', type: 'string', description: 'JSON stringifié'),
-                        new OA\Property(property: 'skills', type: 'string', description: 'JSON stringifié'),
-                        new OA\Property(property: 'languages', type: 'string', description: 'JSON stringifié'),
-                        new OA\Property(property: 'certifications', type: 'string', description: 'JSON stringifié'),
-                        new OA\Property(property: 'projects', type: 'string', description: 'JSON stringifié'),
-                        new OA\Property(property: 'references', type: 'string', description: 'JSON stringifié'),
-                        new OA\Property(property: 'hobbies', type: 'string', description: 'JSON stringifié'),
+                        new OA\Property(property: 'document', description: 'Fichier CV PDF.', type: 'string', format: 'binary'),
+                        new OA\Property(property: 'experiences', description: 'JSON stringifié: [{"title":"...","description":"..."}]', type: 'string'),
+                        new OA\Property(property: 'educations', description: 'JSON stringifié', type: 'string'),
+                        new OA\Property(property: 'skills', description: 'JSON stringifié', type: 'string'),
+                        new OA\Property(property: 'languages', description: 'JSON stringifié', type: 'string'),
+                        new OA\Property(property: 'certifications', description: 'JSON stringifié', type: 'string'),
+                        new OA\Property(property: 'projects', description: 'JSON stringifié', type: 'string'),
+                        new OA\Property(property: 'references', description: 'JSON stringifié', type: 'string'),
+                        new OA\Property(property: 'hobbies', description: 'JSON stringifié', type: 'string'),
                     ],
                     type: 'object',
                 ),
@@ -101,7 +101,7 @@ class ResumeCreateController
     {
         $payload = $this->resumePayloadService->extractPayload($request);
 
-        $resume = (new Resume())->setOwner($loggedInUser);
+        $resume = new Resume()->setOwner($loggedInUser);
 
         /** @var UploadedFile|null $document */
         $document = $request->files->get('document');

@@ -20,12 +20,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[AsController]
 #[OA\Tag(name: 'Recruit Job')]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-class JobDeleteFromApplicationController
+readonly class JobDeleteFromApplicationController
 {
     public function __construct(
-        private readonly ApplicationJobAccessService $applicationJobAccessService,
-        private readonly JobRepository $jobRepository,
-        private readonly MessageBusInterface $messageBus,
+        private ApplicationJobAccessService $applicationJobAccessService,
+        private JobRepository               $jobRepository,
+        private MessageBusInterface         $messageBus,
     ) {
     }
 

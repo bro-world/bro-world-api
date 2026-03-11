@@ -20,10 +20,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[AsController]
 #[OA\Tag(name: 'Recruit Resume')]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-class MyResumeDeleteController
+readonly class MyResumeDeleteController
 {
     public function __construct(
-        private readonly ResumeRepository $resumeRepository
+        private ResumeRepository $resumeRepository
     ) {
     }
 

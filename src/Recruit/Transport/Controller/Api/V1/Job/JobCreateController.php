@@ -23,7 +23,7 @@ use function count;
 
 #[AsController]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-#[OA\Tag(name: 'Recruit Job Management')]
+#[OA\Tag(name: 'Recruit Management')]
 class JobCreateController extends Controller
 {
     public function __construct(

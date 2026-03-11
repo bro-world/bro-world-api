@@ -21,11 +21,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[AsController]
 #[OA\Tag(name: 'Recruit Resume')]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-class MyResumePatchController
+readonly class MyResumePatchController
 {
     public function __construct(
-        private readonly ResumeRepository $resumeRepository,
-        private readonly ResumePayloadService $resumePayloadService,
+        private ResumeRepository     $resumeRepository,
+        private ResumePayloadService $resumePayloadService,
     ) {
     }
 

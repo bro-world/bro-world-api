@@ -24,7 +24,7 @@ use function count;
 
 #[AsController]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-#[OA\Tag(name: 'Recruit Company Management')]
+#[OA\Tag(name: 'Recruit Management')]
 class CompanyPatchController extends Controller
 {
     public function __construct(

@@ -19,11 +19,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[AsController]
 #[OA\Tag(name: 'Recruit Job')]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-class PrivateJobStatsController
+readonly class PrivateJobStatsController
 {
     public function __construct(
-        private readonly RecruitResolverService $recruitResolverService,
-        private readonly JobStatsService $jobStatsService,
+        private RecruitResolverService $recruitResolverService,
+        private JobStatsService        $jobStatsService,
     ) {
     }
 

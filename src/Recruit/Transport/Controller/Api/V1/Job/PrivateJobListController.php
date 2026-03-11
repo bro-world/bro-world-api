@@ -17,10 +17,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[AsController]
 #[OA\Tag(name: 'Recruit Job')]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-class PrivateJobListController
+readonly class PrivateJobListController
 {
     public function __construct(
-        private readonly JobPublicListService $jobPublicListService
+        private JobPublicListService $jobPublicListService
     ) {
     }
 

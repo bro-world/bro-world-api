@@ -13,10 +13,10 @@ use Symfony\Component\Routing\Attribute\Route;
 
 #[AsController]
 #[OA\Tag(name: 'Recruit Job')]
-class PublicJobListController
+readonly class PublicJobListController
 {
     public function __construct(
-        private readonly JobPublicListService $jobPublicListService
+        private JobPublicListService $jobPublicListService
     ) {
     }
 
