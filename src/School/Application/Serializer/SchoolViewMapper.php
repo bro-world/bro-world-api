@@ -42,14 +42,20 @@ final readonly class SchoolViewMapper
     {
         $items = [];
         foreach ($students as $student) {
-            $items[] = [
-                'id' => $student->getId(),
-                'name' => $student->getName(),
-                'classId' => $student->getSchoolClass()?->getId(),
-            ];
+            $items[] = $this->mapStudent($student);
         }
 
         return $items;
+    }
+
+    /** @return array<string,mixed> */
+    public function mapStudent(Student $student): array
+    {
+        return [
+            'id' => $student->getId(),
+            'name' => $student->getName(),
+            'classId' => $student->getSchoolClass()?->getId(),
+        ];
     }
 
     /** @param array<int,Teacher> $teachers
@@ -59,13 +65,19 @@ final readonly class SchoolViewMapper
     {
         $items = [];
         foreach ($teachers as $teacher) {
-            $items[] = [
-                'id' => $teacher->getId(),
-                'name' => $teacher->getName(),
-            ];
+            $items[] = $this->mapTeacher($teacher);
         }
 
         return $items;
+    }
+
+    /** @return array<string,mixed> */
+    public function mapTeacher(Teacher $teacher): array
+    {
+        return [
+            'id' => $teacher->getId(),
+            'name' => $teacher->getName(),
+        ];
     }
 
     /** @param array<int,Exam> $exams
@@ -75,21 +87,27 @@ final readonly class SchoolViewMapper
     {
         $items = [];
         foreach ($exams as $exam) {
-            $items[] = [
-                'id' => $exam->getId(),
-                'title' => $exam->getTitle(),
-                'classId' => $exam->getSchoolClass()?->getId(),
-                'className' => $exam->getSchoolClass()?->getName(),
-                'teacherId' => $exam->getTeacher()?->getId(),
-                'teacherName' => $exam->getTeacher()?->getName(),
-                'type' => $exam->getType()->value,
-                'status' => $exam->getStatus()->value,
-                'term' => $exam->getTerm()->value,
-                'updatedAt' => $exam->getUpdatedAt()?->format(DATE_ATOM),
-            ];
+            $items[] = $this->mapExam($exam);
         }
 
         return $items;
+    }
+
+    /** @return array<string,mixed> */
+    public function mapExam(Exam $exam): array
+    {
+        return [
+            'id' => $exam->getId(),
+            'title' => $exam->getTitle(),
+            'classId' => $exam->getSchoolClass()?->getId(),
+            'className' => $exam->getSchoolClass()?->getName(),
+            'teacherId' => $exam->getTeacher()?->getId(),
+            'teacherName' => $exam->getTeacher()?->getName(),
+            'type' => $exam->getType()->value,
+            'status' => $exam->getStatus()->value,
+            'term' => $exam->getTerm()->value,
+            'updatedAt' => $exam->getUpdatedAt()?->format(DATE_ATOM),
+        ];
     }
 
     /** @param array<int,Grade> $grades
@@ -99,14 +117,20 @@ final readonly class SchoolViewMapper
     {
         $items = [];
         foreach ($grades as $grade) {
-            $items[] = [
-                'id' => $grade->getId(),
-                'score' => $grade->getScore(),
-                'studentId' => $grade->getStudent()?->getId(),
-                'examId' => $grade->getExam()?->getId(),
-            ];
+            $items[] = $this->mapGrade($grade);
         }
 
         return $items;
+    }
+
+    /** @return array<string,mixed> */
+    public function mapGrade(Grade $grade): array
+    {
+        return [
+            'id' => $grade->getId(),
+            'score' => $grade->getScore(),
+            'studentId' => $grade->getStudent()?->getId(),
+            'examId' => $grade->getExam()?->getId(),
+        ];
     }
 }

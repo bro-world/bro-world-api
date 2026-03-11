@@ -36,23 +36,23 @@ final readonly class SchoolApplicationScopeResolver
             'slug' => $applicationSlug,
         ]);
         if (!$application instanceof Application) {
-            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Unknown "applicationSlug".');
+            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Application scope not found.');
         }
 
         $this->assertApplicationAccess($application, PlatformKey::SCHOOL);
 
-        throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'School root entity not found for this application.');
+        throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'School scope not found.');
     }
 
     public function assertApplicationAccess(?Application $application, PlatformKey $platformKey): void
     {
         if (!$application instanceof Application || $application->getPlatform()?->getPlatformKey() !== $platformKey) {
-            throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Invalid "applicationSlug" for the requested platform.');
+            throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Invalid application scope for school platform.');
         }
 
         $user = $this->security->getUser();
         if (!$user instanceof User || $application->getUser()?->getId() !== $user->getId()) {
-            throw new HttpException(JsonResponse::HTTP_FORBIDDEN, 'You cannot access this application scope.');
+            throw new HttpException(JsonResponse::HTTP_FORBIDDEN, 'Forbidden application scope access.');
         }
     }
 }
