@@ -36,55 +36,121 @@ final class LoadSchoolData extends Fixture implements OrderedFixtureInterface
     #[Override]
     public function load(ObjectManager $manager): void
     {
-        foreach ($this->getApplicationsByPlatform(PlatformKey::SCHOOL) as $application) {
+        $examTypes = ExamType::cases();
+        $examStatuses = ExamStatus::cases();
+        $terms = Term::cases();
+
+        foreach ($this->getApplicationsByPlatform(PlatformKey::SCHOOL) as $applicationIndex => $application) {
+            $appKey = $application->getKey();
+
             $school = (new School())
                 ->setName($application->getTitle() . ' Academy')
                 ->setApplication($application);
             $manager->persist($school);
+            $this->addReference('School-' . $appKey, $school);
 
-            $classA = (new SchoolClass())->setSchool($school)->setName('Classe A - Sciences');
-            $classB = (new SchoolClass())->setSchool($school)->setName('Classe B - Langues');
-            $manager->persist($classA);
-            $manager->persist($classB);
-
-            $teacherMath = (new Teacher())->setName('Mme Martin');
-            $teacherFrench = (new Teacher())->setName('M. Dubois');
-            $teacherMath->getClasses()->add($classA);
-            $teacherFrench->getClasses()->add($classA);
-            $teacherFrench->getClasses()->add($classB);
-            $manager->persist($teacherMath);
-            $manager->persist($teacherFrench);
-
-            $students = [
-                (new Student())->setSchoolClass($classA)->setName('Alice Bernard'),
-                (new Student())->setSchoolClass($classA)->setName('Lucas Petit'),
-                (new Student())->setSchoolClass($classB)->setName('Emma Laurent'),
+            $classes = [];
+            $classesByLabel = [
+                'small' => 'Classe A - Sciences',
+                'medium' => 'Classe B - Langues',
+                'large' => 'Classe C - Technologies',
             ];
 
-            foreach ($students as $student) {
-                $manager->persist($student);
+            foreach ($classesByLabel as $label => $name) {
+                $class = (new SchoolClass())
+                    ->setSchool($school)
+                    ->setName($name);
+                $manager->persist($class);
+
+                $classes[$label] = $class;
+                $this->addReference('SchoolClass-' . $appKey . '-' . $label, $class);
             }
 
-            $examMath = (new Exam())
-                ->setSchoolClass($classA)
-                ->setTeacher($teacherMath)
-                ->setTitle('Examen Mathematiques - Trimestre 1')
-                ->setType(ExamType::MIDTERM)
-                ->setStatus(ExamStatus::PUBLISHED)
-                ->setTerm(Term::TERM_1);
-            $examFrench = (new Exam())
-                ->setSchoolClass($classB)
-                ->setTeacher($teacherFrench)
-                ->setTitle('Examen Francais - Trimestre 1')
-                ->setType(ExamType::QUIZ)
-                ->setStatus(ExamStatus::DRAFT)
-                ->setTerm(Term::TERM_1);
-            $manager->persist($examMath);
-            $manager->persist($examFrench);
+            $teacherMath = (new Teacher())->setName('Mme Martin - ' . $applicationIndex);
+            $teacherFrench = (new Teacher())->setName('M. Dubois - ' . $applicationIndex);
+            $teacherHead = (new Teacher())->setName('Dr. Principal - ' . $applicationIndex);
 
-            $manager->persist((new Grade())->setStudent($students[0])->setExam($examMath)->setScore(16.5));
-            $manager->persist((new Grade())->setStudent($students[1])->setExam($examMath)->setScore(14.0));
-            $manager->persist((new Grade())->setStudent($students[2])->setExam($examFrench)->setScore(17.0));
+            $teacherMath->getClasses()->add($classes['small']);
+            $teacherMath->getClasses()->add($classes['large']);
+            $teacherFrench->getClasses()->add($classes['small']);
+            $teacherFrench->getClasses()->add($classes['medium']);
+            $teacherHead->getClasses()->add($classes['small']);
+            $teacherHead->getClasses()->add($classes['medium']);
+            $teacherHead->getClasses()->add($classes['large']);
+
+            $manager->persist($teacherMath);
+            $manager->persist($teacherFrench);
+            $manager->persist($teacherHead);
+
+            $this->addReference('Teacher-' . $appKey . '-math', $teacherMath);
+            $this->addReference('Teacher-' . $appKey . '-french', $teacherFrench);
+            $this->addReference('Teacher-' . $appKey . '-head', $teacherHead);
+
+            $students = [];
+            $studentCounter = 1;
+            foreach ([
+                'small' => 3,
+                'medium' => 8,
+                'large' => 15,
+            ] as $classLabel => $count) {
+                for ($i = 1; $i <= $count; ++$i) {
+                    $student = (new Student())
+                        ->setSchoolClass($classes[$classLabel])
+                        ->setName('Student ' . $applicationIndex . '-' . $classLabel . '-' . $i);
+                    $manager->persist($student);
+
+                    $students[$classLabel][] = $student;
+                    $this->addReference('Student-' . $appKey . '-' . $studentCounter, $student);
+                    ++$studentCounter;
+                }
+            }
+
+            $exams = [];
+            $examCounter = 1;
+            foreach ($classes as $classLabel => $class) {
+                for ($i = 0; $i < 4; ++$i) {
+                    $exam = (new Exam())
+                        ->setSchoolClass($class)
+                        ->setTeacher($i % 2 === 0 ? $teacherMath : $teacherHead)
+                        ->setTitle('Examen ' . $classLabel . ' #' . ($i + 1) . ' - ' . $applicationIndex)
+                        ->setType($examTypes[($applicationIndex + $i) % count($examTypes)])
+                        ->setStatus($examStatuses[($applicationIndex + $i) % count($examStatuses)])
+                        ->setTerm($terms[($applicationIndex + $i) % count($terms)]);
+                    $manager->persist($exam);
+
+                    $exams[$classLabel][] = $exam;
+                    $this->addReference('Exam-' . $appKey . '-' . $examCounter, $exam);
+                    ++$examCounter;
+                }
+            }
+
+            $gradeCounter = 1;
+            foreach ($exams as $classLabel => $classExams) {
+                foreach ($classExams as $examIndex => $exam) {
+                    foreach ($students[$classLabel] as $studentIndex => $student) {
+                        $score = 20.0;
+                        if ($studentIndex === 0 && $examIndex === 0) {
+                            $score = 0.0;
+                        } elseif ($studentIndex === 1 && $examIndex === 1) {
+                            $score = -1.0;
+                        } elseif ($studentIndex === 2 && $examIndex === 2) {
+                            $score = 25.0;
+                        } elseif ($studentIndex === 3 && $examIndex === 3) {
+                            $score = 9.999;
+                        } else {
+                            $score = (float)(($studentIndex + $examIndex + $applicationIndex) % 21);
+                        }
+
+                        $grade = (new Grade())
+                            ->setStudent($student)
+                            ->setExam($exam)
+                            ->setScore($score);
+                        $manager->persist($grade);
+                        $this->addReference('Grade-' . $appKey . '-' . $gradeCounter, $grade);
+                        ++$gradeCounter;
+                    }
+                }
+            }
         }
 
         $manager->flush();
