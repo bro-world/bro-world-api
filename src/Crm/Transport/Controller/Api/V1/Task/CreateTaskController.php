@@ -38,14 +38,14 @@ final readonly class CreateTaskController
     #[OA\Post(summary: 'POST /v1/crm/tasks')]
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = (array) json_decode((string) $request->getContent(), true);
+        $payload = (array)json_decode((string)$request->getContent(), true);
         $task = new Task();
-        $task->setTitle((string) ($payload['title'] ?? ''))
-            ->setDescription(isset($payload['description']) ? (string) $payload['description'] : null)
-            ->setStatus(TaskStatus::tryFrom((string) ($payload['status'] ?? '')) ?? TaskStatus::TODO)
-            ->setPriority(TaskPriority::tryFrom((string) ($payload['priority'] ?? '')) ?? TaskPriority::MEDIUM)
-            ->setDueAt(isset($payload['dueAt']) ? new DateTimeImmutable((string) $payload['dueAt']) : null)
-            ->setEstimatedHours(isset($payload['estimatedHours']) ? (float) $payload['estimatedHours'] : null);
+        $task->setTitle((string)($payload['title'] ?? ''))
+            ->setDescription(isset($payload['description']) ? (string)$payload['description'] : null)
+            ->setStatus(TaskStatus::tryFrom((string)($payload['status'] ?? '')) ?? TaskStatus::TODO)
+            ->setPriority(TaskPriority::tryFrom((string)($payload['priority'] ?? '')) ?? TaskPriority::MEDIUM)
+            ->setDueAt(isset($payload['dueAt']) ? new DateTimeImmutable((string)$payload['dueAt']) : null)
+            ->setEstimatedHours(isset($payload['estimatedHours']) ? (float)$payload['estimatedHours'] : null);
         if (is_string($payload['projectId'] ?? null)) {
             $task->setProject($this->projectRepository->find($payload['projectId']));
         }
@@ -57,6 +57,8 @@ final readonly class CreateTaskController
         $this->entityManager->flush();
         $this->messageBus->dispatch(new EntityCreated('crm_task', $task->getId()));
 
-        return new JsonResponse(['id' => $task->getId()], JsonResponse::HTTP_CREATED);
+        return new JsonResponse([
+            'id' => $task->getId(),
+        ], JsonResponse::HTTP_CREATED);
     }
 }

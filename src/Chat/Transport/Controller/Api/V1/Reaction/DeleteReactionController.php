@@ -26,8 +26,8 @@ readonly class DeleteReactionController
 {
     public function __construct(
         private ChatMessageReactionRepository $reactionRepository,
-        private ChatAccessResolverService     $chatAccessResolverService,
-        private CacheInvalidationService      $cacheInvalidationService,
+        private ChatAccessResolverService $chatAccessResolverService,
+        private CacheInvalidationService $cacheInvalidationService,
     ) {
     }
 

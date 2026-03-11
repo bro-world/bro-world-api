@@ -30,9 +30,9 @@ readonly class PatchReactionController
 {
     public function __construct(
         private ChatMessageReactionRepositoryInterface $reactionRepository,
-        private ChatAccessResolverService              $chatAccessResolverService,
-        private ReactionPayloadService                 $reactionPayloadService,
-        private CacheInvalidationService               $cacheInvalidationService,
+        private ChatAccessResolverService $chatAccessResolverService,
+        private ReactionPayloadService $reactionPayloadService,
+        private CacheInvalidationService $cacheInvalidationService,
     ) {
     }
 
@@ -42,7 +42,7 @@ readonly class PatchReactionController
         $reaction = $this->chatAccessResolverService->resolveOwnReaction($reactionId, $loggedInUser);
         $reactionType = $this->reactionPayloadService->extractOptionalReaction($request->toArray());
 
-        if (null !== $reactionType) {
+        if ($reactionType !== null) {
             $reaction->setReaction($reactionType);
             $this->reactionRepository->save($reaction);
             $this->cacheInvalidationService->invalidateConversationCaches($reaction->getMessage()->getConversation()->getChat()->getId(), $loggedInUser->getId());

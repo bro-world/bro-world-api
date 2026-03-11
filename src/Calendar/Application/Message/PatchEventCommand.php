@@ -29,16 +29,24 @@ final readonly class PatchEventCommand implements MessageHighInterface
         public ?string $textColor,
         public ?string $organizerName,
         public ?string $organizerEmail,
-        /** @var array<int|string, mixed>|null */
+        /**
+         * @var array<int|string, mixed>|null
+         */
         public ?array $attendees,
         public ?string $rrule,
-        /** @var array<int|string, mixed>|null */
+        /**
+         * @var array<int|string, mixed>|null
+         */
         public ?array $recurrenceExceptions,
         public ?DateTimeImmutable $recurrenceEndAt,
         public ?int $recurrenceCount,
-        /** @var array<int|string, mixed>|null */
+        /**
+         * @var array<int|string, mixed>|null
+         */
         public ?array $reminders,
-        /** @var array<int|string, mixed>|null */
+        /**
+         * @var array<int|string, mixed>|null
+         */
         public ?array $metadata,
         public ?string $applicationSlug = null,
     ) {

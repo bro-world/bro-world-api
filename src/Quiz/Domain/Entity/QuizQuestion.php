@@ -39,16 +39,24 @@ class QuizQuestion implements EntityInterface
     #[ORM\Column(name: 'title', type: Types::TEXT)]
     private string $title = '';
 
-    #[ORM\Column(name: 'level', type: Types::STRING, length: 50, enumType: QuizLevel::class, options: ['default' => QuizLevel::EASY->value])]
+    #[ORM\Column(name: 'level', type: Types::STRING, length: 50, enumType: QuizLevel::class, options: [
+        'default' => QuizLevel::EASY->value,
+    ])]
     private QuizLevel $level = QuizLevel::EASY;
 
-    #[ORM\Column(name: 'category', type: Types::STRING, length: 100, enumType: QuizCategory::class, options: ['default' => QuizCategory::GENERAL->value])]
+    #[ORM\Column(name: 'category', type: Types::STRING, length: 100, enumType: QuizCategory::class, options: [
+        'default' => QuizCategory::GENERAL->value,
+    ])]
     private QuizCategory $category = QuizCategory::GENERAL;
 
-    #[ORM\Column(name: 'position', type: Types::INTEGER, options: ['default' => 1])]
+    #[ORM\Column(name: 'position', type: Types::INTEGER, options: [
+        'default' => 1,
+    ])]
     private int $position = 1;
 
-    #[ORM\Column(name: 'points', type: Types::INTEGER, options: ['default' => 1])]
+    #[ORM\Column(name: 'points', type: Types::INTEGER, options: [
+        'default' => 1,
+    ])]
     private int $points = 1;
 
     #[ORM\Column(name: 'explanation', type: Types::TEXT, nullable: true)]

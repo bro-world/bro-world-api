@@ -30,16 +30,23 @@ final readonly class CreateCompanyController
     }
 
     #[Route('/v1/crm/companies', methods: [Request::METHOD_POST])]
-    #[OA\Post(summary: 'POST /v1/crm/companies', requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['payload'], properties: [new OA\Property(property: 'payload', type: 'object', example: ['value' => 'example'])], example: ['payload' => ['value' => 'example']])))]
+    #[OA\Post(summary: 'POST /v1/crm/companies', requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['payload'], properties: [
+        new OA\Property(property: 'payload', type: 'object', example: [
+            'value' => 'example',
+        ])], example: [
+            'payload' => [
+                'value' => 'example',
+            ],
+        ])))]
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = (array) json_decode((string) $request->getContent(), true);
+        $payload = (array)json_decode((string)$request->getContent(), true);
         $company = new Company();
-        $company->setName((string) ($payload['name'] ?? ''))
-            ->setIndustry(isset($payload['industry']) ? (string) $payload['industry'] : null)
-            ->setWebsite(isset($payload['website']) ? (string) $payload['website'] : null)
-            ->setContactEmail(isset($payload['contactEmail']) ? (string) $payload['contactEmail'] : null)
-            ->setPhone(isset($payload['phone']) ? (string) $payload['phone'] : null);
+        $company->setName((string)($payload['name'] ?? ''))
+            ->setIndustry(isset($payload['industry']) ? (string)$payload['industry'] : null)
+            ->setWebsite(isset($payload['website']) ? (string)$payload['website'] : null)
+            ->setContactEmail(isset($payload['contactEmail']) ? (string)$payload['contactEmail'] : null)
+            ->setPhone(isset($payload['phone']) ? (string)$payload['phone'] : null);
         if (is_string($payload['crmId'] ?? null)) {
             $company->setCrm($this->crmRepository->find($payload['crmId']));
         }
@@ -48,6 +55,8 @@ final readonly class CreateCompanyController
         $this->entityManager->flush();
         $this->messageBus->dispatch(new EntityCreated('crm_company', $company->getId()));
 
-        return new JsonResponse(['id' => $company->getId()], JsonResponse::HTTP_CREATED);
+        return new JsonResponse([
+            'id' => $company->getId(),
+        ], JsonResponse::HTTP_CREATED);
     }
 }

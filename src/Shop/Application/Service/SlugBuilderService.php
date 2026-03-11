@@ -8,6 +8,6 @@ final readonly class SlugBuilderService
 {
     public function buildSlug(string $value): string
     {
-        return trim((string) preg_replace('/[^a-z0-9]+/', '-', strtolower($value)), '-');
+        return trim((string)preg_replace('/[^a-z0-9]+/', '-', strtolower($value)), '-');
     }
 }

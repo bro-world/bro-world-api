@@ -113,13 +113,37 @@ readonly class ProductListService
                     'totalItems' => $totalItems,
                     'totalPages' => $totalItems > 0 ? (int)ceil($totalItems / $limit) : 0,
                 ],
-                'meta' => ['module' => 'shop'],
+                'meta' => [
+                    'module' => 'shop',
+                ],
             ];
         });
 
         $result['meta']['filters'] = array_filter($filters, static fn (string $value): bool => $value !== '');
 
         return $result;
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    public static function serializeProduct(Product $product): array
+    {
+        return [
+            'id' => $product->getId(),
+            'name' => $product->getName(),
+            'sku' => $product->getSku(),
+            'description' => $product->getDescription(),
+            'price' => $product->getPrice(),
+            'currencyCode' => $product->getCurrencyCode(),
+            'stock' => $product->getStock(),
+            'isFeatured' => $product->isFeatured(),
+            'status' => $product->getStatus()->value,
+            'categoryId' => $product->getCategory()?->getId(),
+            'categoryName' => $product->getCategory()?->getName(),
+            'tags' => array_map(static fn ($tag): string => $tag->getLabel(), $product->getTags()->toArray()),
+            'updatedAt' => $product->getUpdatedAt()?->format(DATE_ATOM),
+        ];
     }
 
     /** @param array<string, string> $filters
@@ -149,27 +173,5 @@ readonly class ProductListService
         $hits = $response['hits']['hits'] ?? [];
 
         return array_values(array_filter(array_map(static fn (array $hit): ?string => $hit['_source']['id'] ?? $hit['_id'] ?? null, $hits)));
-    }
-
-    /**
-     * @return array<string,mixed>
-     */
-    public static function serializeProduct(Product $product): array
-    {
-        return [
-            'id' => $product->getId(),
-            'name' => $product->getName(),
-            'sku' => $product->getSku(),
-            'description' => $product->getDescription(),
-            'price' => $product->getPrice(),
-            'currencyCode' => $product->getCurrencyCode(),
-            'stock' => $product->getStock(),
-            'isFeatured' => $product->isFeatured(),
-            'status' => $product->getStatus()->value,
-            'categoryId' => $product->getCategory()?->getId(),
-            'categoryName' => $product->getCategory()?->getName(),
-            'tags' => array_map(static fn ($tag): string => $tag->getLabel(), $product->getTags()->toArray()),
-            'updatedAt' => $product->getUpdatedAt()?->format(DATE_ATOM),
-        ];
     }
 }

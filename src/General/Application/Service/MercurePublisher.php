@@ -30,7 +30,7 @@ final readonly class MercurePublisher
     {
         $payload = [
             'topic' => $topic,
-            'data' => (string) json_encode($data, JSON_THROW_ON_ERROR),
+            'data' => (string)json_encode($data, JSON_THROW_ON_ERROR),
         ];
 
         if ($private) {
@@ -50,4 +50,3 @@ final readonly class MercurePublisher
         }
     }
 }
-

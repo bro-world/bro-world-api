@@ -40,7 +40,9 @@ final readonly class GetCartController
 
         $shop = $this->shopRepository->find($shopId);
         if (!$shop instanceof Shop) {
-            return new JsonResponse(['message' => 'Shop not found.'], JsonResponse::HTTP_NOT_FOUND);
+            return new JsonResponse([
+                'message' => 'Shop not found.',
+            ], JsonResponse::HTTP_NOT_FOUND);
         }
 
         $cart = $this->cartService->getOrCreateActiveCart($user, $shop);

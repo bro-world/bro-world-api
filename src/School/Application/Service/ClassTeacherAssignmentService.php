@@ -40,7 +40,9 @@ final readonly class ClassTeacherAssignmentService
         }
     }
 
-    /** @return array{0:SchoolClass,1:Teacher} */
+    /**
+     * @return array{0:SchoolClass,1:Teacher}
+     */
     private function resolve(string $classId, string $teacherId): array
     {
         if (!Uuid::isValid($classId) || !Uuid::isValid($teacherId)) {

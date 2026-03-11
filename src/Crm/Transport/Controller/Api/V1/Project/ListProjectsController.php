@@ -19,8 +19,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
 final readonly class ListProjectsController
 {
-    public function __construct(private ProjectRepository $projectRepository)
-    {
+    public function __construct(
+        private ProjectRepository $projectRepository
+    ) {
     }
 
     #[Route('/v1/crm/projects', methods: [Request::METHOD_GET])]
@@ -31,8 +32,12 @@ final readonly class ListProjectsController
             'name' => $project->getName(),
             'companyId' => $project->getCompany()?->getId(),
             'status' => $project->getStatus()->value,
-        ], $this->projectRepository->findBy([], ['createdAt' => 'DESC'], 200));
+        ], $this->projectRepository->findBy([], [
+            'createdAt' => 'DESC',
+        ], 200));
 
-        return new JsonResponse(['items' => $items]);
+        return new JsonResponse([
+            'items' => $items,
+        ]);
     }
 }

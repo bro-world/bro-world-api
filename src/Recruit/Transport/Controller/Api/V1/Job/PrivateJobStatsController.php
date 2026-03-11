@@ -23,7 +23,7 @@ readonly class PrivateJobStatsController
 {
     public function __construct(
         private RecruitResolverService $recruitResolverService,
-        private JobStatsService        $jobStatsService,
+        private JobStatsService $jobStatsService,
     ) {
     }
 

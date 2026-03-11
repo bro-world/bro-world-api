@@ -1,6 +1,9 @@
 <?php
+
 declare(strict_types=1);
+
 namespace App\School\Transport\Controller\Api\V1\Application;
+
 use App\School\Application\Service\SchoolApplicationScopeResolver;
 use App\School\Application\Service\SchoolResourceAccessService;
 use App\School\Application\Service\SchoolResourceViewService;
@@ -12,6 +15,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+
 #[AsController]
 #[OA\Tag(name: 'School')]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
@@ -21,8 +25,11 @@ final readonly class GetSchoolApplicationResourceController
         private SchoolApplicationScopeResolver $scopeResolver,
         private SchoolResourceAccessService $resourceAccessService,
         private SchoolResourceViewService $resourceViewService,
-    ) {}
-    #[Route('/v1/school/applications/{applicationSlug}/{resource}/{id}', methods: [Request::METHOD_GET], requirements: ['resource' => 'classes|students|teachers|exams|grades'])]
+    ) {
+    }
+    #[Route('/v1/school/applications/{applicationSlug}/{resource}/{id}', methods: [Request::METHOD_GET], requirements: [
+        'resource' => 'classes|students|teachers|exams|grades',
+    ])]
     public function __invoke(string $applicationSlug, string $resource, string $id): JsonResponse
     {
         $school = $this->scopeResolver->resolveOrCreateSchoolByApplicationSlug($applicationSlug);
@@ -30,6 +37,7 @@ final readonly class GetSchoolApplicationResourceController
         if (!$this->resourceAccessService->belongsToSchool($entity, $school)) {
             throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Resource not found in application scope.');
         }
+
         return new JsonResponse($this->resourceViewService->map($entity));
     }
 }

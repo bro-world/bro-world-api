@@ -48,13 +48,19 @@ class Product implements EntityInterface
     #[ORM\Column(name: 'price', type: Types::FLOAT)]
     private float $price = 0.0;
 
-    #[ORM\Column(name: 'currency_code', type: Types::STRING, length: 3, options: ['default' => 'EUR'])]
+    #[ORM\Column(name: 'currency_code', type: Types::STRING, length: 3, options: [
+        'default' => 'EUR',
+    ])]
     private string $currencyCode = 'EUR';
 
-    #[ORM\Column(name: 'stock', type: Types::INTEGER, options: ['default' => 0])]
+    #[ORM\Column(name: 'stock', type: Types::INTEGER, options: [
+        'default' => 0,
+    ])]
     private int $stock = 0;
 
-    #[ORM\Column(name: 'is_featured', type: Types::BOOLEAN, options: ['default' => false])]
+    #[ORM\Column(name: 'is_featured', type: Types::BOOLEAN, options: [
+        'default' => false,
+    ])]
     private bool $isFeatured = false;
 
     #[ORM\Column(name: 'status', type: Types::STRING, length: 30, enumType: ProductStatus::class)]

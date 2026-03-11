@@ -27,7 +27,7 @@ final readonly class QuizReadService
      */
     public function getByApplicationSlug(string $slug, ?string $level = null, ?string $category = null): array
     {
-        $cacheKey = sprintf('quiz_%s_%s_%s', $slug, (string) $level, (string) $category);
+        $cacheKey = sprintf('quiz_%s_%s_%s', $slug, (string)$level, (string)$category);
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($slug, $level, $category): array {
             $item->expiresAfter(120);
@@ -90,7 +90,7 @@ final readonly class QuizReadService
             'questionCount' => $questionCount,
             'answerCount' => $answerCount,
             'averageAnswersPerQuestion' => $questionCount > 0 ? round($answerCount / $questionCount, 2) : 0.0,
-            'totalPoints' => array_reduce($quiz['questions'], static fn (int $carry, array $question): int => $carry + (int) $question['points'], 0),
+            'totalPoints' => array_reduce($quiz['questions'], static fn (int $carry, array $question): int => $carry + (int)$question['points'], 0),
         ];
     }
 }

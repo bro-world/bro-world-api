@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Blog\Application\Service;
 
 use App\Blog\Domain\Enum\BlogReactionType;
-use App\Media\Application\Service\MediaUploadValidationPolicy;
 use App\Media\Application\Service\MediaUploaderService;
+use App\Media\Application\Service\MediaUploadValidationPolicy;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,7 +26,7 @@ final readonly class BlogMutationRequestService
      */
     public function extractPayload(Request $request): array
     {
-        $payload = (array) json_decode((string) $request->getContent(), true);
+        $payload = (array)json_decode((string)$request->getContent(), true);
 
         if ($payload === []) {
             $payload = $request->request->all();
@@ -70,6 +70,6 @@ final readonly class BlogMutationRequestService
             ),
         );
 
-        return (string) ($uploaded[0]['url'] ?? $fallbackUrl);
+        return (string)($uploaded[0]['url'] ?? $fallbackUrl);
     }
 }

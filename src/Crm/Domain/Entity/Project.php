@@ -42,7 +42,9 @@ class Project implements EntityInterface
     #[ORM\Column(name: 'description', type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(name: 'status', type: Types::STRING, length: 25, enumType: ProjectStatus::class, options: ['default' => ProjectStatus::PLANNED->value])]
+    #[ORM\Column(name: 'status', type: Types::STRING, length: 25, enumType: ProjectStatus::class, options: [
+        'default' => ProjectStatus::PLANNED->value,
+    ])]
     private ProjectStatus $status = ProjectStatus::PLANNED;
 
     #[ORM\Column(name: 'started_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]

@@ -38,13 +38,13 @@ final readonly class CheckoutController
             throw new HttpException(JsonResponse::HTTP_FORBIDDEN, 'Authenticated user required.');
         }
 
-        $payload = (array) json_decode((string) $request->getContent(), true);
+        $payload = (array)json_decode((string)$request->getContent(), true);
 
-        $billingAddress = trim((string) ($payload['billingAddress'] ?? ''));
-        $shippingAddress = trim((string) ($payload['shippingAddress'] ?? ''));
-        $email = trim((string) ($payload['email'] ?? ''));
-        $phone = trim((string) ($payload['phone'] ?? ''));
-        $shippingMethod = trim((string) ($payload['shippingMethod'] ?? ''));
+        $billingAddress = trim((string)($payload['billingAddress'] ?? ''));
+        $shippingAddress = trim((string)($payload['shippingAddress'] ?? ''));
+        $email = trim((string)($payload['email'] ?? ''));
+        $phone = trim((string)($payload['phone'] ?? ''));
+        $shippingMethod = trim((string)($payload['shippingMethod'] ?? ''));
 
         if ($billingAddress === '' || $shippingAddress === '' || $email === '' || $phone === '' || $shippingMethod === '') {
             throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Missing required checkout payload.');
@@ -65,7 +65,9 @@ final readonly class CheckoutController
         $handled = $envelope->last(HandledStamp::class);
         $order = $handled?->getResult();
         if (!$order instanceof Order) {
-            return new JsonResponse(['message' => 'Checkout command accepted.'], JsonResponse::HTTP_ACCEPTED);
+            return new JsonResponse([
+                'message' => 'Checkout command accepted.',
+            ], JsonResponse::HTTP_ACCEPTED);
         }
 
         return new JsonResponse([

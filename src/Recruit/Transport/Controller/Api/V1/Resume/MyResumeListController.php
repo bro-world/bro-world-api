@@ -21,7 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 readonly class MyResumeListController
 {
     public function __construct(
-        private ResumeRepository        $resumeRepository,
+        private ResumeRepository $resumeRepository,
         private ResumeNormalizerService $resumeNormalizerService,
     ) {
     }

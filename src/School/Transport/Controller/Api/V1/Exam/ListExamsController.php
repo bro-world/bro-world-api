@@ -18,8 +18,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
 final readonly class ListExamsController
 {
-    public function __construct(private ExamListService $examListService)
-    {
+    public function __construct(
+        private ExamListService $examListService
+    ) {
     }
 
     #[Route('/v1/school/exams', methods: [Request::METHOD_GET])]

@@ -18,8 +18,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[OA\Tag(name: 'Blog')]
 final readonly class GetGeneralBlogController
 {
-    public function __construct(private BlogReadService $blogReadService)
-    {
+    public function __construct(
+        private BlogReadService $blogReadService
+    ) {
     }
 
     #[Route('/v1/blogs/general', methods: [Request::METHOD_GET])]

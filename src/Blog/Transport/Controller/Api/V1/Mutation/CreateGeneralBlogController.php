@@ -39,8 +39,10 @@ final readonly class CreateGeneralBlogController
         }
 
         $payload = $this->requestService->extractPayload($request);
-        $this->messageBus->dispatch(new CreateGeneralBlogCommand((string) uniqid('op_', true), $user->getId(), (string) ($payload['title'] ?? 'General Blog'), isset($payload['description']) ? (string) $payload['description'] : null));
+        $this->messageBus->dispatch(new CreateGeneralBlogCommand((string)uniqid('op_', true), $user->getId(), (string)($payload['title'] ?? 'General Blog'), isset($payload['description']) ? (string)$payload['description'] : null));
 
-        return new JsonResponse(['status' => 'accepted'], JsonResponse::HTTP_ACCEPTED);
+        return new JsonResponse([
+            'status' => 'accepted',
+        ], JsonResponse::HTTP_ACCEPTED);
     }
 }

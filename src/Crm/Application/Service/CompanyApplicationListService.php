@@ -22,12 +22,16 @@ readonly class CompanyApplicationListService
     ) {
     }
 
-    /** @return array<string,mixed> */
+    /**
+     * @return array<string,mixed>
+     */
     public function getList(Request $request, string $applicationSlug, Crm $crm): array
     {
         $page = max(1, $request->query->getInt('page', 1));
         $limit = max(1, min(100, $request->query->getInt('limit', 20)));
-        $filters = ['q' => trim((string)$request->query->get('q', ''))];
+        $filters = [
+            'q' => trim((string)$request->query->get('q', '')),
+        ];
         $cacheKey = $this->cacheKeyConventionService->buildCrmCompanyApplicationListKey($applicationSlug, $page, $limit, $filters);
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($applicationSlug, $crm, $filters, $page, $limit): array {
@@ -67,8 +71,17 @@ readonly class CompanyApplicationListService
 
             return [
                 'items' => $items,
-                'pagination' => ['page' => $page, 'limit' => $limit, 'totalItems' => $totalItems, 'totalPages' => $totalItems > 0 ? (int)ceil($totalItems / $limit) : 0],
-                'meta' => ['applicationSlug' => $applicationSlug, 'crmId' => $crm->getId(), 'filters' => array_filter($filters)],
+                'pagination' => [
+                    'page' => $page,
+                    'limit' => $limit,
+                    'totalItems' => $totalItems,
+                    'totalPages' => $totalItems > 0 ? (int)ceil($totalItems / $limit) : 0,
+                ],
+                'meta' => [
+                    'applicationSlug' => $applicationSlug,
+                    'crmId' => $crm->getId(),
+                    'filters' => array_filter($filters),
+                ],
             ];
         });
     }

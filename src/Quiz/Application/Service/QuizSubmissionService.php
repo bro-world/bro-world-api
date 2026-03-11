@@ -58,7 +58,7 @@ final readonly class QuizSubmissionService
                 continue;
             }
 
-            $questionById[(string) $question['id']] = $question;
+            $questionById[(string)$question['id']] = $question;
         }
 
         $submittedAnswersByQuestionId = [];
@@ -85,7 +85,7 @@ final readonly class QuizSubmissionService
         $results = [];
 
         foreach ($questionById as $questionId => $question) {
-            $questionPoints = (int) ($question['points'] ?? 0);
+            $questionPoints = (int)($question['points'] ?? 0);
             $totalPoints += $questionPoints;
 
             $selectedAnswerId = $submittedAnswersByQuestionId[$questionId] ?? null;
@@ -98,7 +98,7 @@ final readonly class QuizSubmissionService
                 }
 
                 if (($answer['correct'] ?? false) === true) {
-                    $correctAnswerIds[] = (string) $answer['id'];
+                    $correctAnswerIds[] = (string)$answer['id'];
                 }
             }
 

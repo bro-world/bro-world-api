@@ -34,7 +34,9 @@ final class LoadShopData extends Fixture implements OrderedFixtureInterface
     public function load(ObjectManager $manager): void
     {
         foreach ($this->getApplicationsByPlatform(PlatformKey::SHOP) as $application) {
-            $existingCatalog = $manager->getRepository(Shop::class)->findOneBy(['application' => $application]);
+            $existingCatalog = $manager->getRepository(Shop::class)->findOneBy([
+                'application' => $application,
+            ]);
             if ($existingCatalog instanceof Shop) {
                 continue;
             }

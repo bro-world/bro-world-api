@@ -22,7 +22,11 @@ final class SubmitQuizByApplicationControllerTest extends WebTestCase
     {
         $entityManager = static::getContainer()->get(EntityManagerInterface::class);
         $quiz = $this->getAnyPublishedQuiz($entityManager);
-        $questions = $entityManager->getRepository(QuizQuestion::class)->findBy(['quiz' => $quiz], ['position' => 'ASC']);
+        $questions = $entityManager->getRepository(QuizQuestion::class)->findBy([
+            'quiz' => $quiz,
+        ], [
+            'position' => 'ASC',
+        ]);
 
         $answersPayload = [];
         foreach ($questions as $question) {
@@ -45,7 +49,9 @@ final class SubmitQuizByApplicationControllerTest extends WebTestCase
         $client->request(
             'POST',
             $this->baseUrl . '/' . $quiz->getApplication()->getSlug() . '/submit',
-            content: JSON::encode(['answers' => $answersPayload])
+            content: JSON::encode([
+                'answers' => $answersPayload,
+            ])
         );
 
         $response = $client->getResponse();
@@ -55,10 +61,10 @@ final class SubmitQuizByApplicationControllerTest extends WebTestCase
         self::assertSame(Response::HTTP_OK, $response->getStatusCode(), "Response:\n" . $response);
 
         $responseData = JSON::decode($content, true);
-        self::assertSame(100.0, (float) $responseData['score']);
-        self::assertTrue((bool) $responseData['passed']);
-        self::assertSame(count($questions), (int) $responseData['totalQuestions']);
-        self::assertSame(count($questions), (int) $responseData['correctAnswers']);
+        self::assertSame(100.0, (float)$responseData['score']);
+        self::assertTrue((bool)$responseData['passed']);
+        self::assertSame(count($questions), (int)$responseData['totalQuestions']);
+        self::assertSame(count($questions), (int)$responseData['correctAnswers']);
     }
 
     #[TestDox('Submitting invalid quiz payload returns 422.')]
@@ -71,7 +77,11 @@ final class SubmitQuizByApplicationControllerTest extends WebTestCase
         $client->request(
             'POST',
             $this->baseUrl . '/' . $quiz->getApplication()->getSlug() . '/submit',
-            content: JSON::encode(['answers' => [['questionId' => 12]]])
+            content: JSON::encode([
+                'answers' => [[
+                    'questionId' => 12,
+                ]],
+            ])
         );
 
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $client->getResponse()->getStatusCode());

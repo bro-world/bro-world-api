@@ -20,14 +20,15 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[OA\Tag(name: 'Blog')]
 final readonly class DeleteBlogPostController
 {
-    public function __construct(private MessageBusInterface $messageBus)
-    {
+    public function __construct(
+        private MessageBusInterface $messageBus
+    ) {
     }
 
     #[Route('/v1/blog/posts/{postId}', methods: [Request::METHOD_DELETE])]
     public function __invoke(string $postId, User $loggedInUser): JsonResponse
     {
-        $this->messageBus->dispatch(new DeleteBlogPostCommand((string) uniqid('op_', true), $loggedInUser->getId(), $postId));
+        $this->messageBus->dispatch(new DeleteBlogPostCommand((string)uniqid('op_', true), $loggedInUser->getId(), $postId));
 
         return new JsonResponse(status: JsonResponse::HTTP_NO_CONTENT);
     }

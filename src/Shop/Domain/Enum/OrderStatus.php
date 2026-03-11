@@ -12,4 +12,3 @@ enum OrderStatus: string
     case FAILED = 'failed';
     case CANCELLED = 'cancelled';
 }
-

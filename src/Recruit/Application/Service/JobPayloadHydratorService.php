@@ -62,7 +62,9 @@ class JobPayloadHydratorService
         }
     }
 
-    /** @param array<string, mixed> $payload */
+    /**
+     * @param array<string, mixed> $payload
+     */
     private function applyString(array $payload, string $key, callable $setter): void
     {
         $value = $payload[$key] ?? null;
@@ -75,7 +77,9 @@ class JobPayloadHydratorService
         }
     }
 
-    /** @param array<string, mixed> $payload */
+    /**
+     * @param array<string, mixed> $payload
+     */
     private function applyInt(array $payload, string $key, callable $setter): void
     {
         $value = $payload[$key] ?? null;
@@ -88,7 +92,9 @@ class JobPayloadHydratorService
         }
     }
 
-    /** @param array<string, mixed> $payload */
+    /**
+     * @param array<string, mixed> $payload
+     */
     private function applyArray(array $payload, string $key, callable $setter): void
     {
         $value = $payload[$key] ?? null;
@@ -101,7 +107,9 @@ class JobPayloadHydratorService
         }
     }
 
-    /** @param array<string, mixed> $payload */
+    /**
+     * @param array<string, mixed> $payload
+     */
     private function applyEnumString(array $payload, string $key, string $enumClass, callable $setter): void
     {
         $value = $payload[$key] ?? null;

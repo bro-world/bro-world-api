@@ -24,7 +24,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 readonly class MyResumePatchController
 {
     public function __construct(
-        private ResumeRepository     $resumeRepository,
+        private ResumeRepository $resumeRepository,
         private ResumePayloadService $resumePayloadService,
     ) {
     }

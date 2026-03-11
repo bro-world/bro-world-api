@@ -15,7 +15,9 @@ final class UserMessageControllerTest extends WebTestCase
 {
     private string $baseUrl = self::API_URL_PREFIX . '/v1/chat/private';
 
-    /** @throws Throwable */
+    /**
+     * @throws Throwable
+     */
     #[TestDox('Message list/create/patch/delete/read endpoints cover nominal + validation + authorization')]
     public function testMessageEndpoints(): void
     {

@@ -34,7 +34,9 @@ class Shop implements EntityInterface
     #[ORM\Column(name: 'description', type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(name: 'is_active', type: Types::BOOLEAN, options: ['default' => true])]
+    #[ORM\Column(name: 'is_active', type: Types::BOOLEAN, options: [
+        'default' => true,
+    ])]
     private bool $isActive = true;
 
     #[ORM\OneToOne(targetEntity: PlatformApplication::class)]

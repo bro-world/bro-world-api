@@ -22,7 +22,7 @@ class StatisticsService
         $now = new DateTimeImmutable();
         $startOfWeek = $now->modify('monday this week')->setTime(0, 0, 0);
         $startOfMonth = $now->modify('first day of this month')->setTime(0, 0, 0);
-        $startOfYear = $now->setDate((int) $now->format('Y'), 1, 1)->setTime(0, 0, 0);
+        $startOfYear = $now->setDate((int)$now->format('Y'), 1, 1)->setTime(0, 0, 0);
         $lastSevenDays = $now->modify('-7 days');
 
         return [
@@ -51,12 +51,12 @@ class StatisticsService
 
     private function countAll(string $table): int
     {
-        return (int) $this->connection->fetchOne('SELECT COUNT(*) FROM ' . $table);
+        return (int)$this->connection->fetchOne('SELECT COUNT(*) FROM ' . $table);
     }
 
     private function countSince(string $table, DateTimeImmutable $since): int
     {
-        return (int) $this->connection->fetchOne(
+        return (int)$this->connection->fetchOne(
             'SELECT COUNT(*) FROM ' . $table . ' WHERE created_at >= :since',
             [
                 'since' => $since,
@@ -84,8 +84,8 @@ class StatisticsService
 
         return array_map(
             static fn (array $row): array => [
-                'name' => (string) $row['name'],
-                'applicationCount' => (int) $row['applicationCount'],
+                'name' => (string)$row['name'],
+                'applicationCount' => (int)$row['applicationCount'],
             ],
             $rows,
         );
@@ -108,8 +108,8 @@ class StatisticsService
 
         return array_map(
             static fn (array $row): array => [
-                'name' => (string) $row['name'],
-                'usageCount' => (int) $row['usageCount'],
+                'name' => (string)$row['name'],
+                'usageCount' => (int)$row['usageCount'],
             ],
             $rows,
         );

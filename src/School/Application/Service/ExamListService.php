@@ -7,14 +7,14 @@ namespace App\School\Application\Service;
 use App\General\Application\Service\CacheKeyConventionService;
 use App\General\Domain\Service\Interfaces\ElasticsearchServiceInterface;
 use App\School\Application\Projection\SchoolExamProjection;
+use App\School\Application\Serializer\SchoolApiResponseSerializer;
+use App\School\Application\Serializer\SchoolViewMapper;
 use App\School\Infrastructure\Repository\ExamRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Throwable;
-use App\School\Application\Serializer\SchoolApiResponseSerializer;
-use App\School\Application\Serializer\SchoolViewMapper;
 
 readonly class ExamListService
 {
@@ -87,7 +87,9 @@ readonly class ExamListService
                     'totalItems' => $totalItems,
                     'totalPages' => $totalItems > 0 ? (int)ceil($totalItems / $limit) : 0,
                 ],
-                ['module' => 'school'],
+                [
+                    'module' => 'school',
+                ],
             );
         });
 

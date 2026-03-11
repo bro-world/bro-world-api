@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Recruit\Transport\Controller\Api\V1\Job;
 
-use App\General\Transport\Rest\Controller;
 use App\General\Application\DTO\Interfaces\RestDtoInterface;
 use App\General\Application\Exception\ValidatorException;
+use App\General\Transport\Rest\Controller;
 use App\Recruit\Application\DTO\Job\JobUpdate;
 use App\Recruit\Application\Resource\JobResource;
 use AutoMapperPlus\AutoMapperInterface;
@@ -35,6 +35,21 @@ class JobUpdateController extends Controller
         parent::__construct($resource);
     }
 
+    #[Route(
+        path: '/v1/recruit/job/{id}',
+        requirements: [
+            'id' => Requirement::UUID_V1,
+        ],
+        methods: [Request::METHOD_PUT],
+    )]
+    #[IsGranted('ROLE_ROOT')]
+    #[OA\Put(summary: 'Update job', responses: [new OA\Response(response: 200, description: 'success')])]
+    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
+    public function __invoke(Request $request, string $id): Response
+    {
+        return $this->updateMethod($request, $this->mapAndValidateDto($request, JobUpdate::class), $id);
+    }
+
     private function mapAndValidateDto(Request $request, string $dtoClass): RestDtoInterface
     {
         /** @var RestDtoInterface $dto */
@@ -46,18 +61,5 @@ class JobUpdateController extends Controller
         }
 
         return $dto;
-    }
-
-    #[Route(
-        path: '/v1/recruit/job/{id}',
-        requirements: ['id' => Requirement::UUID_V1],
-        methods: [Request::METHOD_PUT],
-    )]
-    #[IsGranted('ROLE_ROOT')]
-    #[OA\Put(summary: 'Update job', responses: [new OA\Response(response: 200, description: 'success')])]
-    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
-    public function __invoke(Request $request, string $id): Response
-    {
-        return $this->updateMethod($request, $this->mapAndValidateDto($request, JobUpdate::class), $id);
     }
 }

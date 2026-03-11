@@ -26,4 +26,3 @@ class OrderItemRepository extends BaseRepository
     ) {
     }
 }
-

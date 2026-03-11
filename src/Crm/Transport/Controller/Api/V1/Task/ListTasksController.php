@@ -18,8 +18,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
 final readonly class ListTasksController
 {
-    public function __construct(private TaskListService $taskListService)
-    {
+    public function __construct(
+        private TaskListService $taskListService
+    ) {
     }
 
     #[Route('/v1/crm/tasks', methods: [Request::METHOD_GET])]

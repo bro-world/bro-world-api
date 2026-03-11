@@ -49,7 +49,9 @@ class PaymentTransaction implements EntityInterface
     #[ORM\Column(name: 'status', type: Types::STRING, length: 40, enumType: PaymentStatus::class)]
     private PaymentStatus $status = PaymentStatus::CREATED;
 
-    /** @var array<string, mixed> */
+    /**
+     * @var array<string, mixed>
+     */
     #[ORM\Column(name: 'payload', type: Types::JSON)]
     private array $payload = [];
 

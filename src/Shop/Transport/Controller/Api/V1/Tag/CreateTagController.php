@@ -31,15 +31,17 @@ final readonly class CreateTagController
     #[Route('/v1/shop/tags', methods: [Request::METHOD_POST])]
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = (array) json_decode((string) $request->getContent(), true);
+        $payload = (array)json_decode((string)$request->getContent(), true);
         $tag = (new Tag())
-            ->setLabel((string) ($payload['label'] ?? ''))
-            ->setType(TagType::tryFrom((string) ($payload['type'] ?? '')) ?? TagType::MARKETING);
+            ->setLabel((string)($payload['label'] ?? ''))
+            ->setType(TagType::tryFrom((string)($payload['type'] ?? '')) ?? TagType::MARKETING);
 
         $this->entityManager->persist($tag);
         $this->entityManager->flush();
         $this->messageBus->dispatch(new EntityCreated('shop_tag', $tag->getId()));
 
-        return new JsonResponse(['id' => $tag->getId()], JsonResponse::HTTP_CREATED);
+        return new JsonResponse([
+            'id' => $tag->getId(),
+        ], JsonResponse::HTTP_CREATED);
     }
 }

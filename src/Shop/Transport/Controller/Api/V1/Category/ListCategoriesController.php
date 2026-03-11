@@ -19,8 +19,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
 final readonly class ListCategoriesController
 {
-    public function __construct(private CategoryRepository $categoryRepository)
-    {
+    public function __construct(
+        private CategoryRepository $categoryRepository
+    ) {
     }
 
     #[Route('/v1/shop/categories', methods: [Request::METHOD_GET])]
@@ -31,8 +32,12 @@ final readonly class ListCategoriesController
             'name' => $category->getName(),
             'slug' => $category->getSlug(),
             'description' => $category->getDescription(),
-        ], $this->categoryRepository->findBy([], ['createdAt' => 'DESC'], 200));
+        ], $this->categoryRepository->findBy([], [
+            'createdAt' => 'DESC',
+        ], 200));
 
-        return new JsonResponse(['items' => $items]);
+        return new JsonResponse([
+            'items' => $items,
+        ]);
     }
 }

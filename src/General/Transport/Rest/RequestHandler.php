@@ -21,13 +21,13 @@ use function array_values;
 use function explode;
 use function in_array;
 use function is_array;
-use function json_decode;
 use function is_string;
-use function sprintf;
-use function trim;
+use function json_decode;
 use function mb_strtoupper;
 use function mb_substr;
+use function sprintf;
 use function str_starts_with;
+use function trim;
 
 /**
  * @package App\General
@@ -165,32 +165,6 @@ final class RequestHandler
     }
 
     /**
-     * @return array<int, string>
-     */
-    private static function getAllowedEntityManagers(): array
-    {
-        $configuredEntityManagers = $_SERVER['APP_ALLOWED_ENTITY_MANAGERS']
-            ?? $_ENV['APP_ALLOWED_ENTITY_MANAGERS']
-            ?? '["default"]';
-
-        /** @var mixed $decoded */
-        $decoded = json_decode($configuredEntityManagers, true);
-
-        if (!is_array($decoded)) {
-            return ['default'];
-        }
-
-        $allowedEntityManagers = array_values(
-            array_filter(
-                $decoded,
-                static fn (mixed $entityManager): bool => is_string($entityManager) && trim($entityManager) !== ''
-            )
-        );
-
-        return $allowedEntityManagers !== [] ? $allowedEntityManagers : ['default'];
-    }
-
-    /**
      * Getter method for used offset option within 'find' method.
      *
      * Usage:
@@ -223,6 +197,32 @@ final class RequestHandler
         $search = $request->query->get('search') ?? $request->request->get('search');
 
         return $search !== null ? self::getSearchTermCriteria((string)$search) : [];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private static function getAllowedEntityManagers(): array
+    {
+        $configuredEntityManagers = $_SERVER['APP_ALLOWED_ENTITY_MANAGERS']
+            ?? $_ENV['APP_ALLOWED_ENTITY_MANAGERS']
+            ?? '["default"]';
+
+        /** @var mixed $decoded */
+        $decoded = json_decode($configuredEntityManagers, true);
+
+        if (!is_array($decoded)) {
+            return ['default'];
+        }
+
+        $allowedEntityManagers = array_values(
+            array_filter(
+                $decoded,
+                static fn (mixed $entityManager): bool => is_string($entityManager) && trim($entityManager) !== ''
+            )
+        );
+
+        return $allowedEntityManagers !== [] ? $allowedEntityManagers : ['default'];
     }
 
     /**

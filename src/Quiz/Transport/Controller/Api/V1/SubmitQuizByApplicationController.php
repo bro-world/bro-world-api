@@ -22,7 +22,7 @@ final class SubmitQuizByApplicationController
     #[OA\Post(summary: 'POST /v1/quiz/application/{applicationSlug}/submit', tags: ['Quiz'])]
     public function __invoke(string $applicationSlug, Request $request, QuizSubmissionService $quizSubmissionService): JsonResponse
     {
-        $payload = (array) json_decode((string) $request->getContent(), true);
+        $payload = (array)json_decode((string)$request->getContent(), true);
 
         return new JsonResponse($quizSubmissionService->submitByApplicationSlug($applicationSlug, $payload));
     }

@@ -14,11 +14,11 @@ use App\Chat\Domain\Entity\ChatMessageReaction;
 use App\Chat\Domain\Entity\Conversation;
 use App\Chat\Domain\Entity\ConversationParticipant;
 use App\Chat\Domain\Enum\ChatReactionType;
+use App\General\Domain\Rest\UuidHelper;
 use App\Platform\Domain\Entity\Application as PlatformApplication;
 use App\Platform\Domain\Entity\Plugin;
 use App\Recruit\Domain\Entity\Application as RecruitApplication;
 use App\Recruit\Domain\Enum\ApplicationStatus;
-use App\General\Domain\Rest\UuidHelper;
 use App\Tests\Utils\PhpUnitUtil;
 use App\User\Domain\Entity\User;
 use DateTimeImmutable;
@@ -193,7 +193,6 @@ final class LoadRecruitChatCalendarScenarioData extends Fixture implements Order
 
         $this->addReference('Recruit-Conversation-direct-john-root-john-admin', $conversation);
     }
-
 
     /**
      * @return list<PlatformApplication>

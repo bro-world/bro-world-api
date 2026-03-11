@@ -19,8 +19,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
 final readonly class ListCompaniesController
 {
-    public function __construct(private CompanyRepository $companyRepository)
-    {
+    public function __construct(
+        private CompanyRepository $companyRepository
+    ) {
     }
 
     #[Route('/v1/crm/companies', methods: [Request::METHOD_GET])]
@@ -33,8 +34,12 @@ final readonly class ListCompaniesController
             'website' => $company->getWebsite(),
             'contactEmail' => $company->getContactEmail(),
             'phone' => $company->getPhone(),
-        ], $this->companyRepository->findBy([], ['createdAt' => 'DESC'], 200));
+        ], $this->companyRepository->findBy([], [
+            'createdAt' => 'DESC',
+        ], 200));
 
-        return new JsonResponse(['items' => $items]);
+        return new JsonResponse([
+            'items' => $items,
+        ]);
     }
 }

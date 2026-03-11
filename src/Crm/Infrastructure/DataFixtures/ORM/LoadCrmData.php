@@ -41,7 +41,9 @@ final class LoadCrmData extends Fixture implements OrderedFixtureInterface
     {
         foreach ($this->getApplicationsByPlatform(PlatformKey::CRM) as $application) {
             /** @var Crm|null $crm */
-            $crm = $manager->getRepository(Crm::class)->findOneBy(['application' => $application]);
+            $crm = $manager->getRepository(Crm::class)->findOneBy([
+                'application' => $application,
+            ]);
 
             if (!$crm instanceof Crm) {
                 $crm = (new Crm())->setApplication($application);

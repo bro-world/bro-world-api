@@ -38,13 +38,19 @@ class Cart implements EntityInterface
     #[ORM\JoinColumn(name: 'shop_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private ?Shop $shop = null;
 
-    #[ORM\Column(name: 'is_active', type: Types::BOOLEAN, options: ['default' => true])]
+    #[ORM\Column(name: 'is_active', type: Types::BOOLEAN, options: [
+        'default' => true,
+    ])]
     private bool $isActive = true;
 
-    #[ORM\Column(name: 'subtotal', type: Types::FLOAT, options: ['default' => 0])]
+    #[ORM\Column(name: 'subtotal', type: Types::FLOAT, options: [
+        'default' => 0,
+    ])]
     private float $subtotal = 0.0;
 
-    #[ORM\Column(name: 'items_count', type: Types::INTEGER, options: ['default' => 0])]
+    #[ORM\Column(name: 'items_count', type: Types::INTEGER, options: [
+        'default' => 0,
+    ])]
     private int $itemsCount = 0;
 
     /** @var Collection<int, CartItem>|ArrayCollection<int, CartItem> */

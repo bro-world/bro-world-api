@@ -9,8 +9,9 @@ use App\Shop\Infrastructure\Repository\ProductRepository;
 
 readonly class SimilarProductService
 {
-    public function __construct(private ProductRepository $productRepository)
-    {
+    public function __construct(
+        private ProductRepository $productRepository
+    ) {
     }
 
     /**

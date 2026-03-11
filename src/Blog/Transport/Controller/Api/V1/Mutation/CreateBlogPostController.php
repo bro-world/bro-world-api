@@ -31,10 +31,12 @@ final readonly class CreateBlogPostController
     public function __invoke(string $blogId, Request $request, User $loggedInUser): JsonResponse
     {
         $payload = $this->requestService->extractPayload($request);
-        $payload['filePath'] = $this->requestService->resolveUploadedFileUrl($request, (string) ($payload['filePath'] ?? ''));
+        $payload['filePath'] = $this->requestService->resolveUploadedFileUrl($request, (string)($payload['filePath'] ?? ''));
 
-        $this->messageBus->dispatch(new CreateBlogPostCommand((string) uniqid('op_', true), $loggedInUser->getId(), $blogId, (string) ($payload['title'] ?? 'Untitled post'), $payload['content'] ?? null, $payload['filePath'] ?: null, (bool) ($payload['isPinned'] ?? false)));
+        $this->messageBus->dispatch(new CreateBlogPostCommand((string)uniqid('op_', true), $loggedInUser->getId(), $blogId, (string)($payload['title'] ?? 'Untitled post'), $payload['content'] ?? null, $payload['filePath'] ?: null, (bool)($payload['isPinned'] ?? false)));
 
-        return new JsonResponse(['status' => 'accepted'], JsonResponse::HTTP_ACCEPTED);
+        return new JsonResponse([
+            'status' => 'accepted',
+        ], JsonResponse::HTTP_ACCEPTED);
     }
 }

@@ -24,8 +24,8 @@ final readonly class ConfirmPaymentController
     #[Route('/v1/shop/orders/{orderId}/payment-confirm', methods: [Request::METHOD_POST])]
     public function __invoke(string $orderId, Request $request): JsonResponse
     {
-        $payload = (array) json_decode((string) $request->getContent(), true);
-        $providerReference = trim((string) ($payload['providerReference'] ?? ''));
+        $payload = (array)json_decode((string)$request->getContent(), true);
+        $providerReference = trim((string)($payload['providerReference'] ?? ''));
 
         if ($providerReference === '') {
             throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'providerReference is required.');

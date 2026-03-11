@@ -31,10 +31,12 @@ final readonly class CreateBlogCommentController
     public function __invoke(string $postId, Request $request, User $loggedInUser): JsonResponse
     {
         $payload = $this->requestService->extractPayload($request);
-        $payload['filePath'] = $this->requestService->resolveUploadedFileUrl($request, (string) ($payload['filePath'] ?? ''));
+        $payload['filePath'] = $this->requestService->resolveUploadedFileUrl($request, (string)($payload['filePath'] ?? ''));
 
-        $this->messageBus->dispatch(new CreateBlogCommentCommand((string) uniqid('op_', true), $loggedInUser->getId(), $postId, $payload['content'] ?? null, $payload['filePath'] ?: null, $payload['parentCommentId'] ?? null));
+        $this->messageBus->dispatch(new CreateBlogCommentCommand((string)uniqid('op_', true), $loggedInUser->getId(), $postId, $payload['content'] ?? null, $payload['filePath'] ?: null, $payload['parentCommentId'] ?? null));
 
-        return new JsonResponse(['status' => 'accepted'], JsonResponse::HTTP_ACCEPTED);
+        return new JsonResponse([
+            'status' => 'accepted',
+        ], JsonResponse::HTTP_ACCEPTED);
     }
 }

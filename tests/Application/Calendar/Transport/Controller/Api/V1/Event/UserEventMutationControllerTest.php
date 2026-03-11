@@ -33,7 +33,7 @@ final class UserEventMutationControllerTest extends WebTestCase
     ): void {
         $client = $this->getTestClient($username, $password);
 
-        $client->request($method, self::API_URL_PREFIX . $path, content: null === $payload ? null : JSON::encode($payload));
+        $client->request($method, self::API_URL_PREFIX . $path, content: $payload === null ? null : JSON::encode($payload));
         $response = $client->getResponse();
 
         self::assertSame(Response::HTTP_ACCEPTED, $response->getStatusCode(), "Response:\n" . $response);
@@ -138,25 +138,33 @@ final class UserEventMutationControllerTest extends WebTestCase
 
         self::assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
 
-        $payload = JSON::decode((string) $client->getResponse()->getContent(), true);
+        $payload = JSON::decode((string)$client->getResponse()->getContent(), true);
         self::assertIsArray($payload);
 
         $paths = $payload['paths'] ?? [];
         self::assertIsArray($paths);
 
         $expectedOperationIds = [
-            '/v1/calendar/private/events' => ['post' => 'calendar_private_event_create'],
+            '/v1/calendar/private/events' => [
+                'post' => 'calendar_private_event_create',
+            ],
             '/v1/calendar/private/events/{eventId}' => [
                 'patch' => 'calendar_private_event_patch',
                 'delete' => 'calendar_private_event_delete',
             ],
-            '/v1/calendar/private/events/{eventId}/cancel' => ['post' => 'calendar_private_event_cancel'],
-            '/v1/calendar/private/applications/{applicationSlug}/events' => ['post' => 'calendar_application_event_create'],
+            '/v1/calendar/private/events/{eventId}/cancel' => [
+                'post' => 'calendar_private_event_cancel',
+            ],
+            '/v1/calendar/private/applications/{applicationSlug}/events' => [
+                'post' => 'calendar_application_event_create',
+            ],
             '/v1/calendar/private/applications/{applicationSlug}/events/{eventId}' => [
                 'patch' => 'calendar_application_event_patch',
                 'delete' => 'calendar_application_event_delete',
             ],
-            '/v1/calendar/private/applications/{applicationSlug}/events/{eventId}/cancel' => ['post' => 'calendar_application_event_cancel'],
+            '/v1/calendar/private/applications/{applicationSlug}/events/{eventId}/cancel' => [
+                'post' => 'calendar_application_event_cancel',
+            ],
         ];
 
         foreach ($expectedOperationIds as $path => $operations) {
@@ -212,13 +220,20 @@ final class UserEventMutationControllerTest extends WebTestCase
             'textColor' => '#0f172a',
             'organizerName' => 'Jane Doe',
             'organizerEmail' => 'jane@example.com',
-            'attendees' => [['email' => 'attendee@example.com']],
+            'attendees' => [[
+                'email' => 'attendee@example.com',
+            ]],
             'rrule' => 'FREQ=WEEKLY;COUNT=2',
             'recurrenceExceptions' => ['2030-01-08T10:00:00+00:00'],
             'recurrenceEndAt' => '2030-01-15T10:00:00+00:00',
             'recurrenceCount' => 2,
-            'reminders' => [['method' => 'email', 'minutes' => 30]],
-            'metadata' => ['source' => 'functional-test'],
+            'reminders' => [[
+                'method' => 'email',
+                'minutes' => 30,
+            ]],
+            'metadata' => [
+                'source' => 'functional-test',
+            ],
         ];
 
         $client->request('POST', self::API_URL_PREFIX . '/v1/calendar/private/events', content: JSON::encode($createPayload));
@@ -235,14 +250,18 @@ final class UserEventMutationControllerTest extends WebTestCase
 
         /** @var EventRepository $eventRepository */
         $eventRepository = static::getContainer()->get(EventRepository::class);
-        $createdEvent = $eventRepository->findOneBy(['title' => 'queued-advanced-create']);
+        $createdEvent = $eventRepository->findOneBy([
+            'title' => 'queued-advanced-create',
+        ]);
         self::assertInstanceOf(Event::class, $createdEvent);
         self::assertSame(EventVisibility::PUBLIC, $createdEvent->getVisibility());
         self::assertTrue($createdEvent->isAllDay());
         self::assertSame('Europe/Paris', $createdEvent->getTimezone());
         self::assertSame('https://example.com/events/1', $createdEvent->getUrl());
         self::assertSame('Jane Doe', $createdEvent->getOrganizerName());
-        self::assertSame(['source' => 'functional-test'], $createdEvent->getMetadata());
+        self::assertSame([
+            'source' => 'functional-test',
+        ], $createdEvent->getMetadata());
 
         $transport->reset();
         $patchPayload = [
@@ -259,13 +278,20 @@ final class UserEventMutationControllerTest extends WebTestCase
             'textColor' => '#14532d',
             'organizerName' => 'John Smith',
             'organizerEmail' => 'john@example.com',
-            'attendees' => [['email' => 'other@example.com']],
+            'attendees' => [[
+                'email' => 'other@example.com',
+            ]],
             'rrule' => 'FREQ=MONTHLY;COUNT=1',
             'recurrenceExceptions' => ['2030-02-01T10:00:00+00:00'],
             'recurrenceEndAt' => '2030-02-01T10:00:00+00:00',
             'recurrenceCount' => 1,
-            'reminders' => [['method' => 'popup', 'minutes' => 15]],
-            'metadata' => ['source' => 'functional-test-patch'],
+            'reminders' => [[
+                'method' => 'popup',
+                'minutes' => 15,
+            ]],
+            'metadata' => [
+                'source' => 'functional-test-patch',
+            ],
         ];
 
         $client->request('PATCH', self::API_URL_PREFIX . '/v1/calendar/private/events/' . $createdEvent->getId(), content: JSON::encode($patchPayload));
@@ -288,8 +314,12 @@ final class UserEventMutationControllerTest extends WebTestCase
         self::assertSame('Europe/London', $patchedEvent->getTimezone());
         self::assertSame('https://example.com/events/2', $patchedEvent->getUrl());
         self::assertSame('John Smith', $patchedEvent->getOrganizerName());
-        self::assertSame([['email' => 'other@example.com']], $patchedEvent->getAttendees());
+        self::assertSame([[
+            'email' => 'other@example.com',
+        ]], $patchedEvent->getAttendees());
         self::assertSame('FREQ=MONTHLY;COUNT=1', $patchedEvent->getRrule());
-        self::assertSame(['source' => 'functional-test-patch'], $patchedEvent->getMetadata());
+        self::assertSame([
+            'source' => 'functional-test-patch',
+        ], $patchedEvent->getMetadata());
     }
 }

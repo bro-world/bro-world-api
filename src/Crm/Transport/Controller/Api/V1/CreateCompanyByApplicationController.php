@@ -34,15 +34,15 @@ final readonly class CreateCompanyByApplicationController
     public function __invoke(string $applicationSlug, Request $request): JsonResponse
     {
         $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
-        $payload = (array) json_decode((string) $request->getContent(), true);
+        $payload = (array)json_decode((string)$request->getContent(), true);
 
         $company = (new Company())
             ->setCrm($crm)
-            ->setName((string) ($payload['name'] ?? ''))
-            ->setIndustry(isset($payload['industry']) ? (string) $payload['industry'] : null)
-            ->setWebsite(isset($payload['website']) ? (string) $payload['website'] : null)
-            ->setContactEmail(isset($payload['contactEmail']) ? (string) $payload['contactEmail'] : null)
-            ->setPhone(isset($payload['phone']) ? (string) $payload['phone'] : null);
+            ->setName((string)($payload['name'] ?? ''))
+            ->setIndustry(isset($payload['industry']) ? (string)$payload['industry'] : null)
+            ->setWebsite(isset($payload['website']) ? (string)$payload['website'] : null)
+            ->setContactEmail(isset($payload['contactEmail']) ? (string)$payload['contactEmail'] : null)
+            ->setPhone(isset($payload['phone']) ? (string)$payload['phone'] : null);
 
         $this->entityManager->persist($company);
         $this->entityManager->flush();

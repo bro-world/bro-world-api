@@ -63,14 +63,14 @@ final class BlogControllerTest extends WebTestCase
 
         /** @var UserRepository $userRepository */
         $userRepository = static::getContainer()->get(UserRepository::class);
-        $johnUser = $userRepository->findOneBy(['username' => 'john-user']);
+        $johnUser = $userRepository->findOneBy([
+            'username' => 'john-user',
+        ]);
         self::assertNotNull($johnUser);
 
         self::assertAuthorFlagsForAnonymousPayload($anonymousPayload);
         self::assertAuthorFlagsForAuthenticatedPayload($authenticatedPayload, $johnUser->getId());
     }
-
-
 
     public function testCreateReactionRejectsUnsupportedType(): void
     {
@@ -90,7 +90,9 @@ final class BlogControllerTest extends WebTestCase
             [],
             [],
             $this->getJsonHeaders(),
-            json_encode(['type' => 'unsupported'], JSON_THROW_ON_ERROR),
+            json_encode([
+                'type' => 'unsupported',
+            ], JSON_THROW_ON_ERROR),
         );
 
         self::assertResponseStatusCodeSame(400);
@@ -115,7 +117,9 @@ final class BlogControllerTest extends WebTestCase
             [],
             [],
             $this->getJsonHeaders(),
-            json_encode(['type' => 'heart'], JSON_THROW_ON_ERROR),
+            json_encode([
+                'type' => 'heart',
+            ], JSON_THROW_ON_ERROR),
         );
 
         self::assertResponseStatusCodeSame(401);
@@ -132,7 +136,9 @@ final class BlogControllerTest extends WebTestCase
 
         /** @var UserRepository $userRepository */
         $userRepository = static::getContainer()->get(UserRepository::class);
-        $johnUser = $userRepository->findOneBy(['username' => 'john-user']);
+        $johnUser = $userRepository->findOneBy([
+            'username' => 'john-user',
+        ]);
         self::assertNotNull($johnUser);
 
         $targetCommentId = self::findFirstCommentId($payload);
@@ -144,7 +150,9 @@ final class BlogControllerTest extends WebTestCase
             [],
             [],
             $this->getJsonHeaders(),
-            json_encode(['type' => 'heart'], JSON_THROW_ON_ERROR),
+            json_encode([
+                'type' => 'heart',
+            ], JSON_THROW_ON_ERROR),
         );
         self::assertResponseStatusCodeSame(202);
 
@@ -154,7 +162,9 @@ final class BlogControllerTest extends WebTestCase
             [],
             [],
             $this->getJsonHeaders(),
-            json_encode(['type' => 'laugh'], JSON_THROW_ON_ERROR),
+            json_encode([
+                'type' => 'laugh',
+            ], JSON_THROW_ON_ERROR),
         );
         self::assertResponseStatusCodeSame(202);
 
@@ -182,7 +192,6 @@ final class BlogControllerTest extends WebTestCase
         self::assertCount(1, $johnUserReactionTypes);
         self::assertSame('laugh', $johnUserReactionTypes[0]);
     }
-
 
     /**
      * @param array<string, mixed> $node

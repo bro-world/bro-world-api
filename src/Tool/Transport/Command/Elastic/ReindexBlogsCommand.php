@@ -38,9 +38,11 @@ final class ReindexBlogsCommand extends Command
         $indexed = 0;
 
         /** @var Blog $blog */
-        foreach ($this->blogRepository->findBy([], [
-            'createdAt' => 'DESC',
-        ]) as $blog) {
+        foreach (
+            $this->blogRepository->findBy([], [
+                'createdAt' => 'DESC',
+            ]) as $blog
+        ) {
             $this->elasticsearchService->index(BlogProjection::INDEX_NAME, $blog->getId(), [
                 'id' => $blog->getId(),
                 'title' => $blog->getTitle(),

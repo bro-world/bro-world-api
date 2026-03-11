@@ -95,26 +95,62 @@ class ApplicationCreateControllerTest extends WebTestCase
         self::assertNotNull($blog);
         self::assertNotNull($quiz);
 
-        self::assertCount(1, $conversationRepository->findBy(['chat' => $chat]));
-        self::assertCount(1, $eventRepository->findBy(['calendar' => $calendar, 'title' => 'Welcome event']));
-        self::assertCount(1, $blogTagRepository->findBy(['blog' => $blog, 'label' => 'Getting Started']));
-        self::assertCount(1, $blogPostRepository->findBy(['blog' => $blog, 'content' => 'Welcome to your application blog.']));
-        self::assertCount(1, $quizQuestionRepository->findBy(['quiz' => $quiz, 'title' => 'What is the first step to launch this app?']));
+        self::assertCount(1, $conversationRepository->findBy([
+            'chat' => $chat,
+        ]));
+        self::assertCount(1, $eventRepository->findBy([
+            'calendar' => $calendar,
+            'title' => 'Welcome event',
+        ]));
+        self::assertCount(1, $blogTagRepository->findBy([
+            'blog' => $blog,
+            'label' => 'Getting Started',
+        ]));
+        self::assertCount(1, $blogPostRepository->findBy([
+            'blog' => $blog,
+            'content' => 'Welcome to your application blog.',
+        ]));
+        self::assertCount(1, $quizQuestionRepository->findBy([
+            'quiz' => $quiz,
+            'title' => 'What is the first step to launch this app?',
+        ]));
 
         $provisioningService = $container->get(ApplicationPluginProvisioningService::class);
         $provisioningService->provision($application, [PluginKey::CALENDAR, PluginKey::CHAT, PluginKey::BLOG, PluginKey::QUIZ]);
         $entityManager->flush();
 
-        self::assertCount(1, $calendarRepository->findBy(['application' => $application]));
-        self::assertCount(1, $chatRepository->findBy(['application' => $application]));
-        self::assertCount(1, $blogRepository->findBy(['application' => $application]));
-        self::assertCount(1, $quizRepository->findBy(['application' => $application]));
+        self::assertCount(1, $calendarRepository->findBy([
+            'application' => $application,
+        ]));
+        self::assertCount(1, $chatRepository->findBy([
+            'application' => $application,
+        ]));
+        self::assertCount(1, $blogRepository->findBy([
+            'application' => $application,
+        ]));
+        self::assertCount(1, $quizRepository->findBy([
+            'application' => $application,
+        ]));
 
-        self::assertCount(1, $conversationRepository->findBy(['chat' => $chat]));
-        self::assertCount(1, $eventRepository->findBy(['calendar' => $calendar, 'title' => 'Welcome event']));
-        self::assertCount(1, $blogTagRepository->findBy(['blog' => $blog, 'label' => 'Getting Started']));
-        self::assertCount(1, $blogPostRepository->findBy(['blog' => $blog, 'content' => 'Welcome to your application blog.']));
-        self::assertCount(1, $quizQuestionRepository->findBy(['quiz' => $quiz, 'title' => 'What is the first step to launch this app?']));
+        self::assertCount(1, $conversationRepository->findBy([
+            'chat' => $chat,
+        ]));
+        self::assertCount(1, $eventRepository->findBy([
+            'calendar' => $calendar,
+            'title' => 'Welcome event',
+        ]));
+        self::assertCount(1, $blogTagRepository->findBy([
+            'blog' => $blog,
+            'label' => 'Getting Started',
+        ]));
+        self::assertCount(1, $blogPostRepository->findBy([
+            'blog' => $blog,
+            'content' => 'Welcome to your application blog.',
+        ]));
+        self::assertCount(1, $quizQuestionRepository->findBy([
+            'quiz' => $quiz,
+            'title' => 'What is the first step to launch this app?',
+        ]));
     }
 
     /**
@@ -130,10 +166,18 @@ class ApplicationCreateControllerTest extends WebTestCase
         $schoolApplication = $this->createApplication('40000000-0000-1000-8000-000000000005', 'School app auto provision');
         $recruitApplication = $this->createApplication('40000000-0000-1000-8000-000000000004', 'Recruit app auto provision');
 
-        self::assertCount(1, $entityManager->getRepository(Crm::class)->findBy(['application' => $crmApplication]));
-        self::assertCount(1, $entityManager->getRepository(Shop::class)->findBy(['application' => $shopApplication]));
-        self::assertCount(1, $entityManager->getRepository(School::class)->findBy(['application' => $schoolApplication]));
-        self::assertCount(1, $entityManager->getRepository(Recruit::class)->findBy(['application' => $recruitApplication]));
+        self::assertCount(1, $entityManager->getRepository(Crm::class)->findBy([
+            'application' => $crmApplication,
+        ]));
+        self::assertCount(1, $entityManager->getRepository(Shop::class)->findBy([
+            'application' => $shopApplication,
+        ]));
+        self::assertCount(1, $entityManager->getRepository(School::class)->findBy([
+            'application' => $schoolApplication,
+        ]));
+        self::assertCount(1, $entityManager->getRepository(Recruit::class)->findBy([
+            'application' => $recruitApplication,
+        ]));
 
         $crmApplication->setDescription('CRM app updated');
         $shopApplication->setDescription('Shop app updated');
@@ -141,10 +185,18 @@ class ApplicationCreateControllerTest extends WebTestCase
         $recruitApplication->setDescription('Recruit app updated');
         $entityManager->flush();
 
-        self::assertCount(1, $entityManager->getRepository(Crm::class)->findBy(['application' => $crmApplication]));
-        self::assertCount(1, $entityManager->getRepository(Shop::class)->findBy(['application' => $shopApplication]));
-        self::assertCount(1, $entityManager->getRepository(School::class)->findBy(['application' => $schoolApplication]));
-        self::assertCount(1, $entityManager->getRepository(Recruit::class)->findBy(['application' => $recruitApplication]));
+        self::assertCount(1, $entityManager->getRepository(Crm::class)->findBy([
+            'application' => $crmApplication,
+        ]));
+        self::assertCount(1, $entityManager->getRepository(Shop::class)->findBy([
+            'application' => $shopApplication,
+        ]));
+        self::assertCount(1, $entityManager->getRepository(School::class)->findBy([
+            'application' => $schoolApplication,
+        ]));
+        self::assertCount(1, $entityManager->getRepository(Recruit::class)->findBy([
+            'application' => $recruitApplication,
+        ]));
     }
 
     /**

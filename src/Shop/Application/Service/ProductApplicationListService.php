@@ -26,7 +26,9 @@ readonly class ProductApplicationListService
     ) {
     }
 
-    /** @return array<string,mixed> */
+    /**
+     * @return array<string,mixed>
+     */
     public function getList(Request $request, string $applicationSlug, Shop $shop): array
     {
         $page = max(1, $request->query->getInt('page', 1));
@@ -46,7 +48,20 @@ readonly class ProductApplicationListService
 
             $esIds = $this->searchIdsFromElastic($filters);
             if ($esIds === []) {
-                return ['items' => [], 'pagination' => ['page' => $page, 'limit' => $limit, 'totalItems' => 0, 'totalPages' => 0], 'meta' => ['applicationSlug' => $applicationSlug, 'shopId' => $shop->getId(), 'filters' => array_filter($filters)]];
+                return [
+                    'items' => [],
+                    'pagination' => [
+                        'page' => $page,
+                        'limit' => $limit,
+                        'totalItems' => 0,
+                        'totalPages' => 0,
+                    ],
+                    'meta' => [
+                        'applicationSlug' => $applicationSlug,
+                        'shopId' => $shop->getId(),
+                        'filters' => array_filter($filters),
+                    ],
+                ];
             }
 
             $qb = $this->productRepository->createQueryBuilder('product')
@@ -84,8 +99,17 @@ readonly class ProductApplicationListService
 
             return [
                 'items' => $items,
-                'pagination' => ['page' => $page, 'limit' => $limit, 'totalItems' => $totalItems, 'totalPages' => $totalItems > 0 ? (int)ceil($totalItems / $limit) : 0],
-                'meta' => ['applicationSlug' => $applicationSlug, 'shopId' => $shop->getId(), 'filters' => array_filter($filters)],
+                'pagination' => [
+                    'page' => $page,
+                    'limit' => $limit,
+                    'totalItems' => $totalItems,
+                    'totalPages' => $totalItems > 0 ? (int)ceil($totalItems / $limit) : 0,
+                ],
+                'meta' => [
+                    'applicationSlug' => $applicationSlug,
+                    'shopId' => $shop->getId(),
+                    'filters' => array_filter($filters),
+                ],
             ];
         });
     }
@@ -101,7 +125,13 @@ readonly class ProductApplicationListService
 
         try {
             $response = $this->elasticsearchService->search(ShopProductProjection::INDEX_NAME, [
-                'query' => ['multi_match' => ['query' => $filters['q'], 'type' => 'phrase_prefix', 'fields' => ['name^3', 'categoryName^2', 'tags', 'sku^4']]],
+                'query' => [
+                    'multi_match' => [
+                        'query' => $filters['q'],
+                        'type' => 'phrase_prefix',
+                        'fields' => ['name^3', 'categoryName^2', 'tags', 'sku^4'],
+                    ],
+                ],
                 '_source' => ['id'],
             ], 0, 200);
         } catch (Throwable) {

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Shop\Transport\Controller\Api\V1\Product;
 
 use App\General\Application\Message\EntityCreated;
-use App\Shop\Domain\Entity\Product;
 use App\Shop\Application\Service\ProductHydratorService;
+use App\Shop\Domain\Entity\Product;
 use App\Shop\Infrastructure\Repository\ShopRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
@@ -34,7 +34,7 @@ final readonly class CreateProductController
     #[Route('/v1/shop/products', methods: [Request::METHOD_POST])]
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = (array) json_decode((string) $request->getContent(), true);
+        $payload = (array)json_decode((string)$request->getContent(), true);
         $product = $this->productHydratorService->hydrateProduct(new Product(), $payload);
 
         if (is_string($payload['shopId'] ?? null)) {
@@ -45,6 +45,8 @@ final readonly class CreateProductController
         $this->entityManager->flush();
         $this->messageBus->dispatch(new EntityCreated('shop_product', $product->getId()));
 
-        return new JsonResponse(['id' => $product->getId()], JsonResponse::HTTP_CREATED);
+        return new JsonResponse([
+            'id' => $product->getId(),
+        ], JsonResponse::HTTP_CREATED);
     }
 }

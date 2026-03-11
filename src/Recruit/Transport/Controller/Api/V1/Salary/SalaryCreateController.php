@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Recruit\Transport\Controller\Api\V1\Salary;
 
-use App\General\Transport\Rest\Controller;
 use App\General\Application\DTO\Interfaces\RestDtoInterface;
 use App\General\Application\Exception\ValidatorException;
+use App\General\Transport\Rest\Controller;
 use App\Recruit\Application\DTO\Salary\SalaryCreate;
 use App\Recruit\Application\Resource\SalaryResource;
 use AutoMapperPlus\AutoMapperInterface;
@@ -34,6 +34,18 @@ class SalaryCreateController extends Controller
         parent::__construct($resource);
     }
 
+    #[Route(
+        path: '/v1/recruit/salary',
+        methods: [Request::METHOD_POST],
+    )]
+    #[IsGranted('ROLE_ROOT')]
+    #[OA\Post(summary: 'Create salary', responses: [new OA\Response(response: 201, description: 'created')])]
+    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
+    public function __invoke(Request $request): Response
+    {
+        return $this->createMethod($request, $this->mapAndValidateDto($request, SalaryCreate::class));
+    }
+
     private function mapAndValidateDto(Request $request, string $dtoClass): RestDtoInterface
     {
         /** @var RestDtoInterface $dto */
@@ -45,17 +57,5 @@ class SalaryCreateController extends Controller
         }
 
         return $dto;
-    }
-
-    #[Route(
-        path: '/v1/recruit/salary',
-        methods: [Request::METHOD_POST],
-    )]
-    #[IsGranted('ROLE_ROOT')]
-    #[OA\Post(summary: 'Create salary', responses: [new OA\Response(response: 201, description: 'created')])]
-    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
-    public function __invoke(Request $request): Response
-    {
-        return $this->createMethod($request, $this->mapAndValidateDto($request, SalaryCreate::class));
     }
 }

@@ -42,6 +42,8 @@ final readonly class CreateStudentController
 
         $student = $this->createStudentService->create($input->name, $input->classId);
 
-        return new JsonResponse(['id' => $student->getId()], JsonResponse::HTTP_CREATED);
+        return new JsonResponse([
+            'id' => $student->getId(),
+        ], JsonResponse::HTTP_CREATED);
     }
 }

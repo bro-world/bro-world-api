@@ -10,7 +10,9 @@ enum Term: string
     case TERM_2 = 'TERM_2';
     case TERM_3 = 'TERM_3';
 
-    /** @return list<string> */
+    /**
+     * @return list<string>
+     */
     public static function values(): array
     {
         return array_column(self::cases(), 'value');

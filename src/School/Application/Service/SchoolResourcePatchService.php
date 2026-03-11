@@ -32,7 +32,9 @@ final readonly class SchoolResourcePatchService
     ) {
     }
 
-    /** @param array<string,mixed> $payload */
+    /**
+     * @param array<string,mixed> $payload
+     */
     public function patch(SchoolClass|Student|Teacher|Exam|Grade $entity, string $resource, array $payload): void
     {
         match ($resource) {
@@ -45,7 +47,9 @@ final readonly class SchoolResourcePatchService
         };
     }
 
-    /** @param array<string,mixed> $payload */
+    /**
+     * @param array<string,mixed> $payload
+     */
     private function patchClass(SchoolClass|Student|Teacher|Exam|Grade $entity, array $payload): void
     {
         if (!$entity instanceof SchoolClass) {
@@ -53,7 +57,7 @@ final readonly class SchoolResourcePatchService
         }
 
         if (array_key_exists('name', $payload)) {
-            $name = trim((string) $payload['name']);
+            $name = trim((string)$payload['name']);
             if ($name === '') {
                 throw new HttpException(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, 'Field "name" cannot be blank.');
             }
@@ -63,7 +67,9 @@ final readonly class SchoolResourcePatchService
         $this->classRepository->save($entity);
     }
 
-    /** @param array<string,mixed> $payload */
+    /**
+     * @param array<string,mixed> $payload
+     */
     private function patchStudent(SchoolClass|Student|Teacher|Exam|Grade $entity, array $payload): void
     {
         if (!$entity instanceof Student) {
@@ -71,7 +77,7 @@ final readonly class SchoolResourcePatchService
         }
 
         if (array_key_exists('name', $payload)) {
-            $name = trim((string) $payload['name']);
+            $name = trim((string)$payload['name']);
             if ($name === '') {
                 throw new HttpException(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, 'Field "name" cannot be blank.');
             }
@@ -79,7 +85,7 @@ final readonly class SchoolResourcePatchService
         }
 
         if (array_key_exists('classId', $payload)) {
-            $classId = (string) $payload['classId'];
+            $classId = (string)$payload['classId'];
             if (!Uuid::isValid($classId)) {
                 throw new HttpException(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, 'Field "classId" must be a valid UUID.');
             }
@@ -93,7 +99,9 @@ final readonly class SchoolResourcePatchService
         $this->studentRepository->save($entity);
     }
 
-    /** @param array<string,mixed> $payload */
+    /**
+     * @param array<string,mixed> $payload
+     */
     private function patchTeacher(SchoolClass|Student|Teacher|Exam|Grade $entity, array $payload): void
     {
         if (!$entity instanceof Teacher) {
@@ -101,7 +109,7 @@ final readonly class SchoolResourcePatchService
         }
 
         if (array_key_exists('name', $payload)) {
-            $name = trim((string) $payload['name']);
+            $name = trim((string)$payload['name']);
             if ($name === '') {
                 throw new HttpException(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, 'Field "name" cannot be blank.');
             }
@@ -111,7 +119,9 @@ final readonly class SchoolResourcePatchService
         $this->teacherRepository->save($entity);
     }
 
-    /** @param array<string,mixed> $payload */
+    /**
+     * @param array<string,mixed> $payload
+     */
     private function patchExam(SchoolClass|Student|Teacher|Exam|Grade $entity, array $payload): void
     {
         if (!$entity instanceof Exam) {
@@ -119,7 +129,7 @@ final readonly class SchoolResourcePatchService
         }
 
         if (array_key_exists('title', $payload)) {
-            $title = trim((string) $payload['title']);
+            $title = trim((string)$payload['title']);
             if ($title === '') {
                 throw new HttpException(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, 'Field "title" cannot be blank.');
             }
@@ -127,7 +137,7 @@ final readonly class SchoolResourcePatchService
         }
 
         if (array_key_exists('classId', $payload)) {
-            $classId = (string) $payload['classId'];
+            $classId = (string)$payload['classId'];
             if (!Uuid::isValid($classId)) {
                 throw new HttpException(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, 'Field "classId" must be a valid UUID.');
             }
@@ -139,7 +149,7 @@ final readonly class SchoolResourcePatchService
         }
 
         if (array_key_exists('teacherId', $payload)) {
-            $teacherId = (string) $payload['teacherId'];
+            $teacherId = (string)$payload['teacherId'];
             if (!Uuid::isValid($teacherId)) {
                 throw new HttpException(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, 'Field "teacherId" must be a valid UUID.');
             }
@@ -151,7 +161,7 @@ final readonly class SchoolResourcePatchService
         }
 
         if (array_key_exists('type', $payload)) {
-            $type = ExamType::tryFrom((string) $payload['type']);
+            $type = ExamType::tryFrom((string)$payload['type']);
             if ($type === null) {
                 throw new HttpException(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, 'Invalid exam type.');
             }
@@ -159,7 +169,7 @@ final readonly class SchoolResourcePatchService
         }
 
         if (array_key_exists('status', $payload)) {
-            $status = ExamStatus::tryFrom((string) $payload['status']);
+            $status = ExamStatus::tryFrom((string)$payload['status']);
             if ($status === null) {
                 throw new HttpException(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, 'Invalid exam status.');
             }
@@ -167,7 +177,7 @@ final readonly class SchoolResourcePatchService
         }
 
         if (array_key_exists('term', $payload)) {
-            $term = Term::tryFrom((string) $payload['term']);
+            $term = Term::tryFrom((string)$payload['term']);
             if ($term === null) {
                 throw new HttpException(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, 'Invalid exam term.');
             }
@@ -177,7 +187,9 @@ final readonly class SchoolResourcePatchService
         $this->examRepository->save($entity);
     }
 
-    /** @param array<string,mixed> $payload */
+    /**
+     * @param array<string,mixed> $payload
+     */
     private function patchGrade(SchoolClass|Student|Teacher|Exam|Grade $entity, array $payload): void
     {
         if (!$entity instanceof Grade) {
@@ -188,7 +200,7 @@ final readonly class SchoolResourcePatchService
             if (!is_numeric($payload['score'])) {
                 throw new HttpException(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, 'Field "score" must be numeric.');
             }
-            $entity->setScore((float) $payload['score']);
+            $entity->setScore((float)$payload['score']);
         }
 
         $this->gradeRepository->save($entity);

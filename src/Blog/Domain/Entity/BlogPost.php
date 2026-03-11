@@ -40,7 +40,9 @@ class BlogPost implements EntityInterface
     #[ORM\Column(name: 'content', type: 'text', nullable: true)]
     private ?string $content = null;
 
-    #[ORM\Column(name: 'is_pinned', type: 'boolean', options: ['default' => false])]
+    #[ORM\Column(name: 'is_pinned', type: 'boolean', options: [
+        'default' => false,
+    ])]
     private bool $isPinned = false;
 
     #[ORM\Column(name: 'file_path', type: 'string', length: 255, nullable: true)]

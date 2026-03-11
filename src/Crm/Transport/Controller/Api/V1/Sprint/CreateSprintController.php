@@ -35,13 +35,13 @@ final readonly class CreateSprintController
     #[OA\Post(summary: 'POST /v1/crm/sprints')]
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = (array) json_decode((string) $request->getContent(), true);
+        $payload = (array)json_decode((string)$request->getContent(), true);
         $sprint = new Sprint();
-        $sprint->setName((string) ($payload['name'] ?? ''))
-            ->setGoal(isset($payload['goal']) ? (string) $payload['goal'] : null)
-            ->setStatus(SprintStatus::tryFrom((string) ($payload['status'] ?? '')) ?? SprintStatus::PLANNED)
-            ->setStartDate(isset($payload['startDate']) ? new DateTimeImmutable((string) $payload['startDate']) : null)
-            ->setEndDate(isset($payload['endDate']) ? new DateTimeImmutable((string) $payload['endDate']) : null);
+        $sprint->setName((string)($payload['name'] ?? ''))
+            ->setGoal(isset($payload['goal']) ? (string)$payload['goal'] : null)
+            ->setStatus(SprintStatus::tryFrom((string)($payload['status'] ?? '')) ?? SprintStatus::PLANNED)
+            ->setStartDate(isset($payload['startDate']) ? new DateTimeImmutable((string)$payload['startDate']) : null)
+            ->setEndDate(isset($payload['endDate']) ? new DateTimeImmutable((string)$payload['endDate']) : null);
         if (is_string($payload['projectId'] ?? null)) {
             $sprint->setProject($this->projectRepository->find($payload['projectId']));
         }
@@ -50,6 +50,8 @@ final readonly class CreateSprintController
         $this->entityManager->flush();
         $this->messageBus->dispatch(new EntityCreated('crm_sprint', $sprint->getId()));
 
-        return new JsonResponse(['id' => $sprint->getId()], JsonResponse::HTTP_CREATED);
+        return new JsonResponse([
+            'id' => $sprint->getId(),
+        ], JsonResponse::HTTP_CREATED);
     }
 }

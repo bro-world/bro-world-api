@@ -76,6 +76,8 @@ final readonly class CreateExamController
             Term::from($input->term),
         );
 
-        return new JsonResponse(['id' => $exam->getId()], JsonResponse::HTTP_CREATED);
+        return new JsonResponse([
+            'id' => $exam->getId(),
+        ], JsonResponse::HTTP_CREATED);
     }
 }

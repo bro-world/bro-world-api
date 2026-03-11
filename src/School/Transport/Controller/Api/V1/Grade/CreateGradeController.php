@@ -43,6 +43,8 @@ final readonly class CreateGradeController
 
         $grade = $this->createGradeService->create($input->score, $input->studentId, $input->examId);
 
-        return new JsonResponse(['id' => $grade->getId()], JsonResponse::HTTP_CREATED);
+        return new JsonResponse([
+            'id' => $grade->getId(),
+        ], JsonResponse::HTTP_CREATED);
     }
 }

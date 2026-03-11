@@ -31,7 +31,7 @@ final readonly class PatchBlogReactionController
     public function __invoke(string $reactionId, Request $request, User $loggedInUser): JsonResponse
     {
         $payload = $this->requestService->extractPayload($request);
-        $this->messageBus->dispatch(new PatchBlogReactionCommand((string) uniqid('op_', true), $loggedInUser->getId(), $reactionId, $this->requestService->parseReactionType((string) ($payload['type'] ?? 'like'))));
+        $this->messageBus->dispatch(new PatchBlogReactionCommand((string)uniqid('op_', true), $loggedInUser->getId(), $reactionId, $this->requestService->parseReactionType((string)($payload['type'] ?? 'like'))));
 
         return new JsonResponse(status: JsonResponse::HTTP_NO_CONTENT);
     }

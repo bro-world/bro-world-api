@@ -19,8 +19,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
 final readonly class ListSprintsController
 {
-    public function __construct(private SprintRepository $sprintRepository)
-    {
+    public function __construct(
+        private SprintRepository $sprintRepository
+    ) {
     }
 
     #[Route('/v1/crm/sprints', methods: [Request::METHOD_GET])]
@@ -33,8 +34,12 @@ final readonly class ListSprintsController
             'status' => $sprint->getStatus()->value,
             'startDate' => $sprint->getStartDate()?->format('Y-m-d'),
             'endDate' => $sprint->getEndDate()?->format('Y-m-d'),
-        ], $this->sprintRepository->findBy([], ['createdAt' => 'DESC'], 200));
+        ], $this->sprintRepository->findBy([], [
+            'createdAt' => 'DESC',
+        ], 200));
 
-        return new JsonResponse(['items' => $items]);
+        return new JsonResponse([
+            'items' => $items,
+        ]);
     }
 }

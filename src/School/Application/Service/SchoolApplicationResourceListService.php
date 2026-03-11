@@ -23,7 +23,9 @@ final readonly class SchoolApplicationResourceListService
     ) {
     }
 
-    /** @return list<array<string,mixed>> */
+    /**
+     * @return list<array<string,mixed>>
+     */
     public function listByResource(string $resource, string $schoolId): array
     {
         return match ($resource) {

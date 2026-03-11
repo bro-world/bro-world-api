@@ -33,9 +33,9 @@ readonly class CreateReactionController
 {
     public function __construct(
         private ChatMessageReactionRepositoryInterface $reactionRepository,
-        private ChatAccessResolverService              $chatAccessResolverService,
-        private ReactionPayloadService                 $reactionPayloadService,
-        private CacheInvalidationService               $cacheInvalidationService,
+        private ChatAccessResolverService $chatAccessResolverService,
+        private ReactionPayloadService $reactionPayloadService,
+        private CacheInvalidationService $cacheInvalidationService,
     ) {
     }
 

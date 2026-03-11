@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Recruit\Transport\Controller\Api\V1\Company;
 
-use App\General\Transport\Rest\Controller;
 use App\General\Application\DTO\Interfaces\RestDtoInterface;
 use App\General\Application\Exception\ValidatorException;
+use App\General\Transport\Rest\Controller;
 use App\Recruit\Application\DTO\Company\CompanyPatch;
 use App\Recruit\Application\Resource\CompanyResource;
 use AutoMapperPlus\AutoMapperInterface;
@@ -35,6 +35,21 @@ class CompanyPatchController extends Controller
         parent::__construct($resource);
     }
 
+    #[Route(
+        path: '/v1/recruit/company/{id}',
+        requirements: [
+            'id' => Requirement::UUID_V1,
+        ],
+        methods: [Request::METHOD_PATCH],
+    )]
+    #[IsGranted('ROLE_ROOT')]
+    #[OA\Patch(summary: 'Patch company', responses: [new OA\Response(response: 200, description: 'success')])]
+    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
+    public function __invoke(Request $request, string $id): Response
+    {
+        return $this->patchMethod($request, $this->mapAndValidateDto($request, CompanyPatch::class), $id);
+    }
+
     private function mapAndValidateDto(Request $request, string $dtoClass): RestDtoInterface
     {
         /** @var RestDtoInterface $dto */
@@ -46,18 +61,5 @@ class CompanyPatchController extends Controller
         }
 
         return $dto;
-    }
-
-    #[Route(
-        path: '/v1/recruit/company/{id}',
-        requirements: ['id' => Requirement::UUID_V1],
-        methods: [Request::METHOD_PATCH],
-    )]
-    #[IsGranted('ROLE_ROOT')]
-    #[OA\Patch(summary: 'Patch company', responses: [new OA\Response(response: 200, description: 'success')])]
-    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
-    public function __invoke(Request $request, string $id): Response
-    {
-        return $this->patchMethod($request, $this->mapAndValidateDto($request, CompanyPatch::class), $id);
     }
 }

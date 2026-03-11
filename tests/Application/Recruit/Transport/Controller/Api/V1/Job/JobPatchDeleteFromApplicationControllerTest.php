@@ -41,7 +41,6 @@ class JobPatchDeleteFromApplicationControllerTest extends WebTestCase
         self::assertSame('Updated job title', $payload['title']);
     }
 
-
     /**
      * @throws Throwable
      */
@@ -62,7 +61,7 @@ class JobPatchDeleteFromApplicationControllerTest extends WebTestCase
     #[TestDox('Test that PATCH /v1/recruit/applications/{applicationSlug}/jobs/{jobId} returns not found for missing job.')]
     public function testThatPatchFromApplicationReturnsNotFoundWhenJobIsMissing(): void
     {
-        [$applicationSlug, ] = $this->getApplicationSlugAndJobIdForUsername('john-root');
+        [$applicationSlug] = $this->getApplicationSlugAndJobIdForUsername('john-root');
 
         $client = $this->getTestClient('john-root', 'password-root');
         $client->request('PATCH', self::API_URL_PREFIX . '/v1/recruit/applications/' . $applicationSlug . '/jobs/11111111-1111-1111-1111-111111111111', content: JSON::encode([
@@ -108,7 +107,6 @@ class JobPatchDeleteFromApplicationControllerTest extends WebTestCase
         self::assertNull($deletedJob);
     }
 
-
     /**
      * @throws Throwable
      */
@@ -141,14 +139,13 @@ class JobPatchDeleteFromApplicationControllerTest extends WebTestCase
     #[TestDox('Test that DELETE /v1/recruit/applications/{applicationSlug}/jobs/{jobId} returns not found for missing job.')]
     public function testThatDeleteFromApplicationReturnsNotFoundWhenJobIsMissing(): void
     {
-        [$applicationSlug, ] = $this->getApplicationSlugAndJobIdForUsername('john-root');
+        [$applicationSlug] = $this->getApplicationSlugAndJobIdForUsername('john-root');
 
         $client = $this->getTestClient('john-root', 'password-root');
         $client->request('DELETE', self::API_URL_PREFIX . '/v1/recruit/applications/' . $applicationSlug . '/jobs/11111111-1111-1111-1111-111111111111');
 
         self::assertSame(Response::HTTP_NOT_FOUND, $client->getResponse()->getStatusCode());
     }
-
 
     /**
      * @return array{0: string, 1: string}

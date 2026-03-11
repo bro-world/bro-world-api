@@ -37,7 +37,9 @@ class QuizAnswer implements EntityInterface
     #[ORM\Column(name: 'correct', type: Types::BOOLEAN)]
     private bool $correct = false;
 
-    #[ORM\Column(name: 'position', type: Types::INTEGER, options: ['default' => 1])]
+    #[ORM\Column(name: 'position', type: Types::INTEGER, options: [
+        'default' => 1,
+    ])]
     private int $position = 1;
 
     public function __construct()

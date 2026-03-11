@@ -33,7 +33,7 @@ final class MockPaymentProvider implements PaymentProviderInterface
 
     public function confirm(string $providerReference, array $payload = []): array
     {
-        $shouldFail = (bool) ($payload['forceFail'] ?? false);
+        $shouldFail = (bool)($payload['forceFail'] ?? false);
 
         return [
             'provider' => 'mock',

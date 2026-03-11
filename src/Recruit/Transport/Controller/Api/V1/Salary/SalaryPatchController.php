@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Recruit\Transport\Controller\Api\V1\Salary;
 
-use App\General\Transport\Rest\Controller;
 use App\General\Application\DTO\Interfaces\RestDtoInterface;
 use App\General\Application\Exception\ValidatorException;
+use App\General\Transport\Rest\Controller;
 use App\Recruit\Application\DTO\Salary\SalaryPatch;
 use App\Recruit\Application\Resource\SalaryResource;
 use AutoMapperPlus\AutoMapperInterface;
@@ -35,6 +35,21 @@ class SalaryPatchController extends Controller
         parent::__construct($resource);
     }
 
+    #[Route(
+        path: '/v1/recruit/salary/{id}',
+        requirements: [
+            'id' => Requirement::UUID_V1,
+        ],
+        methods: [Request::METHOD_PATCH],
+    )]
+    #[IsGranted('ROLE_ROOT')]
+    #[OA\Patch(summary: 'Patch salary', responses: [new OA\Response(response: 200, description: 'success')])]
+    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
+    public function __invoke(Request $request, string $id): Response
+    {
+        return $this->patchMethod($request, $this->mapAndValidateDto($request, SalaryPatch::class), $id);
+    }
+
     private function mapAndValidateDto(Request $request, string $dtoClass): RestDtoInterface
     {
         /** @var RestDtoInterface $dto */
@@ -46,18 +61,5 @@ class SalaryPatchController extends Controller
         }
 
         return $dto;
-    }
-
-    #[Route(
-        path: '/v1/recruit/salary/{id}',
-        requirements: ['id' => Requirement::UUID_V1],
-        methods: [Request::METHOD_PATCH],
-    )]
-    #[IsGranted('ROLE_ROOT')]
-    #[OA\Patch(summary: 'Patch salary', responses: [new OA\Response(response: 200, description: 'success')])]
-    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
-    public function __invoke(Request $request, string $id): Response
-    {
-        return $this->patchMethod($request, $this->mapAndValidateDto($request, SalaryPatch::class), $id);
     }
 }

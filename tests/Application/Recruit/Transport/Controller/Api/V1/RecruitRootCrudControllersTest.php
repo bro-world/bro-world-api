@@ -20,7 +20,9 @@ class RecruitRootCrudControllersTest extends WebTestCase
     public function testThatEveryEndpointRequiresAuthentication(string $method, string $path, ?array $payload = null): void
     {
         $client = $this->getTestClient();
-        $client->request($method, self::API_URL_PREFIX . $path, server: ['CONTENT_TYPE' => 'application/json'], content: $payload !== null ? (string) json_encode($payload) : null);
+        $client->request($method, self::API_URL_PREFIX . $path, server: [
+            'CONTENT_TYPE' => 'application/json',
+        ], content: $payload !== null ? (string)json_encode($payload) : null);
 
         self::assertSame(Response::HTTP_UNAUTHORIZED, $client->getResponse()->getStatusCode(), 'Failed endpoint: ' . $method . ' ' . $path);
     }
@@ -30,7 +32,9 @@ class RecruitRootCrudControllersTest extends WebTestCase
     public function testThatEveryEndpointIsRoutableForRoot(string $method, string $path, ?array $payload = null): void
     {
         $client = $this->getTestClient('john-root', 'password-root');
-        $client->request($method, self::API_URL_PREFIX . $path, server: ['CONTENT_TYPE' => 'application/json'], content: $payload !== null ? (string) json_encode($payload) : null);
+        $client->request($method, self::API_URL_PREFIX . $path, server: [
+            'CONTENT_TYPE' => 'application/json',
+        ], content: $payload !== null ? (string)json_encode($payload) : null);
 
         self::assertNotSame(Response::HTTP_NOT_FOUND, $client->getResponse()->getStatusCode(), 'Route not found for: ' . $method . ' ' . $path);
     }

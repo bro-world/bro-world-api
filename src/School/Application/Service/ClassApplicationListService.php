@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\School\Application\Service;
 
 use App\General\Application\Service\CacheKeyConventionService;
+use App\School\Application\Serializer\SchoolApiResponseSerializer;
+use App\School\Application\Serializer\SchoolViewMapper;
 use App\School\Domain\Entity\School;
 use App\School\Infrastructure\Repository\SchoolClassRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
-use App\School\Application\Serializer\SchoolApiResponseSerializer;
-use App\School\Application\Serializer\SchoolViewMapper;
 
 readonly class ClassApplicationListService
 {
@@ -25,12 +25,16 @@ readonly class ClassApplicationListService
     ) {
     }
 
-    /** @return array<string,mixed> */
+    /**
+     * @return array<string,mixed>
+     */
     public function getList(Request $request, string $applicationSlug, School $school): array
     {
         $page = max(1, $request->query->getInt('page', 1));
         $limit = max(1, min(100, $request->query->getInt('limit', 20)));
-        $filters = ['q' => trim((string)$request->query->get('q', ''))];
+        $filters = [
+            'q' => trim((string)$request->query->get('q', '')),
+        ];
         $cacheKey = $this->cacheKeyConventionService->buildSchoolClassApplicationListKey($applicationSlug, $page, $limit, $filters);
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($applicationSlug, $school, $filters, $page, $limit): array {
@@ -59,8 +63,17 @@ readonly class ClassApplicationListService
 
             return $this->responseSerializer->list(
                 $items,
-                ['page' => $page, 'limit' => $limit, 'totalItems' => $totalItems, 'totalPages' => $totalItems > 0 ? (int)ceil($totalItems / $limit) : 0],
-                ['applicationSlug' => $applicationSlug, 'schoolId' => $school->getId(), 'filters' => array_filter($filters)],
+                [
+                    'page' => $page,
+                    'limit' => $limit,
+                    'totalItems' => $totalItems,
+                    'totalPages' => $totalItems > 0 ? (int)ceil($totalItems / $limit) : 0,
+                ],
+                [
+                    'applicationSlug' => $applicationSlug,
+                    'schoolId' => $school->getId(),
+                    'filters' => array_filter($filters),
+                ],
             );
         });
     }

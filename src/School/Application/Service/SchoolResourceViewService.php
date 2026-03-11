@@ -36,7 +36,9 @@ final readonly class SchoolResourceViewService
         return $entity;
     }
 
-    /** @return array<string,mixed> */
+    /**
+     * @return array<string,mixed>
+     */
     public function map(SchoolClass|Student|Teacher|Exam|Grade $entity): array
     {
         return match (true) {

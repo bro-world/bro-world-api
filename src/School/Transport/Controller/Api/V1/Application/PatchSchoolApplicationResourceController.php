@@ -1,6 +1,9 @@
 <?php
+
 declare(strict_types=1);
+
 namespace App\School\Transport\Controller\Api\V1\Application;
+
 use App\General\Application\Message\EntityPatched;
 use App\School\Application\Service\SchoolApplicationScopeResolver;
 use App\School\Application\Service\SchoolResourceAccessService;
@@ -15,6 +18,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+
 #[AsController]
 #[OA\Tag(name: 'School')]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
@@ -26,8 +30,11 @@ final readonly class PatchSchoolApplicationResourceController
         private SchoolResourceViewService $resourceViewService,
         private SchoolResourcePatchService $resourcePatchService,
         private MessageBusInterface $messageBus,
-    ) {}
-    #[Route('/v1/school/applications/{applicationSlug}/{resource}/{id}', methods: [Request::METHOD_PATCH], requirements: ['resource' => 'classes|students|teachers|exams|grades'])]
+    ) {
+    }
+    #[Route('/v1/school/applications/{applicationSlug}/{resource}/{id}', methods: [Request::METHOD_PATCH], requirements: [
+        'resource' => 'classes|students|teachers|exams|grades',
+    ])]
     public function __invoke(string $applicationSlug, string $resource, string $id, Request $request): JsonResponse
     {
         $school = $this->scopeResolver->resolveOrCreateSchoolByApplicationSlug($applicationSlug);
@@ -37,6 +44,7 @@ final readonly class PatchSchoolApplicationResourceController
         }
         $this->resourcePatchService->patch($entity, $resource, $request->toArray());
         $this->messageBus->dispatch(new EntityPatched('school_' . substr($resource, 0, -1), $id));
+
         return new JsonResponse($this->resourceViewService->map($entity));
     }
 }

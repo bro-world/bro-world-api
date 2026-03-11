@@ -31,6 +31,6 @@ class Tag extends RestDto
             $this->label = $entity->getLabel();
         }
 
-return $this;
+        return $this;
     }
 }

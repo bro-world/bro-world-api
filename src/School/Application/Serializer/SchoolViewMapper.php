@@ -25,7 +25,9 @@ final readonly class SchoolViewMapper
         return $items;
     }
 
-    /** @return array<string,mixed> */
+    /**
+     * @return array<string,mixed>
+     */
     public function mapClass(SchoolClass $class): array
     {
         return [
@@ -48,7 +50,9 @@ final readonly class SchoolViewMapper
         return $items;
     }
 
-    /** @return array<string,mixed> */
+    /**
+     * @return array<string,mixed>
+     */
     public function mapStudent(Student $student): array
     {
         return [
@@ -71,7 +75,9 @@ final readonly class SchoolViewMapper
         return $items;
     }
 
-    /** @return array<string,mixed> */
+    /**
+     * @return array<string,mixed>
+     */
     public function mapTeacher(Teacher $teacher): array
     {
         return [
@@ -93,7 +99,9 @@ final readonly class SchoolViewMapper
         return $items;
     }
 
-    /** @return array<string,mixed> */
+    /**
+     * @return array<string,mixed>
+     */
     public function mapExam(Exam $exam): array
     {
         return [
@@ -123,7 +131,9 @@ final readonly class SchoolViewMapper
         return $items;
     }
 
-    /** @return array<string,mixed> */
+    /**
+     * @return array<string,mixed>
+     */
     public function mapGrade(Grade $grade): array
     {
         return [

@@ -35,8 +35,10 @@ final readonly class CreateBlogReactionController
     public function __invoke(string $commentId, Request $request, User $loggedInUser): JsonResponse
     {
         $payload = $this->requestService->extractPayload($request);
-        $this->messageBus->dispatch(new CreateBlogReactionCommand((string) uniqid('op_', true), $loggedInUser->getId(), $commentId, $this->requestService->parseReactionType((string) ($payload['type'] ?? 'like'))));
+        $this->messageBus->dispatch(new CreateBlogReactionCommand((string)uniqid('op_', true), $loggedInUser->getId(), $commentId, $this->requestService->parseReactionType((string)($payload['type'] ?? 'like'))));
 
-        return new JsonResponse(['status' => 'accepted'], JsonResponse::HTTP_ACCEPTED);
+        return new JsonResponse([
+            'status' => 'accepted',
+        ], JsonResponse::HTTP_ACCEPTED);
     }
 }

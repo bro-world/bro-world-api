@@ -66,8 +66,8 @@ final readonly class CreateQuizQuestionCommandHandler
         foreach (array_values($command->answers) as $index => $answerItem) {
             $answer = (new QuizAnswer())
                 ->setQuestion($question)
-                ->setLabel((string) ($answerItem['label'] ?? ''))
-                ->setCorrect((bool) ($answerItem['correct'] ?? false))
+                ->setLabel((string)($answerItem['label'] ?? ''))
+                ->setCorrect((bool)($answerItem['correct'] ?? false))
                 ->setPosition($index + 1);
             $this->questionRepository->getEntityManager()->persist($answer);
         }

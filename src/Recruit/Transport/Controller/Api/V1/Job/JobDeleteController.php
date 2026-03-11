@@ -28,7 +28,9 @@ class JobDeleteController extends Controller
 
     #[Route(
         path: '/v1/recruit/job/{id}',
-        requirements: ['id' => Requirement::UUID_V1],
+        requirements: [
+            'id' => Requirement::UUID_V1,
+        ],
         methods: [Request::METHOD_DELETE],
     )]
     #[IsGranted('ROLE_ROOT')]

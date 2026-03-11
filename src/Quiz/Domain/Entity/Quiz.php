@@ -35,13 +35,19 @@ class Quiz implements EntityInterface
     #[ORM\Column(name: 'title', type: Types::STRING, length: 255)]
     private string $title = 'Application quiz';
 
-    #[ORM\Column(name: 'description', type: Types::TEXT, options: ['default' => ''])]
+    #[ORM\Column(name: 'description', type: Types::TEXT, options: [
+        'default' => '',
+    ])]
     private string $description = '';
 
-    #[ORM\Column(name: 'is_published', type: Types::BOOLEAN, options: ['default' => false])]
+    #[ORM\Column(name: 'is_published', type: Types::BOOLEAN, options: [
+        'default' => false,
+    ])]
     private bool $isPublished = false;
 
-    #[ORM\Column(name: 'pass_score', type: Types::INTEGER, options: ['default' => 70])]
+    #[ORM\Column(name: 'pass_score', type: Types::INTEGER, options: [
+        'default' => 70,
+    ])]
     private int $passScore = 70;
 
     #[ORM\ManyToOne(targetEntity: Application::class)]

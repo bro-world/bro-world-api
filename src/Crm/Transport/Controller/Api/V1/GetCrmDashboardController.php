@@ -38,9 +38,15 @@ final readonly class GetCrmDashboardController
             'projects' => $this->projectRepository->count([]),
             'tasks' => $this->taskRepository->count([]),
             'taskRequests' => [
-                TaskRequestStatus::PENDING->value => $this->taskRequestRepository->count(['status' => TaskRequestStatus::PENDING]),
-                TaskRequestStatus::APPROVED->value => $this->taskRequestRepository->count(['status' => TaskRequestStatus::APPROVED]),
-                TaskRequestStatus::REJECTED->value => $this->taskRequestRepository->count(['status' => TaskRequestStatus::REJECTED]),
+                TaskRequestStatus::PENDING->value => $this->taskRequestRepository->count([
+                    'status' => TaskRequestStatus::PENDING,
+                ]),
+                TaskRequestStatus::APPROVED->value => $this->taskRequestRepository->count([
+                    'status' => TaskRequestStatus::APPROVED,
+                ]),
+                TaskRequestStatus::REJECTED->value => $this->taskRequestRepository->count([
+                    'status' => TaskRequestStatus::REJECTED,
+                ]),
             ],
         ]);
     }

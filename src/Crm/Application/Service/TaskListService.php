@@ -114,7 +114,9 @@ readonly class TaskListService
                     'totalItems' => $totalItems,
                     'totalPages' => $totalItems > 0 ? (int)ceil($totalItems / $limit) : 0,
                 ],
-                'meta' => ['module' => 'crm'],
+                'meta' => [
+                    'module' => 'crm',
+                ],
             ];
         });
 

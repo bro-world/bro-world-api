@@ -16,7 +16,9 @@ final class UserConversationControllerTest extends WebTestCase
 {
     private string $baseUrl = self::API_URL_PREFIX . '/v1/chat/private';
 
-    /** @throws Throwable */
+    /**
+     * @throws Throwable
+     */
     #[TestDox('GET conversations requires authentication')]
     public function testListRequiresAuthentication(): void
     {
@@ -26,7 +28,9 @@ final class UserConversationControllerTest extends WebTestCase
         self::assertSame(Response::HTTP_UNAUTHORIZED, $client->getResponse()->getStatusCode());
     }
 
-    /** @throws Throwable */
+    /**
+     * @throws Throwable
+     */
     #[TestDox('GET conversations returns items for authenticated user')]
     public function testListNominal(): void
     {
@@ -43,7 +47,9 @@ final class UserConversationControllerTest extends WebTestCase
         self::assertNotEmpty($payload['items']);
     }
 
-    /** @throws Throwable */
+    /**
+     * @throws Throwable
+     */
     #[TestDox('POST conversation create accepts valid payload and rejects invalid payload')]
     public function testCreateNominalAndValidationError(): void
     {
@@ -59,7 +65,9 @@ final class UserConversationControllerTest extends WebTestCase
         self::assertSame(Response::HTTP_BAD_REQUEST, $client->getResponse()->getStatusCode());
     }
 
-    /** @throws Throwable */
+    /**
+     * @throws Throwable
+     */
     #[TestDox('PATCH and DELETE conversation endpoints accept for participant and hide unauthorized conversation')]
     public function testPatchDeleteAndUnauthorizedFindOrCreate(): void
     {

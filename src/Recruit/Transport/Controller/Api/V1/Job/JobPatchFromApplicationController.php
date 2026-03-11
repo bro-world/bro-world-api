@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Recruit\Transport\Controller\Api\V1\Job;
 
 use App\General\Application\Message\EntityPatched;
-use App\Recruit\Application\Service\JobPayloadHydratorService;
 use App\Recruit\Application\Service\ApplicationJobAccessService;
+use App\Recruit\Application\Service\JobPayloadHydratorService;
 use App\Recruit\Infrastructure\Repository\JobRepository;
 use App\User\Domain\Entity\User;
 use OpenApi\Attributes as OA;
@@ -25,9 +25,9 @@ readonly class JobPatchFromApplicationController
 {
     public function __construct(
         private ApplicationJobAccessService $applicationJobAccessService,
-        private JobRepository               $jobRepository,
-        private MessageBusInterface         $messageBus,
-        private JobPayloadHydratorService   $jobPayloadHydratorService,
+        private JobRepository $jobRepository,
+        private MessageBusInterface $messageBus,
+        private JobPayloadHydratorService $jobPayloadHydratorService,
     ) {
     }
 

@@ -11,4 +11,3 @@ enum ProjectStatus: string
     case ON_HOLD = 'on_hold';
     case COMPLETED = 'completed';
 }
-

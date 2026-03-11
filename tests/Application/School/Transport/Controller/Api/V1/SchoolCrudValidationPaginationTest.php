@@ -16,15 +16,21 @@ final class SchoolCrudValidationPaginationTest extends WebTestCase
     {
         $client = $this->getTestClient('john-root', 'password-root');
 
-        $client->request('POST', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/classes', [], [], [], JSON::encode(['name' => '']));
+        $client->request('POST', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/classes', [], [], [], JSON::encode([
+            'name' => '',
+        ]));
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $client->getResponse()->getStatusCode());
 
-        $client->request('POST', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/classes', [], [], [], JSON::encode(['name' => 'Classe API Test']));
+        $client->request('POST', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/classes', [], [], [], JSON::encode([
+            'name' => 'Classe API Test',
+        ]));
         self::assertSame(Response::HTTP_CREATED, $client->getResponse()->getStatusCode());
         $createdClass = JSON::decode((string)$client->getResponse()->getContent(), true);
         $createdClassId = $createdClass['id'];
 
-        $client->request('PATCH', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/classes/' . $createdClassId, [], [], [], JSON::encode(['name' => 'Classe API Test Updated']));
+        $client->request('PATCH', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/classes/' . $createdClassId, [], [], [], JSON::encode([
+            'name' => 'Classe API Test Updated',
+        ]));
         self::assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
 
         $client->request('GET', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/classes?page=1&limit=5&q=Classe');
@@ -67,7 +73,10 @@ final class SchoolCrudValidationPaginationTest extends WebTestCase
         $client->request('GET', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/exams/' . $createdExamId);
         self::assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
 
-        $client->request('PATCH', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/exams/' . $createdExamId, [], [], [], JSON::encode(['status' => 'published', 'term' => 'term_3']));
+        $client->request('PATCH', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/exams/' . $createdExamId, [], [], [], JSON::encode([
+            'status' => 'published',
+            'term' => 'term_3',
+        ]));
         self::assertSame(Response::HTTP_OK, $client->getResponse()->getStatusCode());
 
         $client->request('DELETE', self::API_URL_PREFIX . '/v1/school/exams/' . $createdExamId);

@@ -96,12 +96,14 @@ final class LoadSchoolData extends Fixture implements OrderedFixtureInterface
 
             $students = [];
             $studentCounter = 1;
-            foreach ([
-                'small' => 3,
-                'medium' => 8,
-                'large' => 15,
-            ] as $classLabel => $count) {
-                for ($i = 1; $i <= $count; ++$i) {
+            foreach (
+                [
+                    'small' => 3,
+                    'medium' => 8,
+                    'large' => 15,
+                ] as $classLabel => $count
+            ) {
+                for ($i = 1; $i <= $count; $i++) {
                     $student = (new Student())
                         ->setSchoolClass($classes[$classLabel])
                         ->setName('Student ' . $applicationIndex . '-' . $classLabel . '-' . $i);
@@ -109,14 +111,14 @@ final class LoadSchoolData extends Fixture implements OrderedFixtureInterface
 
                     $students[$classLabel][] = $student;
                     $this->addReference('Student-' . $appKey . '-' . $studentCounter, $student);
-                    ++$studentCounter;
+                    $studentCounter++;
                 }
             }
 
             $exams = [];
             $examCounter = 1;
             foreach ($classes as $classLabel => $class) {
-                for ($i = 0; $i < 4; ++$i) {
+                for ($i = 0; $i < 4; $i++) {
                     $exam = (new Exam())
                         ->setSchoolClass($class)
                         ->setTeacher($i % 2 === 0 ? $teacherMath : $teacherHead)
@@ -128,7 +130,7 @@ final class LoadSchoolData extends Fixture implements OrderedFixtureInterface
 
                     $exams[$classLabel][] = $exam;
                     $this->addReference('Exam-' . $appKey . '-' . $examCounter, $exam);
-                    ++$examCounter;
+                    $examCounter++;
                 }
             }
 
@@ -155,7 +157,7 @@ final class LoadSchoolData extends Fixture implements OrderedFixtureInterface
                             ->setScore($score);
                         $manager->persist($grade);
                         $this->addReference('Grade-' . $appKey . '-' . $gradeCounter, $grade);
-                        ++$gradeCounter;
+                        $gradeCounter++;
                     }
                 }
             }

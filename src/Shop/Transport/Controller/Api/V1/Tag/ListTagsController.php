@@ -19,8 +19,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
 final readonly class ListTagsController
 {
-    public function __construct(private TagRepository $tagRepository)
-    {
+    public function __construct(
+        private TagRepository $tagRepository
+    ) {
     }
 
     #[Route('/v1/shop/tags', methods: [Request::METHOD_GET])]
@@ -30,8 +31,12 @@ final readonly class ListTagsController
             'id' => $tag->getId(),
             'label' => $tag->getLabel(),
             'type' => $tag->getType()->value,
-        ], $this->tagRepository->findBy([], ['createdAt' => 'DESC'], 200));
+        ], $this->tagRepository->findBy([], [
+            'createdAt' => 'DESC',
+        ], 200));
 
-        return new JsonResponse(['items' => $items]);
+        return new JsonResponse([
+            'items' => $items,
+        ]);
     }
 }

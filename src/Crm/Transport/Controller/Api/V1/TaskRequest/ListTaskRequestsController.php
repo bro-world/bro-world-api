@@ -19,8 +19,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
 final readonly class ListTaskRequestsController
 {
-    public function __construct(private TaskRequestRepository $taskRequestRepository)
-    {
+    public function __construct(
+        private TaskRequestRepository $taskRequestRepository
+    ) {
     }
 
     #[Route('/v1/crm/task-requests', methods: [Request::METHOD_GET])]
@@ -33,8 +34,12 @@ final readonly class ListTaskRequestsController
             'requestedAt' => $taskRequest->getRequestedAt()->format(DATE_ATOM),
             'resolvedAt' => $taskRequest->getResolvedAt()?->format(DATE_ATOM),
             'taskId' => $taskRequest->getTask()?->getId(),
-        ], $this->taskRequestRepository->findBy([], ['createdAt' => 'DESC'], 200));
+        ], $this->taskRequestRepository->findBy([], [
+            'createdAt' => 'DESC',
+        ], 200));
 
-        return new JsonResponse(['items' => $items]);
+        return new JsonResponse([
+            'items' => $items,
+        ]);
     }
 }

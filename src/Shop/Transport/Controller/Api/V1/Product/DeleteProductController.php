@@ -19,8 +19,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
 final readonly class DeleteProductController
 {
-    public function __construct(private MessageServiceInterface $messageService)
-    {
+    public function __construct(
+        private MessageServiceInterface $messageService
+    ) {
     }
 
     #[Route('/v1/shop/products/{id}', methods: [Request::METHOD_DELETE])]

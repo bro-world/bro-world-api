@@ -45,7 +45,9 @@ class Sprint implements EntityInterface
     #[ORM\Column(name: 'end_date', type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?DateTimeImmutable $endDate = null;
 
-    #[ORM\Column(name: 'status', type: Types::STRING, length: 25, enumType: SprintStatus::class, options: ['default' => SprintStatus::PLANNED->value])]
+    #[ORM\Column(name: 'status', type: Types::STRING, length: 25, enumType: SprintStatus::class, options: [
+        'default' => SprintStatus::PLANNED->value,
+    ])]
     private SprintStatus $status = SprintStatus::PLANNED;
 
     /** @var Collection<int, Task>|ArrayCollection<int, Task> */

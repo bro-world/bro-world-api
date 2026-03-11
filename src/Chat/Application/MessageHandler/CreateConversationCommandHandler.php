@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Chat\Application\MessageHandler;
 
 use App\Chat\Application\Message\CreateConversationCommand;
-use App\Chat\Domain\Enum\ConversationParticipantRole;
-use App\Chat\Domain\Enum\ConversationType;
 use App\Chat\Domain\Entity\Chat;
 use App\Chat\Domain\Entity\Conversation;
 use App\Chat\Domain\Entity\ConversationParticipant;
+use App\Chat\Domain\Enum\ConversationParticipantRole;
+use App\Chat\Domain\Enum\ConversationType;
 use App\Chat\Infrastructure\Repository\ChatRepository;
 use App\Chat\Infrastructure\Repository\ConversationParticipantRepository;
 use App\Chat\Infrastructure\Repository\ConversationRepository;

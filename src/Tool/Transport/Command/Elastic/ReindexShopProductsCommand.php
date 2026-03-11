@@ -38,9 +38,11 @@ final class ReindexShopProductsCommand extends Command
         $indexed = 0;
 
         /** @var Product $product */
-        foreach ($this->productRepository->findBy([], [
-            'createdAt' => 'DESC',
-        ]) as $product) {
+        foreach (
+            $this->productRepository->findBy([], [
+                'createdAt' => 'DESC',
+            ]) as $product
+        ) {
             $this->elasticsearchService->index(ShopProductProjection::INDEX_NAME, $product->getId(), [
                 'id' => $product->getId(),
                 'name' => $product->getName(),

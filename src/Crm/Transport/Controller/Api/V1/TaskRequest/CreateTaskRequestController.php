@@ -35,12 +35,12 @@ final readonly class CreateTaskRequestController
     #[OA\Post(summary: 'POST /v1/crm/task-requests')]
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = (array) json_decode((string) $request->getContent(), true);
+        $payload = (array)json_decode((string)$request->getContent(), true);
         $taskRequest = new TaskRequest();
-        $taskRequest->setTitle((string) ($payload['title'] ?? ''))
-            ->setDescription(isset($payload['description']) ? (string) $payload['description'] : null)
-            ->setStatus(TaskRequestStatus::tryFrom((string) ($payload['status'] ?? '')) ?? TaskRequestStatus::PENDING)
-            ->setResolvedAt(isset($payload['resolvedAt']) ? new DateTimeImmutable((string) $payload['resolvedAt']) : null);
+        $taskRequest->setTitle((string)($payload['title'] ?? ''))
+            ->setDescription(isset($payload['description']) ? (string)$payload['description'] : null)
+            ->setStatus(TaskRequestStatus::tryFrom((string)($payload['status'] ?? '')) ?? TaskRequestStatus::PENDING)
+            ->setResolvedAt(isset($payload['resolvedAt']) ? new DateTimeImmutable((string)$payload['resolvedAt']) : null);
         if (is_string($payload['taskId'] ?? null)) {
             $taskRequest->setTask($this->taskRepository->find($payload['taskId']));
         }
@@ -49,6 +49,8 @@ final readonly class CreateTaskRequestController
         $this->entityManager->flush();
         $this->messageBus->dispatch(new EntityCreated('crm_task_request', $taskRequest->getId()));
 
-        return new JsonResponse(['id' => $taskRequest->getId()], JsonResponse::HTTP_CREATED);
+        return new JsonResponse([
+            'id' => $taskRequest->getId(),
+        ], JsonResponse::HTTP_CREATED);
     }
 }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Platform\Transport\EventListener;
 
-use App\General\Domain\Service\Interfaces\MailerServiceInterface;
 use App\Crm\Domain\Entity\Crm;
+use App\General\Domain\Service\Interfaces\MailerServiceInterface;
 use App\Platform\Domain\Entity\Application;
 use App\Platform\Domain\Entity\ApplicationPlugin;
 use App\Platform\Domain\Entity\Platform;

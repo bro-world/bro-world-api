@@ -121,7 +121,9 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
                         [
                             'uuid' => '63000000-0000-1000-8000-000000000003',
                             'key' => 'plugin.chat.moderation',
-                            'value' => ['autoArchiveHours' => 72],
+                            'value' => [
+                                'autoArchiveHours' => 72,
+                            ],
                         ],
                     ],
                 ],
@@ -132,7 +134,9 @@ final class LoadApplicationData extends Fixture implements OrderedFixtureInterfa
                         [
                             'uuid' => '63000000-0000-1000-8000-000000000013',
                             'key' => 'plugin.calendar.interviews',
-                            'value' => ['defaultDurationMinutes' => 30],
+                            'value' => [
+                                'defaultDurationMinutes' => 30,
+                            ],
                         ],
                     ],
                 ],

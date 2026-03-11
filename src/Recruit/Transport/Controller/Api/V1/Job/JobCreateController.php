@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Recruit\Transport\Controller\Api\V1\Job;
 
-use App\General\Transport\Rest\Controller;
 use App\General\Application\DTO\Interfaces\RestDtoInterface;
 use App\General\Application\Exception\ValidatorException;
+use App\General\Transport\Rest\Controller;
 use App\Recruit\Application\DTO\Job\JobCreate;
 use App\Recruit\Application\Resource\JobResource;
 use AutoMapperPlus\AutoMapperInterface;
@@ -34,6 +34,18 @@ class JobCreateController extends Controller
         parent::__construct($resource);
     }
 
+    #[Route(
+        path: '/v1/recruit/job',
+        methods: [Request::METHOD_POST],
+    )]
+    #[IsGranted('ROLE_ROOT')]
+    #[OA\Post(summary: 'Create job', responses: [new OA\Response(response: 201, description: 'created')])]
+    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
+    public function __invoke(Request $request): Response
+    {
+        return $this->createMethod($request, $this->mapAndValidateDto($request, JobCreate::class));
+    }
+
     private function mapAndValidateDto(Request $request, string $dtoClass): RestDtoInterface
     {
         /** @var RestDtoInterface $dto */
@@ -45,17 +57,5 @@ class JobCreateController extends Controller
         }
 
         return $dto;
-    }
-
-    #[Route(
-        path: '/v1/recruit/job',
-        methods: [Request::METHOD_POST],
-    )]
-    #[IsGranted('ROLE_ROOT')]
-    #[OA\Post(summary: 'Create job', responses: [new OA\Response(response: 201, description: 'created')])]
-    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
-    public function __invoke(Request $request): Response
-    {
-        return $this->createMethod($request, $this->mapAndValidateDto($request, JobCreate::class));
     }
 }

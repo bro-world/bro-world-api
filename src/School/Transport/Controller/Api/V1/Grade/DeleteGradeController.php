@@ -18,8 +18,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
 final readonly class DeleteGradeController
 {
-    public function __construct(private DeleteGradeService $deleteGradeService)
-    {
+    public function __construct(
+        private DeleteGradeService $deleteGradeService
+    ) {
     }
 
     #[Route('/v1/school/grades/{id}', methods: [Request::METHOD_DELETE])]

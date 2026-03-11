@@ -35,7 +35,9 @@ final class ShopMutationControllerTest extends WebTestCase
 
         /** @var ProductRepository $productRepository */
         $productRepository = static::getContainer()->get(ProductRepository::class);
-        $products = $productRepository->findBy(['name' => 'Messenger Product']);
+        $products = $productRepository->findBy([
+            'name' => 'Messenger Product',
+        ]);
 
         self::assertNotEmpty($products);
         self::assertSame($products[0]->getId(), $payload['id']);
@@ -67,7 +69,9 @@ final class ShopMutationControllerTest extends WebTestCase
 
         /** @var ProductRepository $productRepository */
         $productRepository = static::getContainer()->get(ProductRepository::class);
-        $products = $productRepository->findBy(['name' => 'App Messenger Product']);
+        $products = $productRepository->findBy([
+            'name' => 'App Messenger Product',
+        ]);
 
         self::assertNotEmpty($products);
         self::assertSame($products[0]->getId(), $payload['id']);
@@ -77,7 +81,9 @@ final class ShopMutationControllerTest extends WebTestCase
     {
         /** @var ProductRepository $productRepository */
         $productRepository = static::getContainer()->get(ProductRepository::class);
-        $product = $productRepository->findBy(['name' => 'Messenger Product'])[0] ?? null;
+        $product = $productRepository->findBy([
+            'name' => 'Messenger Product',
+        ])[0] ?? null;
         self::assertNotNull($product);
 
         $client = $this->getTestClient('john-user', 'password-user');

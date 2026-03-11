@@ -145,4 +145,3 @@ class OrderItem implements EntityInterface
         return $this;
     }
 }
-

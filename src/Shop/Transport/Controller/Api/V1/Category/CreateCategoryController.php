@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Shop\Transport\Controller\Api\V1\Category;
 
 use App\General\Application\Message\EntityCreated;
-use App\Shop\Domain\Entity\Category;
 use App\Shop\Application\Service\SlugBuilderService;
+use App\Shop\Domain\Entity\Category;
 use App\Shop\Infrastructure\Repository\ShopRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
@@ -34,11 +34,11 @@ final readonly class CreateCategoryController
     #[Route('/v1/shop/categories', methods: [Request::METHOD_POST])]
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = (array) json_decode((string) $request->getContent(), true);
+        $payload = (array)json_decode((string)$request->getContent(), true);
         $category = (new Category())
-            ->setName((string) ($payload['name'] ?? ''))
-            ->setSlug($this->slugBuilderService->buildSlug((string) ($payload['slug'] ?? $payload['name'] ?? '')))
-            ->setDescription(($payload['description'] ?? null) !== null ? (string) $payload['description'] : null);
+            ->setName((string)($payload['name'] ?? ''))
+            ->setSlug($this->slugBuilderService->buildSlug((string)($payload['slug'] ?? $payload['name'] ?? '')))
+            ->setDescription(($payload['description'] ?? null) !== null ? (string)$payload['description'] : null);
 
         if (is_string($payload['shopId'] ?? null)) {
             $category->setShop($this->shopRepository->find($payload['shopId']));
@@ -48,6 +48,8 @@ final readonly class CreateCategoryController
         $this->entityManager->flush();
         $this->messageBus->dispatch(new EntityCreated('shop_category', $category->getId()));
 
-        return new JsonResponse(['id' => $category->getId()], JsonResponse::HTTP_CREATED);
+        return new JsonResponse([
+            'id' => $category->getId(),
+        ], JsonResponse::HTTP_CREATED);
     }
 }

@@ -85,10 +85,12 @@ final readonly class BlogPluginProvisioner
         $slug = $baseSlug;
         $suffix = 2;
 
-        while ($this->blogRepository->findOneBy(['slug' => $slug]) instanceof Blog) {
+        while ($this->blogRepository->findOneBy([
+            'slug' => $slug,
+        ]) instanceof Blog) {
             $suffixToken = '-' . $suffix;
             $slug = substr($baseSlug, 0, 150 - strlen($suffixToken)) . $suffixToken;
-            ++$suffix;
+            $suffix++;
         }
 
         return $slug;
@@ -105,7 +107,7 @@ final readonly class BlogPluginProvisioner
 
         $normalizedValue = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $candidate . '-blog');
         $base = is_string($normalizedValue) ? $normalizedValue : $candidate . '-blog';
-        $slug = trim((string) preg_replace('/[^a-z0-9]+/i', '-', strtolower($base)), '-');
+        $slug = trim((string)preg_replace('/[^a-z0-9]+/i', '-', strtolower($base)), '-');
 
         if ($slug === '') {
             $slug = 'blog-' . substr($application->getId(), 0, 8);

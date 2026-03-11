@@ -44,10 +44,14 @@ class Task implements EntityInterface
     #[ORM\Column(name: 'description', type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(name: 'status', type: Types::STRING, length: 25, enumType: TaskStatus::class, options: ['default' => TaskStatus::TODO->value])]
+    #[ORM\Column(name: 'status', type: Types::STRING, length: 25, enumType: TaskStatus::class, options: [
+        'default' => TaskStatus::TODO->value,
+    ])]
     private TaskStatus $status = TaskStatus::TODO;
 
-    #[ORM\Column(name: 'priority', type: Types::STRING, length: 25, enumType: TaskPriority::class, options: ['default' => TaskPriority::MEDIUM->value])]
+    #[ORM\Column(name: 'priority', type: Types::STRING, length: 25, enumType: TaskPriority::class, options: [
+        'default' => TaskPriority::MEDIUM->value,
+    ])]
     private TaskPriority $priority = TaskPriority::MEDIUM;
 
     #[ORM\Column(name: 'due_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]

@@ -11,7 +11,9 @@ enum ExamType: string
     case FINAL = 'FINAL';
     case ORAL = 'ORAL';
 
-    /** @return list<string> */
+    /**
+     * @return list<string>
+     */
     public static function values(): array
     {
         return array_column(self::cases(), 'value');

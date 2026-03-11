@@ -30,7 +30,9 @@ final readonly class ListStudentsController
     #[Route('/v1/school/students', methods: [Request::METHOD_GET])]
     public function __invoke(): JsonResponse
     {
-        $items = $this->viewMapper->mapStudentCollection($this->studentRepository->findBy([], ['createdAt' => 'DESC'], 200));
+        $items = $this->viewMapper->mapStudentCollection($this->studentRepository->findBy([], [
+            'createdAt' => 'DESC',
+        ], 200));
 
         return new JsonResponse($this->responseSerializer->list($items));
     }

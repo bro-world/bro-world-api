@@ -16,7 +16,9 @@ class JobStatsService
     ) {
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @return array<string, mixed>
+     */
     public function getStats(Recruit $recruit): array
     {
         $jobs = $this->entityManager->getRepository(Job::class)

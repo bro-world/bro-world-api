@@ -94,15 +94,21 @@ class Job implements EntityInterface
     #[Groups(['Job', 'Job.experienceLevel'])]
     private ExperienceLevel $experienceLevel = ExperienceLevel::MID;
 
-    #[ORM\Column(name: 'years_experience_min', type: Types::SMALLINT, options: ['default' => 0])]
+    #[ORM\Column(name: 'years_experience_min', type: Types::SMALLINT, options: [
+        'default' => 0,
+    ])]
     #[Groups(['Job', 'Job.yearsExperienceMin'])]
     private int $yearsExperienceMin = 0;
 
-    #[ORM\Column(name: 'years_experience_max', type: Types::SMALLINT, options: ['default' => 0])]
+    #[ORM\Column(name: 'years_experience_max', type: Types::SMALLINT, options: [
+        'default' => 0,
+    ])]
     #[Groups(['Job', 'Job.yearsExperienceMax'])]
     private int $yearsExperienceMax = 0;
 
-    #[ORM\Column(name: 'is_published', type: Types::BOOLEAN, options: ['default' => true])]
+    #[ORM\Column(name: 'is_published', type: Types::BOOLEAN, options: [
+        'default' => true,
+    ])]
     #[Groups(['Job', 'Job.isPublished'])]
     private bool $isPublished = true;
 

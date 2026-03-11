@@ -43,14 +43,18 @@ final readonly class DeleteCartItemController
 
         $shop = $this->shopRepository->find($shopId);
         if (!$shop instanceof Shop) {
-            return new JsonResponse(['message' => 'Shop not found.'], JsonResponse::HTTP_NOT_FOUND);
+            return new JsonResponse([
+                'message' => 'Shop not found.',
+            ], JsonResponse::HTTP_NOT_FOUND);
         }
 
         $cart = $this->cartService->getOrCreateActiveCart($user, $shop);
 
         $item = $this->cartItemRepository->find($itemId);
         if (!$item instanceof CartItem || $item->getCart()?->getId() !== $cart->getId()) {
-            return new JsonResponse(['message' => 'Cart item not found.'], JsonResponse::HTTP_NOT_FOUND);
+            return new JsonResponse([
+                'message' => 'Cart item not found.',
+            ], JsonResponse::HTTP_NOT_FOUND);
         }
 
         $cart = $this->cartService->removeItem($cart, $item);

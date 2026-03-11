@@ -18,8 +18,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
 final readonly class ListProductsController
 {
-    public function __construct(private ProductListService $productListService)
-    {
+    public function __construct(
+        private ProductListService $productListService
+    ) {
     }
 
     #[Route('/v1/shop/products', methods: [Request::METHOD_GET])]

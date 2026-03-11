@@ -30,16 +30,16 @@ final class CreateQuizQuestionController
             throw new HttpException(JsonResponse::HTTP_UNAUTHORIZED, 'User required.');
         }
 
-        $payload = (array) json_decode((string) $request->getContent(), true);
+        $payload = (array)json_decode((string)$request->getContent(), true);
         $messageBus->dispatch(new CreateQuizQuestionCommand(
-            (string) uniqid('op_', true),
+            (string)uniqid('op_', true),
             $user->getId(),
             $applicationSlug,
-            (string) ($payload['title'] ?? ''),
-            (string) ($payload['level'] ?? 'easy'),
-            (string) ($payload['category'] ?? 'general'),
-            (array) ($payload['answers'] ?? []),
-            (int) ($payload['points'] ?? 1),
+            (string)($payload['title'] ?? ''),
+            (string)($payload['level'] ?? 'easy'),
+            (string)($payload['category'] ?? 'general'),
+            (array)($payload['answers'] ?? []),
+            (int)($payload['points'] ?? 1),
             is_string($payload['explanation'] ?? null) ? $payload['explanation'] : null,
             is_array($payload['configuration'] ?? null) ? $payload['configuration'] : null,
         ));

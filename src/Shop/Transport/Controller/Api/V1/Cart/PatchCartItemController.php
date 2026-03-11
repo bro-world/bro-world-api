@@ -43,20 +43,26 @@ final readonly class PatchCartItemController
 
         $shop = $this->shopRepository->find($shopId);
         if (!$shop instanceof Shop) {
-            return new JsonResponse(['message' => 'Shop not found.'], JsonResponse::HTTP_NOT_FOUND);
+            return new JsonResponse([
+                'message' => 'Shop not found.',
+            ], JsonResponse::HTTP_NOT_FOUND);
         }
 
         $cart = $this->cartService->getOrCreateActiveCart($user, $shop);
 
         $item = $this->cartItemRepository->find($itemId);
         if (!$item instanceof CartItem || $item->getCart()?->getId() !== $cart->getId()) {
-            return new JsonResponse(['message' => 'Cart item not found.'], JsonResponse::HTTP_NOT_FOUND);
+            return new JsonResponse([
+                'message' => 'Cart item not found.',
+            ], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $payload = (array) json_decode((string) $request->getContent(), true);
-        $quantity = (int) ($payload['quantity'] ?? 0);
+        $payload = (array)json_decode((string)$request->getContent(), true);
+        $quantity = (int)($payload['quantity'] ?? 0);
         if ($quantity <= 0) {
-            return new JsonResponse(['message' => 'Quantity must be greater than 0.'], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse([
+                'message' => 'Quantity must be greater than 0.',
+            ], JsonResponse::HTTP_BAD_REQUEST);
         }
 
         $cart = $this->cartService->updateItemQuantity($cart, $item, $quantity);

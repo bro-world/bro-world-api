@@ -122,7 +122,6 @@ class JobPublicListService
                     ->setParameter('schedule', $filters['schedule']);
             }
 
-
             if ($filters['location'] !== '') {
                 $qb->andWhere('LOWER(job.location) LIKE :location')
                     ->setParameter('location', '%' . mb_strtolower($filters['location']) . '%');
@@ -322,7 +321,6 @@ class JobPublicListService
                     ],
                 ];
             }
-
 
             if ($filters['location'] !== '') {
                 $must[] = [

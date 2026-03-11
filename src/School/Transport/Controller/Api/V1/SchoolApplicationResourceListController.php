@@ -27,7 +27,9 @@ final readonly class SchoolApplicationResourceListController
     ) {
     }
 
-    #[Route('/v1/school/applications/{applicationSlug}/{resource}', methods: [Request::METHOD_GET], requirements: ['resource' => 'students|teachers|exams|grades'])]
+    #[Route('/v1/school/applications/{applicationSlug}/{resource}', methods: [Request::METHOD_GET], requirements: [
+        'resource' => 'students|teachers|exams|grades',
+    ])]
     public function __invoke(string $applicationSlug, string $resource): JsonResponse
     {
         $school = $this->scopeResolver->resolveOrCreateSchoolByApplicationSlug($applicationSlug);

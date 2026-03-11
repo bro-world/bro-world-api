@@ -51,6 +51,6 @@ class QuizQuestionRepository extends BaseRepository
             ->getQuery()
             ->getSingleScalarResult();
 
-        return ((int) $maxPosition) + 1;
+        return ((int)$maxPosition) + 1;
     }
 }

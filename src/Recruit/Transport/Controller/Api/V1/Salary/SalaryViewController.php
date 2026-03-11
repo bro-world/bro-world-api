@@ -28,7 +28,9 @@ class SalaryViewController extends Controller
 
     #[Route(
         path: '/v1/recruit/salary/{id}',
-        requirements: ['id' => Requirement::UUID_V1],
+        requirements: [
+            'id' => Requirement::UUID_V1,
+        ],
         methods: [Request::METHOD_GET],
     )]
     #[IsGranted('ROLE_ROOT')]

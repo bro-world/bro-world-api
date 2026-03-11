@@ -15,8 +15,9 @@ use Symfony\Component\Routing\Attribute\Route;
 #[OA\Tag(name: 'Blog')]
 final readonly class GetPublicGeneralBlogController
 {
-    public function __construct(private BlogReadService $blogReadService)
-    {
+    public function __construct(
+        private BlogReadService $blogReadService
+    ) {
     }
 
     #[Route('/v1/blogs/general/public', methods: [Request::METHOD_GET])]

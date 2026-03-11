@@ -43,16 +43,20 @@ final readonly class AddCartItemController
 
         $shop = $this->shopRepository->find($shopId);
         if (!$shop instanceof Shop) {
-            return new JsonResponse(['message' => 'Shop not found.'], JsonResponse::HTTP_NOT_FOUND);
+            return new JsonResponse([
+                'message' => 'Shop not found.',
+            ], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $payload = (array) json_decode((string) $request->getContent(), true);
-        $productId = (string) ($payload['productId'] ?? '');
-        $quantity = max(1, (int) ($payload['quantity'] ?? 1));
+        $payload = (array)json_decode((string)$request->getContent(), true);
+        $productId = (string)($payload['productId'] ?? '');
+        $quantity = max(1, (int)($payload['quantity'] ?? 1));
 
         $product = $this->productRepository->find($productId);
         if (!$product instanceof Product || $product->getShop()?->getId() !== $shop->getId()) {
-            return new JsonResponse(['message' => 'Product not found for this shop.'], JsonResponse::HTTP_NOT_FOUND);
+            return new JsonResponse([
+                'message' => 'Product not found for this shop.',
+            ], JsonResponse::HTTP_NOT_FOUND);
         }
 
         $cart = $this->cartService->getOrCreateActiveCart($user, $shop);

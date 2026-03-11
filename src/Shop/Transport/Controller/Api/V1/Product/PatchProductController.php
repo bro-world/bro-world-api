@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Shop\Transport\Controller\Api\V1\Product;
 
 use App\General\Application\Message\EntityCreated;
+use App\Shop\Application\Service\ProductHydratorService;
 use App\Shop\Application\Service\ProductListService;
 use App\Shop\Domain\Entity\Product;
-use App\Shop\Application\Service\ProductHydratorService;
 use App\Shop\Infrastructure\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
@@ -40,7 +40,7 @@ final readonly class PatchProductController
             return new JsonResponse(status: JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $payload = (array) json_decode((string) $request->getContent(), true);
+        $payload = (array)json_decode((string)$request->getContent(), true);
         $this->productHydratorService->hydrateProduct($product, $payload, true);
 
         $this->entityManager->flush();

@@ -23,13 +23,15 @@ final readonly class PaymentWebhookController
     #[Route('/v1/shop/payments/webhook', methods: [Request::METHOD_POST])]
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = (array) json_decode((string) $request->getContent(), true);
+        $payload = (array)json_decode((string)$request->getContent(), true);
         $signature = $request->headers->get('x-signature');
 
         $transaction = $this->paymentService->processWebhook($payload, $signature);
 
         if ($transaction === null) {
-            return new JsonResponse(['processed' => false], JsonResponse::HTTP_ACCEPTED);
+            return new JsonResponse([
+                'processed' => false,
+            ], JsonResponse::HTTP_ACCEPTED);
         }
 
         return new JsonResponse([

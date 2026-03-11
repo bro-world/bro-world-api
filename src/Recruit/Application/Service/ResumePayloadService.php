@@ -26,7 +26,9 @@ use function trim;
 
 class ResumePayloadService
 {
-    /** @var list<string> */
+    /**
+     * @var list<string>
+     */
     private const RESUME_SECTION_FIELDS = [
         'experiences',
         'educations',
@@ -65,7 +67,9 @@ class ResumePayloadService
         return $request->toArray();
     }
 
-    /** @param array<string, mixed> $payload */
+    /**
+     * @param array<string, mixed> $payload
+     */
     public function hydrateResumeSections(Resume $resume, array $payload): void
     {
         foreach (self::RESUME_SECTION_FIELDS as $field) {
@@ -78,7 +82,9 @@ class ResumePayloadService
         }
     }
 
-    /** @param array<string, mixed> $payload */
+    /**
+     * @param array<string, mixed> $payload
+     */
     public function replaceResumeSections(Resume $resume, array $payload): void
     {
         foreach (self::RESUME_SECTION_FIELDS as $field) {
@@ -103,7 +109,9 @@ class ResumePayloadService
         }
     }
 
-    /** @param array<int, mixed> $input */
+    /**
+     * @param array<int, mixed> $input
+     */
     private function appendSections(Resume $resume, string $field, array $input): void
     {
         foreach ($input as $index => $item) {

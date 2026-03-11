@@ -38,9 +38,11 @@ final class ReindexCrmTasksCommand extends Command
         $indexed = 0;
 
         /** @var Task $task */
-        foreach ($this->taskRepository->findBy([], [
-            'createdAt' => 'DESC',
-        ]) as $task) {
+        foreach (
+            $this->taskRepository->findBy([], [
+                'createdAt' => 'DESC',
+            ]) as $task
+        ) {
             $this->elasticsearchService->index(CrmTaskProjection::INDEX_NAME, $task->getId(), [
                 'id' => $task->getId(),
                 'title' => $task->getTitle(),

@@ -41,6 +41,8 @@ final readonly class CreateTeacherController
 
         $teacher = $this->createTeacherService->create($input->name);
 
-        return new JsonResponse(['id' => $teacher->getId()], JsonResponse::HTTP_CREATED);
+        return new JsonResponse([
+            'id' => $teacher->getId(),
+        ], JsonResponse::HTTP_CREATED);
     }
 }

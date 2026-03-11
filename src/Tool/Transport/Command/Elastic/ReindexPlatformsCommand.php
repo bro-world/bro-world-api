@@ -36,9 +36,11 @@ final class ReindexPlatformsCommand extends Command
         $indexed = 0;
 
         /** @var Application $application */
-        foreach ($this->applicationRepository->findBy([], [
-            'createdAt' => 'DESC',
-        ]) as $application) {
+        foreach (
+            $this->applicationRepository->findBy([], [
+                'createdAt' => 'DESC',
+            ]) as $application
+        ) {
             $this->elasticsearchService->index(ApplicationProjection::INDEX_NAME, $application->getId(), [
                 'id' => $application->getId(),
                 'title' => $application->getTitle(),

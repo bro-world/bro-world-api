@@ -24,8 +24,8 @@ readonly class JobDeleteFromApplicationController
 {
     public function __construct(
         private ApplicationJobAccessService $applicationJobAccessService,
-        private JobRepository               $jobRepository,
-        private MessageBusInterface         $messageBus,
+        private JobRepository $jobRepository,
+        private MessageBusInterface $messageBus,
     ) {
     }
 

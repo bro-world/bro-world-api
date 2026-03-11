@@ -33,7 +33,9 @@ final class PaymentServiceTest extends TestCase
             'provider' => 'mock',
             'providerReference' => 'mock-ref-1',
             'status' => 'requires_confirmation',
-            'payload' => ['intent' => true],
+            'payload' => [
+                'intent' => true,
+            ],
         ]);
 
         $service = new PaymentService($orderRepository, $paymentTransactionRepository, $paymentProvider);
@@ -70,7 +72,9 @@ final class PaymentServiceTest extends TestCase
             'provider' => 'mock',
             'providerReference' => 'mock-ref-2',
             'status' => 'succeeded',
-            'payload' => ['confirmed' => true],
+            'payload' => [
+                'confirmed' => true,
+            ],
         ]);
 
         $service = new PaymentService($orderRepository, $paymentTransactionRepository, $paymentProvider);
@@ -119,21 +123,29 @@ final class PaymentServiceTest extends TestCase
                     'providerReference' => 'mock-ref-3',
                     'status' => 'failed',
                     'webhookKey' => 'evt-1',
-                    'payload' => ['a' => 1],
+                    'payload' => [
+                        'a' => 1,
+                    ],
                 ],
                 [
                     'provider' => 'mock',
                     'providerReference' => 'mock-ref-3',
                     'status' => 'failed',
                     'webhookKey' => 'evt-duplicated',
-                    'payload' => ['a' => 1],
+                    'payload' => [
+                        'a' => 1,
+                    ],
                 ],
             );
 
         $service = new PaymentService($orderRepository, $paymentTransactionRepository, $paymentProvider);
 
-        $processed = $service->processWebhook(['eventId' => 'evt-1']);
-        $ignored = $service->processWebhook(['eventId' => 'evt-duplicated']);
+        $processed = $service->processWebhook([
+            'eventId' => 'evt-1',
+        ]);
+        $ignored = $service->processWebhook([
+            'eventId' => 'evt-duplicated',
+        ]);
 
         self::assertInstanceOf(PaymentTransaction::class, $processed);
         self::assertNull($ignored);

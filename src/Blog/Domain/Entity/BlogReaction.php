@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Blog\Domain\Entity;
 
 use App\Blog\Domain\Enum\BlogReactionType;
-
 use App\General\Domain\Entity\Interfaces\EntityInterface;
 use App\General\Domain\Entity\Traits\Timestampable;
 use App\General\Domain\Entity\Traits\Uuid;

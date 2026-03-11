@@ -31,9 +31,9 @@ final readonly class PatchBlogCommentController
     public function __invoke(string $commentId, Request $request, User $loggedInUser): JsonResponse
     {
         $payload = $this->requestService->extractPayload($request);
-        $payload['filePath'] = $this->requestService->resolveUploadedFileUrl($request, (string) ($payload['filePath'] ?? ''));
+        $payload['filePath'] = $this->requestService->resolveUploadedFileUrl($request, (string)($payload['filePath'] ?? ''));
 
-        $this->messageBus->dispatch(new PatchBlogCommentCommand((string) uniqid('op_', true), $loggedInUser->getId(), $commentId, $payload['content'] ?? null, $payload['filePath'] ?: null));
+        $this->messageBus->dispatch(new PatchBlogCommentCommand((string)uniqid('op_', true), $loggedInUser->getId(), $commentId, $payload['content'] ?? null, $payload['filePath'] ?: null));
 
         return new JsonResponse(status: JsonResponse::HTTP_NO_CONTENT);
     }

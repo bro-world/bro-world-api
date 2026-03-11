@@ -34,7 +34,9 @@ class CartItem implements EntityInterface
     #[ORM\JoinColumn(name: 'product_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private ?Product $product = null;
 
-    #[ORM\Column(name: 'quantity', type: Types::INTEGER, options: ['default' => 1])]
+    #[ORM\Column(name: 'quantity', type: Types::INTEGER, options: [
+        'default' => 1,
+    ])]
     private int $quantity = 1;
 
     #[ORM\Column(name: 'unit_price_snapshot', type: Types::FLOAT)]

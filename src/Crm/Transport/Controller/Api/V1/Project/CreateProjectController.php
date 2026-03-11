@@ -35,14 +35,14 @@ final readonly class CreateProjectController
     #[OA\Post(summary: 'POST /v1/crm/projects')]
     public function __invoke(Request $request): JsonResponse
     {
-        $payload = (array) json_decode((string) $request->getContent(), true);
+        $payload = (array)json_decode((string)$request->getContent(), true);
         $project = new Project();
-        $project->setName((string) ($payload['name'] ?? ''))
-            ->setCode(isset($payload['code']) ? (string) $payload['code'] : null)
-            ->setDescription(isset($payload['description']) ? (string) $payload['description'] : null)
-            ->setStatus(ProjectStatus::tryFrom((string) ($payload['status'] ?? '')) ?? ProjectStatus::PLANNED)
-            ->setStartedAt(isset($payload['startedAt']) ? new DateTimeImmutable((string) $payload['startedAt']) : null)
-            ->setDueAt(isset($payload['dueAt']) ? new DateTimeImmutable((string) $payload['dueAt']) : null);
+        $project->setName((string)($payload['name'] ?? ''))
+            ->setCode(isset($payload['code']) ? (string)$payload['code'] : null)
+            ->setDescription(isset($payload['description']) ? (string)$payload['description'] : null)
+            ->setStatus(ProjectStatus::tryFrom((string)($payload['status'] ?? '')) ?? ProjectStatus::PLANNED)
+            ->setStartedAt(isset($payload['startedAt']) ? new DateTimeImmutable((string)$payload['startedAt']) : null)
+            ->setDueAt(isset($payload['dueAt']) ? new DateTimeImmutable((string)$payload['dueAt']) : null);
         if (is_string($payload['companyId'] ?? null)) {
             $project->setCompany($this->companyRepository->find($payload['companyId']));
         }
@@ -51,6 +51,8 @@ final readonly class CreateProjectController
         $this->entityManager->flush();
         $this->messageBus->dispatch(new EntityCreated('crm_project', $project->getId()));
 
-        return new JsonResponse(['id' => $project->getId()], JsonResponse::HTTP_CREATED);
+        return new JsonResponse([
+            'id' => $project->getId(),
+        ], JsonResponse::HTTP_CREATED);
     }
 }

@@ -17,21 +17,31 @@ class RequestHandlerTest extends TestCase
 {
     public function testGetSearchTermsNormalizesOrArrayTerms(): void
     {
-        $request = new Request(query: ['search' => '{"or":["foo","","foo"]}']);
+        $request = new Request(query: [
+            'search' => '{"or":["foo","","foo"]}',
+        ]);
 
-        self::assertSame(['or' => ['foo']], RequestHandler::getSearchTerms($request));
+        self::assertSame([
+            'or' => ['foo'],
+        ], RequestHandler::getSearchTerms($request));
     }
 
     public function testGetSearchTermsNormalizesOrStringTerms(): void
     {
-        $request = new Request(query: ['search' => '{"or":"foo bar"}']);
+        $request = new Request(query: [
+            'search' => '{"or":"foo bar"}',
+        ]);
 
-        self::assertSame(['or' => ['foo', 'bar']], RequestHandler::getSearchTerms($request));
+        self::assertSame([
+            'or' => ['foo', 'bar'],
+        ], RequestHandler::getSearchTerms($request));
     }
 
     public function testGetSearchTermsThrowsWithInvalidOrType(): void
     {
-        $request = new Request(query: ['search' => '{"or":123}']);
+        $request = new Request(query: [
+            'search' => '{"or":123}',
+        ]);
 
         try {
             RequestHandler::getSearchTerms($request);

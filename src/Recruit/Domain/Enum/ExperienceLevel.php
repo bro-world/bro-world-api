@@ -11,4 +11,3 @@ enum ExperienceLevel: string
     case SENIOR = 'Senior';
     case LEAD = 'Lead';
 }
-

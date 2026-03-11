@@ -13,8 +13,9 @@ use function iterator_to_array;
 
 final readonly class SchoolInputValidator
 {
-    public function __construct(private ValidatorInterface $validator)
-    {
+    public function __construct(
+        private ValidatorInterface $validator
+    ) {
     }
 
     public function validate(object $input): ?JsonResponse

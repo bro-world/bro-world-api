@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Shop\Application\Service;
 
-use App\Shop\Domain\Entity\PaymentTransaction;
 use App\Shop\Domain\Entity\Order;
+use App\Shop\Domain\Entity\PaymentTransaction;
 use App\Shop\Domain\Enum\OrderStatus;
 use App\Shop\Domain\Enum\PaymentStatus;
 use App\Shop\Domain\Service\Interfaces\PaymentProviderInterface;
@@ -40,24 +40,28 @@ final readonly class PaymentService
             orderId: $order->getId(),
             amount: $order->getSubtotal(),
             currency: 'EUR',
-            metadata: ['orderId' => $order->getId()],
+            metadata: [
+                'orderId' => $order->getId(),
+            ],
         );
 
         $transaction = (new PaymentTransaction())
             ->setOrder($order)
-            ->setProvider((string) $providerIntent['provider'])
-            ->setProviderReference((string) $providerIntent['providerReference'])
+            ->setProvider((string)$providerIntent['provider'])
+            ->setProviderReference((string)$providerIntent['providerReference'])
             ->setAmount($order->getSubtotal())
             ->setCurrency('EUR')
-            ->setStatus($this->resolvePaymentStatus((string) $providerIntent['status']))
-            ->setPayload((array) ($providerIntent['payload'] ?? []));
+            ->setStatus($this->resolvePaymentStatus((string)$providerIntent['status']))
+            ->setPayload((array)($providerIntent['payload'] ?? []));
 
         $this->paymentTransactionRepository->save($transaction, true);
 
         return $transaction;
     }
 
-    /** @param array<string, mixed> $payload */
+    /**
+     * @param array<string, mixed> $payload
+     */
     public function confirmPayment(string $orderId, string $providerReference, array $payload = []): PaymentTransaction
     {
         $order = $this->orderRepository->find($orderId);
@@ -75,8 +79,8 @@ final readonly class PaymentService
         }
 
         $providerResponse = $this->paymentProvider->confirm($providerReference, $payload);
-        $transaction->setStatus($this->resolvePaymentStatus((string) $providerResponse['status']));
-        $transaction->setPayload((array) ($providerResponse['payload'] ?? []));
+        $transaction->setStatus($this->resolvePaymentStatus((string)$providerResponse['status']));
+        $transaction->setPayload((array)($providerResponse['payload'] ?? []));
 
         $this->applyOrderStateFromPayment($order, $transaction->getStatus());
 
@@ -86,7 +90,9 @@ final readonly class PaymentService
         return $transaction;
     }
 
-    /** @param array<string, mixed> $payload */
+    /**
+     * @param array<string, mixed> $payload
+     */
     public function processWebhook(array $payload, ?string $signature = null): ?PaymentTransaction
     {
         $verifiedPayload = $this->paymentProvider->verifyWebhook($payload, $signature);
@@ -94,9 +100,11 @@ final readonly class PaymentService
             return null;
         }
 
-        if ($this->paymentTransactionRepository->findOneBy([
-            'webhookIdempotenceKey' => $verifiedPayload['webhookKey'],
-        ]) instanceof PaymentTransaction) {
+        if (
+            $this->paymentTransactionRepository->findOneBy([
+                'webhookIdempotenceKey' => $verifiedPayload['webhookKey'],
+            ]) instanceof PaymentTransaction
+        ) {
             return null;
         }
 
@@ -110,9 +118,9 @@ final readonly class PaymentService
         }
 
         $transaction
-            ->setStatus($this->resolvePaymentStatus((string) $verifiedPayload['status']))
-            ->setWebhookIdempotenceKey((string) $verifiedPayload['webhookKey'])
-            ->setPayload((array) ($verifiedPayload['payload'] ?? []));
+            ->setStatus($this->resolvePaymentStatus((string)$verifiedPayload['status']))
+            ->setWebhookIdempotenceKey((string)$verifiedPayload['webhookKey'])
+            ->setPayload((array)($verifiedPayload['payload'] ?? []));
 
         $order = $transaction->getOrder();
         if ($order !== null) {

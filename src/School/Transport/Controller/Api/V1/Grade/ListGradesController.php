@@ -30,7 +30,9 @@ final readonly class ListGradesController
     #[Route('/v1/school/grades', methods: [Request::METHOD_GET])]
     public function __invoke(): JsonResponse
     {
-        $items = $this->viewMapper->mapGradeCollection($this->gradeRepository->findBy([], ['createdAt' => 'DESC'], 200));
+        $items = $this->viewMapper->mapGradeCollection($this->gradeRepository->findBy([], [
+            'createdAt' => 'DESC',
+        ], 200));
 
         return new JsonResponse($this->responseSerializer->list($items));
     }

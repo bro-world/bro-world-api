@@ -15,7 +15,9 @@ final class UserReactionMutationControllerTest extends WebTestCase
 {
     private string $baseUrl = self::API_URL_PREFIX . '/v1/chat/private';
 
-    /** @throws Throwable */
+    /**
+     * @throws Throwable
+     */
     #[TestDox('Reaction create/patch/delete nominal + validation + ownership authorization')]
     public function testReactionEndpoints(): void
     {

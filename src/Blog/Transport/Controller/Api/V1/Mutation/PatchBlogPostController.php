@@ -31,9 +31,9 @@ final readonly class PatchBlogPostController
     public function __invoke(string $postId, Request $request, User $loggedInUser): JsonResponse
     {
         $payload = $this->requestService->extractPayload($request);
-        $payload['filePath'] = $this->requestService->resolveUploadedFileUrl($request, (string) ($payload['filePath'] ?? ''));
+        $payload['filePath'] = $this->requestService->resolveUploadedFileUrl($request, (string)($payload['filePath'] ?? ''));
 
-        $this->messageBus->dispatch(new PatchBlogPostCommand((string) uniqid('op_', true), $loggedInUser->getId(), $postId, isset($payload['title']) ? (string) $payload['title'] : null, $payload['content'] ?? null, $payload['filePath'] ?: null, isset($payload['isPinned']) ? (bool) $payload['isPinned'] : null));
+        $this->messageBus->dispatch(new PatchBlogPostCommand((string)uniqid('op_', true), $loggedInUser->getId(), $postId, isset($payload['title']) ? (string)$payload['title'] : null, $payload['content'] ?? null, $payload['filePath'] ?: null, isset($payload['isPinned']) ? (bool)$payload['isPinned'] : null));
 
         return new JsonResponse(status: JsonResponse::HTTP_NO_CONTENT);
     }

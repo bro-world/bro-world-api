@@ -87,6 +87,7 @@ final class CheckoutServiceTest extends TestCase
             $service->checkout($this->command($shop, $user));
         } catch (HttpException $exception) {
             self::assertSame(JsonResponse::HTTP_CONFLICT, $exception->getStatusCode());
+
             throw $exception;
         }
     }

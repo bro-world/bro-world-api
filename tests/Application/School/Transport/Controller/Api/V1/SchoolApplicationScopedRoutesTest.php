@@ -57,16 +57,24 @@ final class SchoolApplicationScopedRoutesTest extends WebTestCase
         $forbiddenClient->request('GET', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/classes/' . $classId);
         self::assertSame(Response::HTTP_FORBIDDEN, $forbiddenClient->getResponse()->getStatusCode());
 
-        $ownerClient->request('PATCH', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/classes/' . $classId, [], [], [], JSON::encode(['name' => 'Classe Scoped Updated']));
+        $ownerClient->request('PATCH', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/classes/' . $classId, [], [], [], JSON::encode([
+            'name' => 'Classe Scoped Updated',
+        ]));
         self::assertSame(Response::HTTP_OK, $ownerClient->getResponse()->getStatusCode());
 
-        $forbiddenClient->request('PATCH', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/classes/' . $classId, [], [], [], JSON::encode(['name' => 'Classe Should Fail']));
+        $forbiddenClient->request('PATCH', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/classes/' . $classId, [], [], [], JSON::encode([
+            'name' => 'Classe Should Fail',
+        ]));
         self::assertSame(Response::HTTP_FORBIDDEN, $forbiddenClient->getResponse()->getStatusCode());
 
-        $ownerClient->request('POST', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/classes', [], [], [], JSON::encode(['name' => 'Classe Scoped Create']));
+        $ownerClient->request('POST', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/classes', [], [], [], JSON::encode([
+            'name' => 'Classe Scoped Create',
+        ]));
         self::assertSame(Response::HTTP_CREATED, $ownerClient->getResponse()->getStatusCode());
 
-        $forbiddenClient->request('POST', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/classes', [], [], [], JSON::encode(['name' => 'Classe Forbidden']));
+        $forbiddenClient->request('POST', self::API_URL_PREFIX . '/v1/school/applications/school-campus-core/classes', [], [], [], JSON::encode([
+            'name' => 'Classe Forbidden',
+        ]));
         self::assertSame(Response::HTTP_FORBIDDEN, $forbiddenClient->getResponse()->getStatusCode());
     }
 }

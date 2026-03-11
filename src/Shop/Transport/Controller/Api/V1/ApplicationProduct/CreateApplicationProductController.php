@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Shop\Transport\Controller\Api\V1\ApplicationProduct;
 
 use App\General\Application\Message\EntityCreated;
-use App\Shop\Domain\Entity\Product;
 use App\Shop\Application\Service\ProductHydratorService;
 use App\Shop\Application\Service\ShopApplicationResolverService;
+use App\Shop\Domain\Entity\Product;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -35,7 +35,7 @@ final readonly class CreateApplicationProductController
     public function __invoke(string $applicationSlug, Request $request): JsonResponse
     {
         $shop = $this->shopApplicationResolverService->resolveOrCreateShopByApplicationSlug($applicationSlug);
-        $payload = (array) json_decode((string) $request->getContent(), true);
+        $payload = (array)json_decode((string)$request->getContent(), true);
 
         $product = $this->productHydratorService->hydrateProduct((new Product())->setShop($shop), $payload);
 

@@ -20,33 +20,35 @@ final readonly class ProductPayloadHydrator
     ) {
     }
 
-    /** @param array<string,mixed> $payload */
+    /**
+     * @param array<string,mixed> $payload
+     */
     public function hydrate(Product $product, array $payload, bool $partial = false): Product
     {
         if (!$partial || array_key_exists('name', $payload)) {
-            $product->setName((string) ($payload['name'] ?? ''));
+            $product->setName((string)($payload['name'] ?? ''));
         }
         if (!$partial || array_key_exists('price', $payload)) {
-            $product->setPrice((float) ($payload['price'] ?? 0));
+            $product->setPrice((float)($payload['price'] ?? 0));
         }
         if (!$partial || array_key_exists('sku', $payload)) {
             $defaultSku = strtoupper(substr(md5($product->getId()), 0, 12));
-            $product->setSku((string) ($payload['sku'] ?? $defaultSku));
+            $product->setSku((string)($payload['sku'] ?? $defaultSku));
         }
         if (!$partial || array_key_exists('description', $payload)) {
-            $product->setDescription(($payload['description'] ?? null) !== null ? (string) $payload['description'] : null);
+            $product->setDescription(($payload['description'] ?? null) !== null ? (string)$payload['description'] : null);
         }
         if (!$partial || array_key_exists('currencyCode', $payload)) {
-            $product->setCurrencyCode((string) ($payload['currencyCode'] ?? 'EUR'));
+            $product->setCurrencyCode((string)($payload['currencyCode'] ?? 'EUR'));
         }
         if (!$partial || array_key_exists('stock', $payload)) {
-            $product->setStock((int) ($payload['stock'] ?? 0));
+            $product->setStock((int)($payload['stock'] ?? 0));
         }
         if (!$partial || array_key_exists('isFeatured', $payload)) {
-            $product->setIsFeatured((bool) ($payload['isFeatured'] ?? false));
+            $product->setIsFeatured((bool)($payload['isFeatured'] ?? false));
         }
         if (!$partial || array_key_exists('status', $payload)) {
-            $status = ProductStatus::tryFrom((string) ($payload['status'] ?? '')) ?? ProductStatus::DRAFT;
+            $status = ProductStatus::tryFrom((string)($payload['status'] ?? '')) ?? ProductStatus::DRAFT;
             $product->setStatus($status);
         }
 
@@ -65,7 +67,7 @@ final readonly class ProductPayloadHydrator
             foreach ($product->getTags()->toArray() as $tag) {
                 $product->removeTag($tag);
             }
-            foreach ((array) ($payload['tagIds'] ?? []) as $tagId) {
+            foreach ((array)($payload['tagIds'] ?? []) as $tagId) {
                 if (is_string($tagId) && ($tag = $this->tagRepository->find($tagId)) instanceof Tag) {
                     $product->addTag($tag);
                 }
