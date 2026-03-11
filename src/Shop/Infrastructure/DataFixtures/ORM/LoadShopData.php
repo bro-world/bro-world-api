@@ -10,6 +10,8 @@ use App\Shop\Domain\Entity\Category;
 use App\Shop\Domain\Entity\Product;
 use App\Shop\Domain\Entity\Shop;
 use App\Shop\Domain\Entity\Tag;
+use App\Shop\Domain\Enum\ProductStatus;
+use App\Shop\Domain\Enum\TagType;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -34,13 +36,15 @@ final class LoadShopData extends Fixture implements OrderedFixtureInterface
         foreach ($this->getApplicationsByPlatform(PlatformKey::SHOP) as $application) {
             $catalog = (new Shop())
                 ->setName($application->getTitle() . ' Catalog')
+                ->setDescription('Catalogue principal de l\'application ' . $application->getSlug())
+                ->setIsActive(true)
                 ->setApplication($application);
             $manager->persist($catalog);
 
             $categories = [
-                'Electronique' => (new Category())->setShop($catalog)->setName('Electronique'),
-                'Maison' => (new Category())->setShop($catalog)->setName('Maison'),
-                'Bureau' => (new Category())->setShop($catalog)->setName('Bureau'),
+                'Electronique' => (new Category())->setShop($catalog)->setName('Electronique')->setSlug('electronique')->setDescription('Produits high-tech'),
+                'Maison' => (new Category())->setShop($catalog)->setName('Maison')->setSlug('maison')->setDescription('Maison et confort'),
+                'Bureau' => (new Category())->setShop($catalog)->setName('Bureau')->setSlug('bureau')->setDescription('Materiel professionnel'),
             ];
 
             foreach ($categories as $category) {
@@ -48,9 +52,9 @@ final class LoadShopData extends Fixture implements OrderedFixtureInterface
             }
 
             $tags = [
-                'Nouveau' => (new Tag())->setLabel('Nouveau'),
-                'Promo' => (new Tag())->setLabel('Promo'),
-                'Eco' => (new Tag())->setLabel('Eco'),
+                'Nouveau' => (new Tag())->setLabel('Nouveau')->setType(TagType::SEASONAL),
+                'Promo' => (new Tag())->setLabel('Promo')->setType(TagType::MARKETING),
+                'Eco' => (new Tag())->setLabel('Eco')->setType(TagType::INVENTORY),
             ];
 
             foreach ($tags as $tag) {
@@ -58,10 +62,10 @@ final class LoadShopData extends Fixture implements OrderedFixtureInterface
             }
 
             $products = [
-                (new Product())->setShop($catalog)->setCategory($categories['Electronique'])->setName('Casque Bluetooth')->setPrice(89.99)->addTag($tags['Nouveau'])->addTag($tags['Promo']),
-                (new Product())->setShop($catalog)->setCategory($categories['Maison'])->setName('Lampe LED connectee')->setPrice(59.90)->addTag($tags['Eco']),
-                (new Product())->setShop($catalog)->setCategory($categories['Bureau'])->setName('Chaise ergonomique')->setPrice(229.00)->addTag($tags['Promo']),
-                (new Product())->setShop($catalog)->setCategory($categories['Electronique'])->setName('Souris sans fil')->setPrice(34.50)->addTag($tags['Nouveau'])->addTag($tags['Eco']),
+                (new Product())->setShop($catalog)->setCategory($categories['Electronique'])->setName('Casque Bluetooth')->setSku('SKU-BT-HEADSET')->setDescription('Casque sans fil reduction de bruit')->setPrice(89.99)->setCurrencyCode('EUR')->setStock(32)->setStatus(ProductStatus::ACTIVE)->setIsFeatured(true)->addTag($tags['Nouveau'])->addTag($tags['Promo']),
+                (new Product())->setShop($catalog)->setCategory($categories['Maison'])->setName('Lampe LED connectee')->setSku('SKU-SMART-LAMP')->setDescription('Lampe connectee basse consommation')->setPrice(59.90)->setCurrencyCode('EUR')->setStock(54)->setStatus(ProductStatus::ACTIVE)->addTag($tags['Eco']),
+                (new Product())->setShop($catalog)->setCategory($categories['Bureau'])->setName('Chaise ergonomique')->setSku('SKU-ERG-CHAIR')->setDescription('Chaise bureau confort premium')->setPrice(229.00)->setCurrencyCode('EUR')->setStock(8)->setStatus(ProductStatus::DRAFT)->addTag($tags['Promo']),
+                (new Product())->setShop($catalog)->setCategory($categories['Electronique'])->setName('Souris sans fil')->setSku('SKU-WIRELESS-MOUSE')->setDescription('Souris ergonomique rechargeable')->setPrice(34.50)->setCurrencyCode('EUR')->setStock(65)->setStatus(ProductStatus::ACTIVE)->addTag($tags['Nouveau'])->addTag($tags['Eco']),
             ];
 
             foreach ($products as $product) {

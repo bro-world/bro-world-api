@@ -31,7 +31,11 @@ readonly class ProductApplicationListService
     {
         $page = max(1, $request->query->getInt('page', 1));
         $limit = max(1, min(100, $request->query->getInt('limit', 20)));
-        $filters = ['q' => trim((string)$request->query->get('q', '')), 'name' => trim((string)$request->query->get('name', ''))];
+        $filters = [
+            'q' => trim((string)$request->query->get('q', '')),
+            'name' => trim((string)$request->query->get('name', '')),
+            'status' => trim((string)$request->query->get('status', '')),
+        ];
         $cacheKey = $this->cacheKeyConventionService->buildShopProductApplicationListKey($applicationSlug, $page, $limit, $filters);
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($applicationSlug, $shop, $filters, $page, $limit): array {
@@ -46,6 +50,9 @@ readonly class ProductApplicationListService
             }
 
             $qb = $this->productRepository->createQueryBuilder('product')
+                ->leftJoin('product.tags', 'tag')
+                ->leftJoin('product.category', 'category')
+                ->addSelect('category', 'tag')
                 ->andWhere('product.shop = :shop')->setParameter('shop', $shop)
                 ->orderBy('product.createdAt', 'DESC')
                 ->setFirstResult(($page - 1) * $limit)
@@ -53,21 +60,22 @@ readonly class ProductApplicationListService
             if ($filters['name'] !== '') {
                 $qb->andWhere('LOWER(product.name) LIKE LOWER(:name)')->setParameter('name', '%' . $filters['name'] . '%');
             }
+            if ($filters['status'] !== '') {
+                $qb->andWhere('product.status = :status')->setParameter('status', $filters['status']);
+            }
             if ($esIds !== null) {
                 $qb->andWhere('product.id IN (:ids)')->setParameter('ids', $esIds);
             }
 
-            $items = array_map(static fn (Product $product): array => [
-                'id' => $product->getId(),
-                'name' => $product->getName(),
-                'price' => $product->getPrice(),
-                'categoryId' => $product->getCategory()?->getId(),
-            ], $qb->getQuery()->getResult());
+            $items = array_map(static fn (Product $product): array => ProductListService::serializeProduct($product), $qb->getQuery()->getResult());
 
             $countQb = $this->productRepository->createQueryBuilder('product')->select('COUNT(product.id)')
                 ->andWhere('product.shop = :shop')->setParameter('shop', $shop);
             if ($filters['name'] !== '') {
                 $countQb->andWhere('LOWER(product.name) LIKE LOWER(:name)')->setParameter('name', '%' . $filters['name'] . '%');
+            }
+            if ($filters['status'] !== '') {
+                $countQb->andWhere('product.status = :status')->setParameter('status', $filters['status']);
             }
             if ($esIds !== null) {
                 $countQb->andWhere('product.id IN (:ids)')->setParameter('ids', $esIds);
@@ -93,7 +101,7 @@ readonly class ProductApplicationListService
 
         try {
             $response = $this->elasticsearchService->search(ShopProductProjection::INDEX_NAME, [
-                'query' => ['multi_match' => ['query' => $filters['q'], 'type' => 'phrase_prefix', 'fields' => ['name^3', 'categoryName^2', 'tags']]],
+                'query' => ['multi_match' => ['query' => $filters['q'], 'type' => 'phrase_prefix', 'fields' => ['name^3', 'categoryName^2', 'tags', 'sku^4']]],
                 '_source' => ['id'],
             ], 0, 200);
         } catch (Throwable) {

@@ -31,6 +31,12 @@ class Shop implements EntityInterface
     #[ORM\Column(name: 'name', type: Types::STRING, length: 255)]
     private string $name = '';
 
+    #[ORM\Column(name: 'description', type: Types::TEXT, nullable: true)]
+    private ?string $description = null;
+
+    #[ORM\Column(name: 'is_active', type: Types::BOOLEAN, options: ['default' => true])]
+    private bool $isActive = true;
+
     #[ORM\OneToOne(targetEntity: PlatformApplication::class)]
     #[ORM\JoinColumn(name: 'application_id', referencedColumnName: 'id', nullable: false, unique: true, onDelete: 'CASCADE')]
     private ?PlatformApplication $application = null;
@@ -60,16 +66,43 @@ class Shop implements EntityInterface
     {
         return $this->name;
     }
+
     public function setName(string $name): self
     {
         $this->name = $name;
 
         return $this;
     }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): self
+    {
+        $this->isActive = $isActive;
+
+        return $this;
+    }
+
     public function getApplication(): ?PlatformApplication
     {
         return $this->application;
     }
+
     public function setApplication(?PlatformApplication $application): self
     {
         $this->application = $application;
