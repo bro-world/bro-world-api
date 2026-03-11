@@ -7,6 +7,7 @@ namespace App\Shop\Domain\Entity;
 use App\General\Domain\Entity\Interfaces\EntityInterface;
 use App\General\Domain\Entity\Traits\Timestampable;
 use App\General\Domain\Entity\Traits\Uuid;
+use App\Shop\Domain\Enum\TagType;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -30,6 +31,9 @@ class Tag implements EntityInterface
     #[ORM\Column(name: 'label', type: Types::STRING, length: 80)]
     private string $label = '';
 
+    #[ORM\Column(name: 'type', type: Types::STRING, length: 30, enumType: TagType::class)]
+    private TagType $type = TagType::MARKETING;
+
     /** @var Collection<int, Product>|ArrayCollection<int, Product> */
     #[ORM\ManyToMany(targetEntity: Product::class, mappedBy: 'tags')]
     private Collection|ArrayCollection $products;
@@ -45,13 +49,27 @@ class Tag implements EntityInterface
     {
         return $this->id->toString();
     }
+
     public function getLabel(): string
     {
         return $this->label;
     }
+
     public function setLabel(string $label): self
     {
         $this->label = $label;
+
+        return $this;
+    }
+
+    public function getType(): TagType
+    {
+        return $this->type;
+    }
+
+    public function setType(TagType $type): self
+    {
+        $this->type = $type;
 
         return $this;
     }

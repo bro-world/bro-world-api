@@ -36,6 +36,7 @@ readonly class ProductListService
             'q' => trim((string)$request->query->get('q', '')),
             'name' => trim((string)$request->query->get('name', '')),
             'category' => trim((string)$request->query->get('category', '')),
+            'status' => trim((string)$request->query->get('status', '')),
         ];
 
         $cacheKey = $this->cacheKeyConventionService->buildShopProductListKey($page, $limit, $filters);
@@ -62,6 +63,8 @@ readonly class ProductListService
 
             $qb = $this->productRepository->createQueryBuilder('product')
                 ->leftJoin('product.category', 'category')
+                ->leftJoin('product.tags', 'tag')
+                ->addSelect('category', 'tag')
                 ->setFirstResult(($page - 1) * $limit)
                 ->setMaxResults($limit)
                 ->orderBy('product.createdAt', 'DESC');
@@ -74,19 +77,15 @@ readonly class ProductListService
                 $qb->andWhere('LOWER(category.name) LIKE LOWER(:category)')->setParameter('category', '%' . $filters['category'] . '%');
             }
 
+            if ($filters['status'] !== '') {
+                $qb->andWhere('product.status = :status')->setParameter('status', $filters['status']);
+            }
+
             if ($esIds !== null) {
                 $qb->andWhere('product.id IN (:ids)')->setParameter('ids', $esIds);
             }
 
-            $items = array_map(static fn (Product $product): array => [
-                'id' => $product->getId(),
-                'name' => $product->getName(),
-                'price' => $product->getPrice(),
-                'categoryId' => $product->getCategory()?->getId(),
-                'categoryName' => $product->getCategory()?->getName(),
-                'tags' => array_map(static fn ($tag): string => $tag->getLabel(), $product->getTags()->toArray()),
-                'updatedAt' => $product->getUpdatedAt()?->format(DATE_ATOM),
-            ], $qb->getQuery()->getResult());
+            $items = array_map(static fn (Product $product): array => self::serializeProduct($product), $qb->getQuery()->getResult());
 
             $countQb = $this->productRepository->createQueryBuilder('product')->select('COUNT(product.id)')
                 ->leftJoin('product.category', 'category');
@@ -96,6 +95,9 @@ readonly class ProductListService
             }
             if ($filters['category'] !== '') {
                 $countQb->andWhere('LOWER(category.name) LIKE LOWER(:category)')->setParameter('category', '%' . $filters['category'] . '%');
+            }
+            if ($filters['status'] !== '') {
+                $countQb->andWhere('product.status = :status')->setParameter('status', $filters['status']);
             }
             if ($esIds !== null) {
                 $countQb->andWhere('product.id IN (:ids)')->setParameter('ids', $esIds);
@@ -135,7 +137,7 @@ readonly class ProductListService
                     'multi_match' => [
                         'query' => $filters['q'],
                         'type' => 'phrase_prefix',
-                        'fields' => ['name^3', 'categoryName^2', 'tags'],
+                        'fields' => ['name^3', 'categoryName^2', 'tags', 'sku^4'],
                     ],
                 ],
                 '_source' => ['id'],
@@ -147,5 +149,27 @@ readonly class ProductListService
         $hits = $response['hits']['hits'] ?? [];
 
         return array_values(array_filter(array_map(static fn (array $hit): ?string => $hit['_source']['id'] ?? $hit['_id'] ?? null, $hits)));
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    public static function serializeProduct(Product $product): array
+    {
+        return [
+            'id' => $product->getId(),
+            'name' => $product->getName(),
+            'sku' => $product->getSku(),
+            'description' => $product->getDescription(),
+            'price' => $product->getPrice(),
+            'currencyCode' => $product->getCurrencyCode(),
+            'stock' => $product->getStock(),
+            'isFeatured' => $product->isFeatured(),
+            'status' => $product->getStatus()->value,
+            'categoryId' => $product->getCategory()?->getId(),
+            'categoryName' => $product->getCategory()?->getName(),
+            'tags' => array_map(static fn ($tag): string => $tag->getLabel(), $product->getTags()->toArray()),
+            'updatedAt' => $product->getUpdatedAt()?->format(DATE_ATOM),
+        ];
     }
 }
