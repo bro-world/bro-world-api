@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Recruit\Transport\Controller\Api\V1\Job;
 
 use App\General\Application\Message\EntityPatched;
+use App\Recruit\Application\Service\JobPayloadHydratorService;
+use App\Recruit\Application\Service\RecruitResolverService;
 use App\Recruit\Domain\Entity\Job;
-use App\Recruit\Domain\Entity\Recruit;
-use App\Recruit\Domain\Repository\Interfaces\RecruitRepositoryInterface;
 use App\Recruit\Infrastructure\Repository\JobRepository;
 use App\User\Domain\Entity\User;
 use OpenApi\Attributes as OA;
@@ -25,12 +25,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
 class JobPatchFromApplicationController
 {
-    use JobPayloadHydratorTrait;
-
     public function __construct(
-        private readonly RecruitRepositoryInterface $recruitRepository,
+        private readonly RecruitResolverService $recruitResolverService,
         private readonly JobRepository $jobRepository,
         private readonly MessageBusInterface $messageBus,
+        private readonly JobPayloadHydratorService $jobPayloadHydratorService,
     ) {
     }
 
@@ -38,7 +37,7 @@ class JobPatchFromApplicationController
     #[Route(path: '/v1/recruit/private/{applicationSlug}/jobs/{jobId}', methods: [Request::METHOD_PATCH])]
     public function __invoke(string $applicationSlug, string $jobId, Request $request, User $loggedInUser): JsonResponse
     {
-        $recruit = $this->resolveRecruitByApplicationSlug($applicationSlug);
+        $recruit = $this->recruitResolverService->resolveByApplicationSlug($applicationSlug);
         $application = $recruit->getApplication();
 
         if ($application?->getUser()?->getId() !== $loggedInUser->getId()) {
@@ -56,7 +55,7 @@ class JobPatchFromApplicationController
 
         /** @var array<string, mixed> $payload */
         $payload = $request->toArray();
-        $this->applyJobFields($job, $payload);
+        $this->jobPayloadHydratorService->applyJobFields($job, $payload);
 
         $this->jobRepository->save($job);
         $this->messageBus->dispatch(new EntityPatched('recruit_job', $job->getId(), context: [
@@ -69,16 +68,5 @@ class JobPatchFromApplicationController
             'slug' => $job->getSlug(),
             'title' => $job->getTitle(),
         ]);
-    }
-
-    private function resolveRecruitByApplicationSlug(string $applicationSlug): Recruit
-    {
-        $recruit = $this->recruitRepository->findOneByApplicationSlug($applicationSlug);
-
-        if (!$recruit instanceof Recruit) {
-            throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Unknown "applicationSlug".');
-        }
-
-        return $recruit;
     }
 }
