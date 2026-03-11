@@ -11,7 +11,7 @@ final class Version20260311160000 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'Recruit job enrichments: experience metadata and publication lifecycle';
+        return 'Enhance CRM schema with enums and additional fields for company/project/sprint/task/task_request';
     }
 
     public function up(Schema $schema): void

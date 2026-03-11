@@ -34,6 +34,12 @@ class Category implements EntityInterface
     #[ORM\Column(name: 'name', type: Types::STRING, length: 255)]
     private string $name = '';
 
+    #[ORM\Column(name: 'slug', type: Types::STRING, length: 120)]
+    private string $slug = '';
+
+    #[ORM\Column(name: 'description', type: Types::TEXT, nullable: true)]
+    private ?string $description = null;
+
     /** @var Collection<int, Product>|ArrayCollection<int, Product> */
     #[ORM\OneToMany(targetEntity: Product::class, mappedBy: 'category')]
     private Collection|ArrayCollection $products;
@@ -49,23 +55,51 @@ class Category implements EntityInterface
     {
         return $this->id->toString();
     }
+
     public function getShop(): ?Shop
     {
         return $this->shop;
     }
+
     public function setShop(?Shop $shop): self
     {
         $this->shop = $shop;
 
         return $this;
     }
+
     public function getName(): string
     {
         return $this->name;
     }
+
     public function setName(string $name): self
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getSlug(): string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): self
+    {
+        $this->slug = $slug;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
 
         return $this;
     }
