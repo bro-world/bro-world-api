@@ -6,12 +6,14 @@ namespace App\Shop\Transport\Controller\Api\V1;
 
 use App\General\Application\Message\EntityCreated;
 use App\General\Application\Message\EntityDeleted;
+use App\General\Domain\Service\Interfaces\MessageServiceInterface;
 use App\Platform\Domain\Entity\Application;
 use App\Platform\Domain\Enum\PlatformKey;
+use App\Shop\Application\Message\CreateProductCommand;
+use App\Shop\Application\Message\DeleteProductCommand;
 use App\Shop\Application\Service\ProductApplicationListService;
 use App\Shop\Application\Service\ProductListService;
 use App\Shop\Domain\Entity\Category;
-use App\Shop\Domain\Entity\Product;
 use App\Shop\Domain\Entity\Shop;
 use App\Shop\Domain\Entity\Tag;
 use App\Shop\Infrastructure\Repository\CategoryRepository;
@@ -45,6 +47,7 @@ final readonly class ShopController
         private ProductApplicationListService $productApplicationListService,
         private EntityManagerInterface $entityManager,
         private MessageBusInterface $messageBus,
+        private MessageServiceInterface $messageService,
         private Security $security,
     ) {
     }
@@ -68,43 +71,34 @@ final readonly class ShopController
     {
         $payload = (array)json_decode((string)$request->getContent(), true);
 
-        $product = new Product();
-        $product->setName((string)($payload['name'] ?? ''))->setPrice((float)($payload['price'] ?? 0));
-
-        if (is_string($payload['shopId'] ?? null)) {
-            $product->setShop($this->shopRepository->find($payload['shopId']));
-        }
-        if (is_string($payload['categoryId'] ?? null)) {
-            $product->setCategory($this->categoryRepository->find($payload['categoryId']));
-        }
-        foreach ((array)($payload['tagIds'] ?? []) as $tagId) {
-            if (is_string($tagId) && ($tag = $this->tagRepository->find($tagId)) instanceof Tag) {
-                $product->addTag($tag);
-            }
-        }
-
-        $this->entityManager->persist($product);
-        $this->entityManager->flush();
-        $this->messageBus->dispatch(new EntityCreated('shop_product', $product->getId()));
+        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
+        $this->messageService->sendMessage(new CreateProductCommand(
+            operationId: $operationId,
+            name: (string)($payload['name'] ?? ''),
+            price: (float)($payload['price'] ?? 0),
+            shopId: is_string($payload['shopId'] ?? null) ? $payload['shopId'] : null,
+            categoryId: is_string($payload['categoryId'] ?? null) ? $payload['categoryId'] : null,
+            tagIds: array_values(array_filter((array)($payload['tagIds'] ?? []), is_string(...))),
+        ));
 
         return new JsonResponse([
-            'id' => $product->getId(),
-        ], JsonResponse::HTTP_CREATED);
+            'operationId' => $operationId,
+        ], JsonResponse::HTTP_ACCEPTED);
     }
 
     #[Route('/v1/shop/products/{id}', methods: [Request::METHOD_DELETE])]
     public function deleteProduct(string $id): JsonResponse
     {
-        $product = $this->productRepository->find($id);
-        if (!$product instanceof Product) {
-            return new JsonResponse(status: JsonResponse::HTTP_NOT_FOUND);
-        }
+        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
+        $this->messageService->sendMessage(new DeleteProductCommand(
+            operationId: $operationId,
+            productId: $id,
+        ));
 
-        $this->entityManager->remove($product);
-        $this->entityManager->flush();
-        $this->messageBus->dispatch(new EntityDeleted('shop_product', $id));
-
-        return new JsonResponse(status: JsonResponse::HTTP_NO_CONTENT);
+        return new JsonResponse([
+            'operationId' => $operationId,
+            'id' => $id,
+        ], JsonResponse::HTTP_ACCEPTED);
     }
 
     #[Route('/v1/shop/categories', methods: [Request::METHOD_GET])]
@@ -253,35 +247,22 @@ final readonly class ShopController
         $shop = $this->resolveOrCreateShopByApplicationSlug($applicationSlug);
         $payload = (array)json_decode((string)$request->getContent(), true);
 
-        $product = (new Product())
-            ->setShop($shop)
-            ->setName((string)($payload['name'] ?? ''))
-            ->setPrice((float)($payload['price'] ?? 0));
-
-        if (is_string($payload['categoryId'] ?? null)) {
-            $category = $this->categoryRepository->find($payload['categoryId']);
-            if ($category instanceof Category && $category->getShop()?->getId() === $shop->getId()) {
-                $product->setCategory($category);
-            }
-        }
-
-        foreach ((array)($payload['tagIds'] ?? []) as $tagId) {
-            if (is_string($tagId) && ($tag = $this->tagRepository->find($tagId)) instanceof Tag) {
-                $product->addTag($tag);
-            }
-        }
-
-        $this->entityManager->persist($product);
-        $this->entityManager->flush();
-        $this->messageBus->dispatch(new EntityCreated('shop_product', $product->getId(), context: [
-            'applicationSlug' => $applicationSlug,
-        ]));
+        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
+        $this->messageService->sendMessage(new CreateProductCommand(
+            operationId: $operationId,
+            name: (string)($payload['name'] ?? ''),
+            price: (float)($payload['price'] ?? 0),
+            shopId: $shop->getId(),
+            categoryId: is_string($payload['categoryId'] ?? null) ? $payload['categoryId'] : null,
+            tagIds: array_values(array_filter((array)($payload['tagIds'] ?? []), is_string(...))),
+            applicationSlug: $applicationSlug,
+        ));
 
         return new JsonResponse([
-            'id' => $product->getId(),
+            'operationId' => $operationId,
             'shopId' => $shop->getId(),
             'applicationSlug' => $applicationSlug,
-        ], JsonResponse::HTTP_CREATED);
+        ], JsonResponse::HTTP_ACCEPTED);
     }
 
     private function resolveOrCreateShopByApplicationSlug(string $applicationSlug): Shop
