@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Quiz\Transport\Controller\Api\V1;
 
 use App\Quiz\Application\Message\CreateQuizQuestionCommand;
-use App\Quiz\Application\Service\QuizReadService;
 use App\User\Domain\Entity\User;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,33 +19,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[AsController]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
 #[OA\Tag(name: 'Quiz')]
-final readonly class QuizController
+final class CreateQuizQuestionController
 {
-    public function __construct(
-        private MessageBusInterface $messageBus,
-        private QuizReadService $quizReadService
-    ) {
-    }
-
-    #[Route('/v1/quiz/application/{applicationSlug}', methods: [Request::METHOD_GET])]
-    public function getByApplication(string $applicationSlug, Request $request): JsonResponse
-    {
-        return new JsonResponse($this->quizReadService->getByApplicationSlug(
-            $applicationSlug,
-            $request->query->get('level'),
-            $request->query->get('category'),
-        ));
-    }
-
-    #[Route('/v1/quiz/application/{applicationSlug}/stats', methods: [Request::METHOD_GET])]
-    public function getStatsByApplication(string $applicationSlug): JsonResponse
-    {
-        return new JsonResponse($this->quizReadService->getStatsByApplicationSlug($applicationSlug));
-    }
-
     #[Route('/v1/quiz/application/{applicationSlug}/questions', methods: [Request::METHOD_POST])]
     #[OA\Post(summary: 'POST /v1/quiz/application/{applicationSlug}/questions', tags: ['Quiz'])]
-    public function createQuestion(string $applicationSlug, Request $request): JsonResponse
+    public function __invoke(string $applicationSlug, Request $request, MessageBusInterface $messageBus): JsonResponse
     {
         $user = $request->getUser();
         if (!$user instanceof User) {
@@ -54,7 +31,7 @@ final readonly class QuizController
         }
 
         $payload = (array) json_decode((string) $request->getContent(), true);
-        $this->messageBus->dispatch(new CreateQuizQuestionCommand(
+        $messageBus->dispatch(new CreateQuizQuestionCommand(
             (string) uniqid('op_', true),
             $user->getId(),
             $applicationSlug,
