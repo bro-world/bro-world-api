@@ -82,6 +82,9 @@ final readonly class SchoolViewMapper
                 'className' => $exam->getSchoolClass()?->getName(),
                 'teacherId' => $exam->getTeacher()?->getId(),
                 'teacherName' => $exam->getTeacher()?->getName(),
+                'type' => $exam->getType()->value,
+                'status' => $exam->getStatus()->value,
+                'term' => $exam->getTerm()->value,
                 'updatedAt' => $exam->getUpdatedAt()?->format(DATE_ATOM),
             ];
         }
