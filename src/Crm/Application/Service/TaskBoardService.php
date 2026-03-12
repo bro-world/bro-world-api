@@ -9,12 +9,12 @@ use App\Crm\Domain\Entity\TaskRequest;
 use App\Crm\Infrastructure\Repository\TaskRepository;
 use App\User\Domain\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 
 final readonly class TaskBoardService
 {
     public function __construct(
         private TaskRepository $taskRepository,
-        private EntityManagerInterface $entityManager,
         private CrmApplicationScopeResolver $applicationScopeResolver,
     ) {
     }
@@ -33,7 +33,7 @@ final readonly class TaskBoardService
             ->leftJoin('task.project', 'project')
             ->leftJoin('project.company', 'company')
             ->andWhere('company.crm = :crm')
-            ->setParameter('crm', $crm)
+            ->setParameter('crm', $crm->getId(), UuidBinaryOrderedTimeType::NAME)
             ->orderBy('sprint.createdAt', 'DESC')
             ->addOrderBy('task.createdAt', 'DESC')
             ->addOrderBy('taskRequest.createdAt', 'DESC')
@@ -76,8 +76,8 @@ final readonly class TaskBoardService
             ->leftJoin('project.company', 'company')
             ->andWhere('company.crm = :crm')
             ->andWhere('taskAssignee = :user OR taskRequestAssignee = :user')
-            ->setParameter('crm', $crm)
-            ->setParameter('user', $loggedInUser)
+            ->setParameter('crm', $crm->getId(), UuidBinaryOrderedTimeType::NAME)
+            ->setParameter('user', $loggedInUser->getId(), UuidBinaryOrderedTimeType::NAME)
             ->orderBy('task.createdAt', 'DESC')
             ->addOrderBy('taskRequest.createdAt', 'DESC')
             ->getQuery()
@@ -121,6 +121,9 @@ final readonly class TaskBoardService
                 'id' => $user->getId(),
                 'username' => $user->getUsername(),
                 'email' => $user->getEmail(),
+                'firstName' => $user->getFirstName(),
+                'lastName' => $user->getLastName(),
+                'photo' => $user->getPhoto(),
             ], $task->getAssignees()->toArray()),
             'children' => array_map(fn (TaskRequest $taskRequest): array => $this->normalizeTaskRequest($taskRequest), $task->getTaskRequests()->toArray()),
         ];
@@ -140,6 +143,9 @@ final readonly class TaskBoardService
                 'id' => $user->getId(),
                 'username' => $user->getUsername(),
                 'email' => $user->getEmail(),
+                'firstName' => $user->getFirstName(),
+                'lastName' => $user->getLastName(),
+                'photo' => $user->getPhoto(),
             ], $taskRequest->getAssignees()->toArray()),
         ];
     }

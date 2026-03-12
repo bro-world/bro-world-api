@@ -49,10 +49,5 @@ final readonly class CrmApplicationScopeResolver
         if (!$application instanceof Application || $application->getPlatform()?->getPlatformKey() !== PlatformKey::CRM) {
             throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Invalid "applicationSlug" for the requested platform.');
         }
-
-        $user = $this->security->getUser();
-        if (!$user instanceof User || $application->getUser()?->getId() !== $user->getId()) {
-            throw new HttpException(JsonResponse::HTTP_FORBIDDEN, 'You cannot access this application scope.');
-        }
     }
 }

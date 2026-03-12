@@ -10,6 +10,7 @@ use App\Crm\Infrastructure\Repository\TaskRepository;
 use App\General\Application\Service\CacheKeyConventionService;
 use App\User\Domain\Entity\User;
 use App\General\Domain\Service\Interfaces\ElasticsearchServiceInterface;
+use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -29,6 +30,7 @@ readonly class TaskListService
 
     /**
      * @return array<string,mixed>
+     * @throws \JsonException
      */
     public function getList(Request $request): array
     {
@@ -70,7 +72,7 @@ readonly class TaskListService
             $qb = $this->taskRepository->createQueryBuilder('task')->leftJoin('task.project', 'project')->leftJoin('task.sprint', 'sprint')
                 ->leftJoin('project.company', 'company')
                 ->leftJoin('task.assignees', 'assignee')->addSelect('assignee')
-                ->andWhere('company.crm = :crm')->setParameter('crm', $crm)
+                ->andWhere('company.crm = :crm')->setParameter('crm', $crm->getId(), UuidBinaryOrderedTimeType::NAME)
                 ->setFirstResult(($page - 1) * $limit)->setMaxResults($limit)->orderBy('task.createdAt', 'DESC');
 
             if ($filters['title'] !== '') {
@@ -102,13 +104,16 @@ readonly class TaskListService
                     'id' => $assignee->getId(),
                     'username' => $assignee->getUsername(),
                     'email' => $assignee->getEmail(),
+                    'firstName' => $assignee->getFirstName(),
+                    'lastName' => $assignee->getLastName(),
+                    'photo' => $assignee->getPhoto(),
                 ], $task->getAssignees()->toArray()),
             ], $qb->getQuery()->getResult());
 
             $countQb = $this->taskRepository->createQueryBuilder('task')->select('COUNT(task.id)')
                 ->leftJoin('task.project', 'project')
                 ->leftJoin('project.company', 'company')
-                ->andWhere('company.crm = :crm')->setParameter('crm', $crm);
+                ->andWhere('company.crm = :crm')->setParameter('crm', $crm->getId(), UuidBinaryOrderedTimeType::NAME);
             if ($filters['title'] !== '') {
                 $countQb->andWhere('LOWER(task.title) LIKE LOWER(:title)')->setParameter('title', '%' . $filters['title'] . '%');
             }
