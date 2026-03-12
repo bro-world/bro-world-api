@@ -6,7 +6,10 @@ namespace App\School\Transport\Controller\Api\V1\Class;
 
 use App\School\Application\Service\ClassApplicationListService;
 use App\School\Application\Service\SchoolApplicationScopeResolver;
+use App\User\Domain\Entity\User;
+use JsonException;
 use OpenApi\Attributes as OA;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
@@ -25,12 +28,16 @@ final readonly class ListClassesByApplicationController
     ) {
     }
 
+    /**
+     * @throws InvalidArgumentException
+     * @throws JsonException
+     */
     #[Route('/v1/school/applications/{applicationSlug}/classes', methods: [Request::METHOD_GET])]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
-    public function __invoke(string $applicationSlug, Request $request): JsonResponse
+    public function __invoke(string $applicationSlug, Request $request, ?User $loggedInUser): JsonResponse
     {
         $request->attributes->set('applicationSlug', $applicationSlug);
-        $school = $this->scopeResolver->resolveOrCreateSchoolByApplicationSlug($applicationSlug);
+        $school = $this->scopeResolver->resolveOrCreateSchoolByApplicationSlug($applicationSlug, $loggedInUser);
 
         return new JsonResponse($this->classApplicationListService->getList($request, $applicationSlug, $school));
     }

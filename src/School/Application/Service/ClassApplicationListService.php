@@ -9,6 +9,7 @@ use App\School\Application\Serializer\SchoolApiResponseSerializer;
 use App\School\Application\Serializer\SchoolViewMapper;
 use App\School\Domain\Entity\School;
 use App\School\Infrastructure\Repository\SchoolClassRepository;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -26,7 +27,12 @@ readonly class ClassApplicationListService
     }
 
     /**
+     * @param Request $request
+     * @param string $applicationSlug
+     * @param School $school
      * @return array<string,mixed>
+     * @throws \JsonException
+     * @throws InvalidArgumentException
      */
     public function getList(Request $request, string $applicationSlug, School $school): array
     {

@@ -8,6 +8,8 @@ use App\Blog\Application\Message\CreateBlogPostCommand;
 use App\Blog\Application\MessageHandler\CreateBlogPostCommandHandler;
 use App\Blog\Application\Service\BlogMutationRequestService;
 use App\User\Domain\Entity\User;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,6 +33,10 @@ final readonly class CreateBlogPostController
     ) {
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     #[Route('/v1/private/blogs/{blogId}/posts', methods: [Request::METHOD_POST])]
     public function __invoke(string $blogId, Request $request, User $loggedInUser): JsonResponse
     {
@@ -63,7 +69,7 @@ final readonly class CreateBlogPostController
 
     private function slugify(string $value): string
     {
-        $slug = trim(strtolower((string)preg_replace('/[^a-zA-Z0-9]+/', '-', $value)), '-');
+        $slug = strtolower(trim((string)preg_replace('/[^a-zA-Z0-9]+/', '-', $value), '-'));
 
         return $slug !== '' ? $slug . '-' . substr((string)uniqid('', true), -6) : 'post-' . substr((string)uniqid('', true), -6);
     }
