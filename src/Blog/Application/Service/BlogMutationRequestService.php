@@ -16,7 +16,6 @@ use function array_filter;
 use function array_map;
 use function is_array;
 use function is_string;
-use function preg_match;
 use function sprintf;
 use function trim;
 
@@ -92,22 +91,15 @@ final readonly class BlogMutationRequestService
     public function normalizePostContent(array $payload): array
     {
         $rawContent = $payload['content'] ?? null;
+        $rawSharedUrl = $payload['sharedUrl'] ?? $payload['url'] ?? null;
 
-        if (!is_string($rawContent)) {
-            return ['content' => null, 'sharedUrl' => null];
-        }
+        $content = is_string($rawContent) ? trim($rawContent) : null;
+        $sharedUrl = is_string($rawSharedUrl) ? trim($rawSharedUrl) : null;
 
-        $content = trim($rawContent);
-
-        if ($content === '') {
-            return ['content' => null, 'sharedUrl' => null];
-        }
-
-        if ((bool)preg_match('/^https?:\/\//i', $content)) {
-            return ['content' => null, 'sharedUrl' => $content];
-        }
-
-        return ['content' => $content, 'sharedUrl' => null];
+        return [
+            'content' => $content !== '' ? $content : null,
+            'sharedUrl' => $sharedUrl !== '' ? $sharedUrl : null,
+        ];
     }
 
     /**

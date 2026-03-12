@@ -153,13 +153,13 @@ final readonly class BlogReadService
 
     /**
      * @param list<BlogPost> $allPosts
+     *
+     * @return array<string, mixed>
      */
-    private function normalizePost(BlogPost $post, array $allPosts, ?User $currentUser): array
+    private function normalizePost(BlogPost $post, array $allPosts, ?User $currentUser, bool $includeParent = true): array
     {
-        $postId = $post->getId();
-
         return [
-            'id' => $postId,
+            'id' => $post->getId(),
             'slug' => $post->getSlug(),
             'authorId' => $post->getAuthor()->getId(),
             'isAuthor' => $this->isAuthor($post->getAuthor(), $currentUser),
@@ -170,7 +170,9 @@ final readonly class BlogReadService
             'isPinned' => $post->isPinned(),
             'filePath' => $post->getFilePath(),
             'mediaUrls' => $post->getMediaUrls(),
-            'parentPostId' => $post->getParentPost()?->getId(),
+            'parent' => $includeParent && $post->getParentPost() instanceof BlogPost
+                ? $this->normalizePost($post->getParentPost(), $allPosts, $currentUser, false)
+                : null,
             'reactions' => array_map(fn ($reaction): array => [
                 'id' => $reaction->getId(),
                 'authorId' => $reaction->getAuthor()->getId(),
@@ -179,21 +181,31 @@ final readonly class BlogReadService
                 'type' => $reaction->getType()->value,
             ], $post->getReactions()->toArray()),
             'comments' => $this->normalizeComments($post->getComments()->toArray(), null, $currentUser),
-            'children' => $this->normalizeChildrenPosts($allPosts, $postId, $currentUser),
+            'children' => $post->getParentPost() instanceof BlogPost
+                ? ['count' => 0, 'authors' => []]
+                : $this->normalizeChildrenShares($allPosts, $post->getId()),
         ];
     }
 
     /**
      * @param list<BlogPost> $allPosts
      *
-     * @return list<array<string, mixed>>
+     * @return array{count: int, authors: list<array<string, mixed>>}
      */
-    private function normalizeChildrenPosts(array $allPosts, string $parentPostId, ?User $currentUser): array
+    private function normalizeChildrenShares(array $allPosts, string $parentPostId): array
     {
-        $children = array_values(array_filter($allPosts, static fn (BlogPost $post): bool => $post->getParentPost()?->getId() === $parentPostId));
-        usort($children, static fn (BlogPost $left, BlogPost $right): int => $right->getCreatedAt() <=> $left->getCreatedAt());
+        $sharedChildren = array_values(array_filter($allPosts, static fn (BlogPost $post): bool => $post->getParentPost()?->getId() === $parentPostId));
 
-        return array_map(fn (BlogPost $child): array => $this->normalizePost($child, $allPosts, $currentUser), $children);
+        $authorsById = [];
+        foreach ($sharedChildren as $childPost) {
+            $author = $childPost->getAuthor();
+            $authorsById[$author->getId()] = $this->normalizeAuthor($author);
+        }
+
+        return [
+            'count' => count($authorsById),
+            'authors' => array_values($authorsById),
+        ];
     }
 
     private function buildBlogCacheKey(string $scope, ?User $currentUser): string
@@ -237,6 +249,9 @@ final readonly class BlogReadService
         return $currentUser !== null && $author->getId() === $currentUser->getId();
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function normalizeAuthor(User $author): array
     {
         return [
