@@ -52,7 +52,9 @@ final class CreateBlogPostReactionCommandHandlerTest extends TestCase
             $cacheInvalidationService,
         );
 
-        $handler(new CreateBlogPostReactionCommand('op', 'actor', 'post', BlogReactionType::HEART));
+        $reactionId = $handler(new CreateBlogPostReactionCommand('op', 'actor', 'post', BlogReactionType::HEART));
+
+        self::assertNotSame('', $reactionId);
     }
 
     public function testInvokeUpdatesExistingReactionForSamePostAndAuthor(): void
@@ -89,9 +91,10 @@ final class CreateBlogPostReactionCommandHandlerTest extends TestCase
             $cacheInvalidationService,
         );
 
-        $handler(new CreateBlogPostReactionCommand('op', 'actor', 'post', BlogReactionType::LAUGH));
+        $reactionId = $handler(new CreateBlogPostReactionCommand('op', 'actor', 'post', BlogReactionType::LAUGH));
 
         self::assertSame(BlogReactionType::LAUGH, $existingReaction->getType());
+        self::assertSame($existingReaction->getId(), $reactionId);
     }
 
     /**
