@@ -15,6 +15,8 @@ use App\User\Domain\Entity\User;
 use App\User\Domain\Entity\UserProfile;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Cache\InvalidArgumentException;
+use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -45,7 +47,9 @@ readonly class UserMeService
     }
 
     /**
+     * @param User $user
      * @return array<int,array<string,string>>
+     * @throws InvalidArgumentException
      */
     public function getSessions(User $user): array
     {
@@ -57,7 +61,7 @@ readonly class UserMeService
 
             $qb = $this->logLoginRepository->createQueryBuilder('log')
                 ->andWhere('log.user = :user')
-                ->setParameter('user', $user)
+                ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
                 ->orderBy('log.time', 'DESC')
                 ->setMaxResults(10);
 
@@ -80,7 +84,9 @@ readonly class UserMeService
     }
 
     /**
+     * @param User $user
      * @return array<string,mixed>
+     * @throws InvalidArgumentException
      */
     public function getMe(User $user): array
     {
