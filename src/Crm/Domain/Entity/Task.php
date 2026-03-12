@@ -18,6 +18,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Override;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Ramsey\Uuid\UuidInterface;
+use Throwable;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'crm_task')]
@@ -72,6 +73,9 @@ class Task implements EntityInterface
     #[ORM\InverseJoinColumn(name: 'user_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private Collection|ArrayCollection $assignees;
 
+    /**
+     * @throws Throwable
+     */
     public function __construct()
     {
         $this->id = $this->createUuid();
@@ -204,5 +208,19 @@ class Task implements EntityInterface
         }
 
         return $this;
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->getId(),
+            'title' => $this->getTitle(),
+            'description' => $this->getDescription(),
+            'status' => $this->getStatus(),
+            'priority' => $this->getPriority(),
+            'dueAt' => $this->getDueAt(),
+            'estimatedHours' => $this->getEstimatedHours(),
+            'request' => $this->getTaskRequests()->first()?->toArray(),
+        ];
     }
 }

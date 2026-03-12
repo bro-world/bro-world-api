@@ -32,6 +32,7 @@ final readonly class ListSprintsController
             'id' => $sprint->getId(),
             'name' => $sprint->getName(),
             'projectId' => $sprint->getProject()?->getId(),
+            'tasks' => $sprint->getTasks()->toArray(),
             'status' => $sprint->getStatus()->value,
             'startDate' => $sprint->getStartDate()?->format('Y-m-d'),
             'endDate' => $sprint->getEndDate()?->format('Y-m-d'),

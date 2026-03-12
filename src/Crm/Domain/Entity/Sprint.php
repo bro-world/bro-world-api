@@ -16,6 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Override;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Ramsey\Uuid\UuidInterface;
+use Throwable;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'crm_sprint')]
@@ -54,6 +55,9 @@ class Sprint implements EntityInterface
     #[ORM\OneToMany(targetEntity: Task::class, mappedBy: 'sprint')]
     private Collection|ArrayCollection $tasks;
 
+    /**
+     * @throws Throwable
+     */
     public function __construct()
     {
         $this->id = $this->createUuid();

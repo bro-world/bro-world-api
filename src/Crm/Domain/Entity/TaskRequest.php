@@ -160,4 +160,17 @@ class TaskRequest implements EntityInterface
 
         return $this;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->getId(),
+            'title' => $this->getTitle(),
+            'description' => $this->getDescription(),
+            'status' => $this->getStatus(),
+            'requested_at' => $this->getRequestedAt(),
+            'resolved_at' => $this->getResolvedAt(),
+            'assignees' => $this->getAssignees()->toArray(),
+        ];
+    }
 }
