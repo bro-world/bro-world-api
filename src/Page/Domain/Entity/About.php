@@ -13,6 +13,7 @@ use Override;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Ramsey\Uuid\UuidInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Throwable;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'page_about')]
@@ -38,6 +39,9 @@ class About implements EntityInterface
     #[Groups(['About', 'About.content'])]
     private array $content = [];
 
+    /**
+     * @throws Throwable
+     */
     public function __construct()
     {
         $this->id = $this->createUuid();
