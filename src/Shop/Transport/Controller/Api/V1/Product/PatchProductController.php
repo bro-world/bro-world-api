@@ -10,7 +10,11 @@ use App\Shop\Application\Service\ProductListService;
 use App\Shop\Application\Service\ShopApplicationResolverService;
 use App\Shop\Domain\Entity\Product;
 use App\Shop\Infrastructure\Repository\ProductRepository;
+use App\Shop\Transport\Controller\Api\V1\Input\Product\PatchProductInput;
+use App\Shop\Transport\Controller\Api\V1\Input\Product\ProductInputValidator;
+use App\Shop\Transport\Controller\Api\V1\Input\Support\ValidationResponseFactory;
 use Doctrine\ORM\EntityManagerInterface;
+use JsonException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,6 +33,7 @@ final readonly class PatchProductController
         private ShopApplicationResolverService $shopApplicationResolverService,
         private ProductRepository $productRepository,
         private ProductHydratorService $productHydratorService,
+        private ProductInputValidator $productInputValidator,
         private EntityManagerInterface $entityManager,
         private MessageBusInterface $messageBus,
     ) {
@@ -45,7 +50,18 @@ final readonly class PatchProductController
             return new JsonResponse(status: JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $payload = (array)json_decode((string)$request->getContent(), true);
+        try {
+            $payload = (array) json_decode((string) $request->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            return ValidationResponseFactory::invalidJson();
+        }
+
+        $input = PatchProductInput::fromArray($payload);
+        $validationResponse = $this->productInputValidator->validate($input);
+        if ($validationResponse instanceof JsonResponse) {
+            return $validationResponse;
+        }
+
         $this->productHydratorService->hydrateProduct($product, $payload, true);
 
         $this->entityManager->flush();
