@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Quiz\Transport\Controller\Api\V1;
 
 use App\Quiz\Application\Service\QuizSubmissionService;
+use JsonException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,11 +19,14 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[OA\Tag(name: 'Quiz')]
 final class SubmitQuizByApplicationController
 {
+    /**
+     * @throws JsonException
+     */
     #[Route('/v1/quiz/applications/{applicationSlug}/submit', methods: [Request::METHOD_POST])]
     #[OA\Post(summary: 'POST /v1/quiz/applications/{applicationSlug}/submit', tags: ['Quiz'])]
     public function __invoke(string $applicationSlug, Request $request, QuizSubmissionService $quizSubmissionService): JsonResponse
     {
-        $payload = (array)json_decode((string)$request->getContent(), true);
+        $payload = (array)json_decode((string)$request->getContent(), true, 512, JSON_THROW_ON_ERROR);
 
         return new JsonResponse($quizSubmissionService->submitByApplicationSlug($applicationSlug, $payload));
     }
