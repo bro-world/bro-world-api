@@ -14,6 +14,7 @@ use App\Recruit\Domain\Entity\Reference;
 use App\Recruit\Domain\Entity\Resume;
 use App\Recruit\Domain\Entity\Skill;
 use Doctrine\ORM\EntityManagerInterface;
+use JsonException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -29,7 +30,7 @@ class ResumePayloadService
     /**
      * @var list<string>
      */
-    private const RESUME_SECTION_FIELDS = [
+    private const array RESUME_SECTION_FIELDS = [
         'experiences',
         'educations',
         'skills',
@@ -46,7 +47,9 @@ class ResumePayloadService
     }
 
     /**
+     * @param Request $request
      * @return array<string, mixed>
+     * @throws JsonException
      */
     public function extractPayload(Request $request): array
     {
@@ -56,7 +59,7 @@ class ResumePayloadService
 
             foreach (self::RESUME_SECTION_FIELDS as $field) {
                 if (is_string($payload[$field] ?? null)) {
-                    $decoded = json_decode($payload[$field], true);
+                    $decoded = json_decode($payload[$field], true, 512, JSON_THROW_ON_ERROR);
                     $payload[$field] = is_array($decoded) ? $decoded : [];
                 }
             }

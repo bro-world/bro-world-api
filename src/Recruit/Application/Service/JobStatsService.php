@@ -11,10 +11,10 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 
-class JobStatsService
+readonly class JobStatsService
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 

@@ -10,12 +10,12 @@ use App\Chat\Domain\Repository\Interfaces\ChatRepositoryInterface;
 use App\Recruit\Domain\Entity\Application;
 use DomainException;
 
-final class ApplicationDiscussionBootstrapService
+final readonly class ApplicationDiscussionBootstrapService
 {
     public function __construct(
-        private readonly ChatRepositoryInterface $chatRepository,
-        private readonly ConversationCreatorService $conversationCreatorService,
-        private readonly ConversationParticipantCreatorService $conversationParticipantCreatorService,
+        private ChatRepositoryInterface               $chatRepository,
+        private ConversationCreatorService            $conversationCreatorService,
+        private ConversationParticipantCreatorService $conversationParticipantCreatorService,
     ) {
     }
 

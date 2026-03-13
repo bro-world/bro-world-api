@@ -6,6 +6,7 @@ namespace App\Recruit\Application\Service;
 
 use App\Media\Application\Service\MediaUploaderService;
 use App\Media\Application\Service\MediaUploadValidationPolicy;
+use Random\RandomException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,13 +15,16 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use function str_contains;
 use function strtolower;
 
-class ResumeDocumentUploaderService
+readonly class ResumeDocumentUploaderService
 {
     public function __construct(
-        private readonly MediaUploaderService $mediaUploaderService
+        private MediaUploaderService $mediaUploaderService
     ) {
     }
 
+    /**
+     * @throws RandomException
+     */
     public function upload(Request $request, UploadedFile $document, string $relativeDirectory): string
     {
         if (!$this->isPdfFile($document)) {

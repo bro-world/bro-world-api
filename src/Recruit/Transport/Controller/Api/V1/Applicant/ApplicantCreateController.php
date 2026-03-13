@@ -8,6 +8,8 @@ use App\Recruit\Domain\Entity\Applicant;
 use App\Recruit\Infrastructure\Repository\ApplicantRepository;
 use App\Recruit\Infrastructure\Repository\ResumeRepository;
 use App\User\Domain\Entity\User;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use OpenApi\Attributes as OA;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,14 +26,18 @@ use function trim;
 #[AsController]
 #[OA\Tag(name: 'Recruit Applicant')]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-class ApplicantCreateController
+readonly class ApplicantCreateController
 {
     public function __construct(
-        private readonly ApplicantRepository $applicantRepository,
-        private readonly ResumeRepository $resumeRepository,
+        private ApplicantRepository $applicantRepository,
+        private ResumeRepository    $resumeRepository,
     ) {
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     #[Route(path: '/v1/recruit/applications/{applicationSlug}/applicants', methods: [Request::METHOD_POST])]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
     #[OA\Post(
@@ -77,7 +83,7 @@ class ApplicantCreateController
             throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'The given resume does not belong to the authenticated user.');
         }
 
-        $applicant = (new Applicant())
+        $applicant = new Applicant()
             ->setUser($loggedInUser)
             ->setResume($resume)
             ->setCoverLetter(trim($coverLetter));

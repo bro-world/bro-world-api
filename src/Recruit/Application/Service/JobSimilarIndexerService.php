@@ -6,6 +6,7 @@ namespace App\Recruit\Application\Service;
 
 use App\General\Domain\Service\Interfaces\ElasticsearchServiceInterface;
 use App\Recruit\Domain\Entity\Job;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 
 use function array_count_values;
@@ -74,7 +75,7 @@ class JobSimilarIndexerService
             $this->elasticsearchService->index(self::INDEX_NAME, $job->getId(), [
                 'jobId' => $job->getId(),
                 'similarJobIds' => $similarJobIds,
-                'updatedAt' => (new \DateTimeImmutable())->format(DATE_ATOM),
+                'updatedAt' => new DateTimeImmutable()->format(DATE_ATOM),
             ]);
         }
 

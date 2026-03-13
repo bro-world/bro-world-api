@@ -9,6 +9,7 @@ use App\General\Domain\Service\Interfaces\MessageServiceInterface;
 use App\Notification\Application\Message\MarkAllNotificationsAsReadCommand;
 use App\Notification\Infrastructure\Repository\NotificationRepository;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Throwable;
 
 #[AsMessageHandler]
 final readonly class MarkAllNotificationsAsReadCommandHandler
@@ -19,6 +20,9 @@ final readonly class MarkAllNotificationsAsReadCommandHandler
     ) {
     }
 
+    /**
+     * @throws Throwable
+     */
     public function __invoke(MarkAllNotificationsAsReadCommand $command): void
     {
         $updatedCount = $this->notificationRepository->getEntityManager()->getConnection()->transactional(function () use ($command): int {

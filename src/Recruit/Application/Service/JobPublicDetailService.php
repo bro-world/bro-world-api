@@ -18,11 +18,11 @@ use function in_array;
 use function is_array;
 use function is_string;
 
-class JobPublicDetailService
+readonly class JobPublicDetailService
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly ElasticsearchServiceInterface $elasticsearchService,
+        private EntityManagerInterface        $entityManager,
+        private ElasticsearchServiceInterface $elasticsearchService,
     ) {
     }
 

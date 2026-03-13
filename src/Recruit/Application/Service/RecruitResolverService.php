@@ -9,10 +9,10 @@ use App\Recruit\Domain\Repository\Interfaces\RecruitRepositoryInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class RecruitResolverService
+readonly class RecruitResolverService
 {
     public function __construct(
-        private readonly RecruitRepositoryInterface $recruitRepository,
+        private RecruitRepositoryInterface $recruitRepository,
     ) {
     }
 

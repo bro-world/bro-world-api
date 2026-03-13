@@ -13,6 +13,8 @@ use App\Page\Domain\Entity\Contact;
 use App\Page\Domain\Entity\PageLanguage;
 use App\Page\Domain\Repository\Interfaces\ContactRepositoryInterface as Repository;
 use App\Page\Domain\Repository\Interfaces\PageLanguageRepositoryInterface;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use RuntimeException;
 
 class ContactResource extends RestResource
@@ -54,6 +56,10 @@ class ContactResource extends RestResource
         $this->cacheInvalidationService->invalidatePublicPageCaches();
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     private function applyLanguage(RestDtoInterface $dto, EntityInterface $entity): void
     {
         if (!$dto instanceof ContactDto || !$entity instanceof Contact) {

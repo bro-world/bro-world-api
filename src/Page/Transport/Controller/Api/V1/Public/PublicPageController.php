@@ -6,6 +6,7 @@ namespace App\Page\Transport\Controller\Api\V1\Public;
 
 use App\Page\Application\Service\PublicPageReadService;
 use OpenApi\Attributes as OA;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
@@ -14,13 +15,16 @@ use Symfony\Component\Routing\Attribute\Route;
 
 #[AsController]
 #[OA\Tag(name: 'Page Public')]
-final class PublicPageController
+final readonly class PublicPageController
 {
     public function __construct(
-        private readonly PublicPageReadService $publicPageReadService,
+        private PublicPageReadService $publicPageReadService,
     ) {
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     #[Route(path: '/v1/page/public/home/{languageCode}', methods: [Request::METHOD_GET])]
     #[OA\Get(security: [])]
     public function home(string $languageCode): JsonResponse
@@ -28,6 +32,9 @@ final class PublicPageController
         return $this->jsonContentOr404($this->publicPageReadService->getHome($languageCode), $languageCode);
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     #[Route(path: '/v1/page/public/about/{languageCode}', methods: [Request::METHOD_GET])]
     #[OA\Get(security: [])]
     public function about(string $languageCode): JsonResponse
@@ -35,6 +42,9 @@ final class PublicPageController
         return $this->jsonContentOr404($this->publicPageReadService->getAbout($languageCode), $languageCode);
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     #[Route(path: '/v1/page/public/contact/{languageCode}', methods: [Request::METHOD_GET])]
     #[OA\Get(security: [])]
     public function contact(string $languageCode): JsonResponse
@@ -42,6 +52,9 @@ final class PublicPageController
         return $this->jsonContentOr404($this->publicPageReadService->getContact($languageCode), $languageCode);
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     #[Route(path: '/v1/page/public/faq/{languageCode}', methods: [Request::METHOD_GET])]
     #[OA\Get(security: [])]
     public function faq(string $languageCode): JsonResponse

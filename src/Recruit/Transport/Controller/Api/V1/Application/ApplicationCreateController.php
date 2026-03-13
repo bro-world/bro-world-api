@@ -11,6 +11,8 @@ use App\Recruit\Infrastructure\Repository\ApplicantRepository;
 use App\Recruit\Infrastructure\Repository\ApplicationRepository;
 use App\Recruit\Infrastructure\Repository\JobRepository;
 use App\User\Domain\Entity\User;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use OpenApi\Attributes as OA;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,16 +26,20 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[AsController]
 #[OA\Tag(name: 'Recruit Application')]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-class ApplicationCreateController
+readonly class ApplicationCreateController
 {
     public function __construct(
-        private readonly ApplicationRepository $applicationRepository,
-        private readonly ApplicantRepository $applicantRepository,
-        private readonly JobRepository $jobRepository,
-        private readonly RecruitResolverService $recruitResolverService,
+        private ApplicationRepository  $applicationRepository,
+        private ApplicantRepository    $applicantRepository,
+        private JobRepository          $jobRepository,
+        private RecruitResolverService $recruitResolverService,
     ) {
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     #[Route(path: '/v1/recruit/applications/{applicationSlug}/applications', methods: [Request::METHOD_POST])]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
     #[OA\Post(
@@ -92,7 +98,7 @@ class ApplicationCreateController
             throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'An active application already exists for this applicant and job.');
         }
 
-        $application = (new Application())
+        $application = new Application()
             ->setApplicant($applicant)
             ->setJob($job)
             ->setStatus(ApplicationStatus::WAITING);

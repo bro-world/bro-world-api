@@ -12,10 +12,12 @@ use App\Notification\Domain\Entity\Notification;
 use App\Notification\Infrastructure\Repository\NotificationRepository;
 use App\User\Domain\Entity\User;
 use App\User\Infrastructure\Repository\UserRepository;
+use JsonException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
+use Throwable;
 use function trim;
 
 #[AsMessageHandler]
@@ -29,6 +31,10 @@ final readonly class CreateNotificationCommandHandler
     ) {
     }
 
+    /**
+     * @throws Throwable
+     * @throws JsonException
+     */
     public function __invoke(CreateNotificationCommand $command): void
     {
         $entityManager = $this->notificationRepository->getEntityManager();

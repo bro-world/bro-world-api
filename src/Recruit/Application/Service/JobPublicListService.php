@@ -12,10 +12,12 @@ use App\Recruit\Domain\Entity\Job;
 use App\Recruit\Domain\Entity\Recruit;
 use App\Recruit\Domain\Entity\Resume;
 use App\User\Domain\Entity\User;
+use DateMalformedStringException;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
+use JsonException;
 use Psr\Cache\InvalidArgumentException;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Symfony\Component\HttpFoundation\Request;
@@ -44,19 +46,20 @@ use function strlen;
 use function strtolower;
 use function trim;
 
-class JobPublicListService
+readonly class JobPublicListService
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly CacheInterface $cache,
-        private readonly ElasticsearchServiceInterface $elasticsearchService,
-        private readonly CacheKeyConventionService $cacheKeyConventionService,
+        private EntityManagerInterface        $entityManager,
+        private CacheInterface                $cache,
+        private ElasticsearchServiceInterface $elasticsearchService,
+        private CacheKeyConventionService     $cacheKeyConventionService,
     ) {
     }
 
     /**
      * @return array<string, mixed>
      * @throws InvalidArgumentException
+     * @throws JsonException
      */
     public function getList(Request $request, string $applicationSlug, ?User $loggedInUser = null): array
     {
@@ -377,6 +380,9 @@ class JobPublicListService
         }
     }
 
+    /**
+     * @throws DateMalformedStringException
+     */
     private function applyPostedAtLabelFilter(QueryBuilder $qb, string $postedAtLabel): void
     {
         if ($postedAtLabel === '') {
@@ -530,7 +536,7 @@ class JobPublicListService
 
         $keywords = [];
         foreach ($resume->getSkills() as $skill) {
-            $title = trim(mb_strtolower($skill->getTitle()));
+            $title = mb_strtolower(trim($skill->getTitle()));
             if ($title === '') {
                 continue;
             }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Media\Application\Service;
 
+use Random\RandomException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,18 +18,21 @@ use function random_bytes;
 use function strtolower;
 use function trim;
 
-class MediaUploaderService
+readonly class MediaUploaderService
 {
     public function __construct(
-        private readonly Filesystem $filesystem,
-        private readonly string $projectDir,
+        private Filesystem $filesystem,
+        private string     $projectDir,
     ) {
     }
 
     /**
+     * @param Request $request
      * @param list<UploadedFile> $files
-     *
+     * @param string $relativeDirectory
+     * @param MediaUploadValidationPolicy $validationPolicy
      * @return list<array{url: string, originalName: string, mimeType: string, size: int, extension: string}>
+     * @throws RandomException
      */
     public function upload(Request $request, array $files, string $relativeDirectory, MediaUploadValidationPolicy $validationPolicy): array
     {

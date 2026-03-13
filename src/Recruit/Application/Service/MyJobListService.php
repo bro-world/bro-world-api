@@ -12,10 +12,10 @@ use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 
 use function array_map;
 
-class MyJobListService
+readonly class MyJobListService
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager
     ) {
     }
 

@@ -15,10 +15,10 @@ use function in_array;
 use function is_string;
 use function strtoupper;
 
-class ApplicationStatusTransitionService
+readonly class ApplicationStatusTransitionService
 {
     public function __construct(
-        private readonly ApplicationDiscussionBootstrapService $applicationDiscussionBootstrapService,
+        private ApplicationDiscussionBootstrapService $applicationDiscussionBootstrapService,
     ) {
     }
 

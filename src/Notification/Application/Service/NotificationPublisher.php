@@ -8,6 +8,9 @@ use App\General\Application\Service\MercurePublisher;
 use App\Notification\Domain\Entity\Notification;
 use App\Notification\Infrastructure\Repository\NotificationRepository;
 use App\User\Domain\Entity\User;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
+use JsonException;
 
 final readonly class NotificationPublisher
 {
@@ -17,13 +20,18 @@ final readonly class NotificationPublisher
     ) {
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws JsonException
+     * @throws ORMException
+     */
     public function publish(User $from, User $recipient, string $title, string $type, string $description = ''): void
     {
         if ($from->getId() === $recipient->getId()) {
             return;
         }
 
-        $notification = (new Notification())
+        $notification = new Notification()
             ->setTitle($title)
             ->setDescription($description)
             ->setType($type)

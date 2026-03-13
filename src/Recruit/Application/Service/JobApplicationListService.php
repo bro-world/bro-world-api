@@ -18,11 +18,11 @@ use function array_map;
 use function is_string;
 use function trim;
 
-class JobApplicationListService
+readonly class JobApplicationListService
 {
     public function __construct(
-        private readonly JobRepository $jobRepository,
-        private readonly EntityManagerInterface $entityManager,
+        private JobRepository          $jobRepository,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 

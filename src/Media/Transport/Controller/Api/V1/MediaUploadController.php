@@ -24,10 +24,10 @@ use function is_array;
 #[AsController]
 #[OA\Tag(name: 'Media')]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-class MediaUploadController
+readonly class MediaUploadController
 {
     public function __construct(
-        private readonly MediaUploaderService $mediaUploaderService
+        private MediaUploaderService $mediaUploaderService
     ) {
     }
 
@@ -38,11 +38,11 @@ class MediaUploadController
         content: new OA\MediaType(
             mediaType: 'multipart/form-data',
             schema: new OA\Schema(
-                type: 'object',
                 properties: [
                     new OA\Property(property: 'file', type: 'string', format: 'binary'),
                     new OA\Property(property: 'files[]', type: 'array', items: new OA\Items(type: 'string', format: 'binary')),
                 ],
+                type: 'object',
             ),
         ),
     )]
@@ -55,13 +55,13 @@ class MediaUploadController
                     property: 'files',
                     type: 'array',
                     items: new OA\Items(
-                        type: 'object',
                         properties: [
                             new OA\Property(property: 'url', type: 'string', example: '/uploads/media/3fa85f64.jpg'),
                             new OA\Property(property: 'originalName', type: 'string', example: 'document.pdf'),
                             new OA\Property(property: 'mimeType', type: 'string', example: 'application/pdf'),
                             new OA\Property(property: 'size', type: 'integer', example: 24576),
                         ],
+                        type: 'object',
                     ),
                 ),
             ],

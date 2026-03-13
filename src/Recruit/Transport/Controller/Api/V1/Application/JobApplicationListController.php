@@ -17,10 +17,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[AsController]
 #[OA\Tag(name: 'Recruit Application')]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-class JobApplicationListController
+readonly class JobApplicationListController
 {
     public function __construct(
-        private readonly JobApplicationListService $jobApplicationListService
+        private JobApplicationListService $jobApplicationListService
     ) {
     }
 
@@ -39,20 +39,17 @@ class JobApplicationListController
                 content: new OA\JsonContent(
                     type: 'array',
                     items: new OA\Items(
-                        type: 'object',
                         properties: [
                             new OA\Property(property: 'id', type: 'string', format: 'uuid'),
                             new OA\Property(property: 'status', type: 'string'),
                             new OA\Property(property: 'createdAt', type: 'string', format: 'date-time', nullable: true),
                             new OA\Property(
                                 property: 'applicant',
-                                type: 'object',
                                 properties: [
                                     new OA\Property(property: 'id', type: 'string', format: 'uuid'),
                                     new OA\Property(property: 'coverLetter', type: 'string'),
                                     new OA\Property(
                                         property: 'user',
-                                        type: 'object',
                                         properties: [
                                             new OA\Property(property: 'id', type: 'string', format: 'uuid'),
                                             new OA\Property(property: 'username', type: 'string', nullable: true),
@@ -60,17 +57,20 @@ class JobApplicationListController
                                             new OA\Property(property: 'lastName', type: 'string', nullable: true),
                                             new OA\Property(property: 'email', type: 'string', format: 'email', nullable: true),
                                         ],
+                                        type: 'object',
                                     ),
                                     new OA\Property(
                                         property: 'resume',
-                                        type: 'object',
                                         properties: [
                                             new OA\Property(property: 'id', type: 'string', format: 'uuid', nullable: true),
                                         ],
+                                        type: 'object',
                                     ),
                                 ],
+                                type: 'object',
                             ),
                         ],
+                        type: 'object',
                     ),
                 ),
             ),

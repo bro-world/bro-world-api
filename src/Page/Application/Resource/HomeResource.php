@@ -13,6 +13,8 @@ use App\Page\Domain\Entity\Home;
 use App\Page\Domain\Entity\PageLanguage;
 use App\Page\Domain\Repository\Interfaces\HomeRepositoryInterface as Repository;
 use App\Page\Domain\Repository\Interfaces\PageLanguageRepositoryInterface;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use RuntimeException;
 
 class HomeResource extends RestResource
@@ -54,6 +56,10 @@ class HomeResource extends RestResource
         $this->cacheInvalidationService->invalidatePublicPageCaches();
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     private function applyLanguage(RestDtoInterface $dto, EntityInterface $entity): void
     {
         if (!$dto instanceof HomeDto || !$entity instanceof Home) {

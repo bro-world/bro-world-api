@@ -11,11 +11,11 @@ use App\User\Domain\Entity\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class ApplicationJobAccessService
+readonly class ApplicationJobAccessService
 {
     public function __construct(
-        private readonly RecruitResolverService $recruitResolverService,
-        private readonly JobRepository $jobRepository,
+        private RecruitResolverService $recruitResolverService,
+        private JobRepository          $jobRepository,
     ) {
     }
 

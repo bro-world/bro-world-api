@@ -12,6 +12,7 @@ use App\Notification\Domain\Entity\Notification;
 use App\Notification\Infrastructure\Repository\NotificationRepository;
 use App\User\Domain\Entity\User;
 use OpenApi\Attributes as OA;
+use Ramsey\Uuid\Uuid;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
@@ -61,7 +62,7 @@ final readonly class NotificationController
                                 properties: [
                                     new OA\Property(property: 'firstName', type: 'string', example: 'John'),
                                     new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
-                                    new OA\Property(property: 'photo', type: 'string', nullable: true, example: '/uploads/profile/avatar.jpg'),
+                                    new OA\Property(property: 'photo', type: 'string', example: '/uploads/profile/avatar.jpg', nullable: true),
                                 ],
                                 type: 'object',
                             ),
@@ -112,6 +113,9 @@ final readonly class NotificationController
         ]);
     }
 
+    /**
+     * @throws \Throwable
+     */
     #[Route('/v1/notifications/read-all', methods: [Request::METHOD_PATCH])]
     #[OA\Patch(summary: 'Mark all notifications as read for the logged-in user.')]
     #[OA\Response(
@@ -128,7 +132,7 @@ final readonly class NotificationController
     #[OA\Response(response: 403, description: 'Access denied.')]
     public function markAllAsRead(User $loggedInUser): JsonResponse
     {
-        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
+        $operationId = Uuid::uuid4()->toString();
         $this->messageService->sendMessage(new MarkAllNotificationsAsReadCommand(
             operationId: $operationId,
             actorUserId: $loggedInUser->getId(),
@@ -148,10 +152,6 @@ final readonly class NotificationController
     #[OA\Response(response: 404, description: 'Notification not found.')]
     public function detail(User $loggedInUser, Notification $notification): JsonResponse
     {
-        if (!$notification instanceof Notification) {
-            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Notification not found.');
-        }
-
         if ($notification->getRecipient()->getId() !== $loggedInUser->getId()) {
             throw new HttpException(JsonResponse::HTTP_FORBIDDEN, 'You cannot access this notification.');
         }
@@ -159,6 +159,9 @@ final readonly class NotificationController
         return new JsonResponse($this->notificationReadService->normalize($notification));
     }
 
+    /**
+     * @throws \Throwable
+     */
     #[Route('/v1/notifications', methods: [Request::METHOD_POST])]
     #[OA\Post(summary: 'Create a notification.')]
     #[OA\RequestBody(
@@ -217,7 +220,7 @@ final readonly class NotificationController
             throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'Field "fromId" must be a non-empty string when provided.');
         }
 
-        $operationId = \Ramsey\Uuid\Uuid::uuid4()->toString();
+        $operationId = Uuid::uuid4()->toString();
         $this->messageService->sendMessage(new CreateNotificationCommand(
             operationId: $operationId,
             title: $title,

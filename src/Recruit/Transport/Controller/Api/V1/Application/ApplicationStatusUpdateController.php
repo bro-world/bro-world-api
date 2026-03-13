@@ -7,6 +7,8 @@ namespace App\Recruit\Transport\Controller\Api\V1\Application;
 use App\Recruit\Application\Service\ApplicationStatusTransitionService;
 use App\Recruit\Infrastructure\Repository\ApplicationRepository;
 use App\User\Domain\Entity\User;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,14 +22,18 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[AsController]
 #[OA\Tag(name: 'Recruit Application')]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-class ApplicationStatusUpdateController
+readonly class ApplicationStatusUpdateController
 {
     public function __construct(
-        private readonly ApplicationRepository $applicationRepository,
-        private readonly ApplicationStatusTransitionService $applicationStatusTransitionService,
+        private ApplicationRepository              $applicationRepository,
+        private ApplicationStatusTransitionService $applicationStatusTransitionService,
     ) {
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     #[Route(path: '/v1/recruit/applications/{applicationSlug}/private/applications/{applicationId}/status', methods: [Request::METHOD_PATCH, Request::METHOD_PUT])]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
     #[OA\Patch(
