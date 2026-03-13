@@ -7,6 +7,7 @@ namespace App\Blog\Transport\Controller\Api\V1\Read;
 use App\Blog\Application\Service\BlogReadService;
 use App\User\Domain\Entity\User;
 use OpenApi\Attributes as OA;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
@@ -23,11 +24,14 @@ final readonly class GetGeneralBlogController
     ) {
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     #[Route('/v1/private/blogs/general', methods: [Request::METHOD_GET])]
     #[OA\Get(
         parameters: [
             new OA\Parameter(name: 'page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 1, minimum: 1)),
-            new OA\Parameter(name: 'limit', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 20, minimum: 1, maximum: 100)),
+            new OA\Parameter(name: 'limit', in: 'query', required: false, schema: new OA\Schema(type: 'integer', default: 20, maximum: 100, minimum: 1)),
         ]
     )]
     #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
