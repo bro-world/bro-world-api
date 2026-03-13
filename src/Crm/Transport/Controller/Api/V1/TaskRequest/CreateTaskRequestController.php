@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\TaskRequest;
 
+use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\TaskRequest;
 use App\Crm\Domain\Enum\TaskRequestStatus;
 use App\Crm\Infrastructure\Repository\TaskRepository;
@@ -27,6 +28,7 @@ final readonly class CreateTaskRequestController
 {
     public function __construct(
         private TaskRepository $taskRepository,
+        private CrmApplicationScopeResolver $scopeResolver,
         private EntityManagerInterface $entityManager,
         private MessageBusInterface $messageBus,
     ) {
@@ -46,6 +48,7 @@ final readonly class CreateTaskRequestController
     public function __invoke(string $applicationSlug, Request $request): JsonResponse
     {
         $request->attributes->set('applicationSlug', $applicationSlug);
+        $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
         $payload = (array)json_decode((string)$request->getContent(), true);
         $taskRequest = new TaskRequest();
         $taskRequest->setTitle((string)($payload['title'] ?? ''))
@@ -53,7 +56,12 @@ final readonly class CreateTaskRequestController
             ->setStatus(TaskRequestStatus::tryFrom((string)($payload['status'] ?? '')) ?? TaskRequestStatus::PENDING)
             ->setResolvedAt(isset($payload['resolvedAt']) ? new DateTimeImmutable((string)$payload['resolvedAt']) : null);
         if (is_string($payload['taskId'] ?? null)) {
-            $taskRequest->setTask($this->taskRepository->find($payload['taskId']));
+            $task = $this->taskRepository->findOneScopedById($payload['taskId'], $crm->getId());
+            if ($task === null) {
+                return new JsonResponse(['message' => 'Unknown "taskId" in this CRM scope.'], JsonResponse::HTTP_NOT_FOUND);
+            }
+
+            $taskRequest->setTask($task);
         }
         if (is_array($payload['assigneeIds'] ?? null)) {
             foreach ($payload['assigneeIds'] as $assigneeId) {

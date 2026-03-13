@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Sprint;
 
+use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\Sprint;
 use App\Crm\Domain\Enum\SprintStatus;
 use App\Crm\Infrastructure\Repository\ProjectRepository;
@@ -26,6 +27,7 @@ final readonly class CreateSprintController
 {
     public function __construct(
         private ProjectRepository $projectRepository,
+        private CrmApplicationScopeResolver $scopeResolver,
         private EntityManagerInterface $entityManager,
         private MessageBusInterface $messageBus,
     ) {
@@ -37,6 +39,7 @@ final readonly class CreateSprintController
     public function __invoke(string $applicationSlug, Request $request): JsonResponse
     {
         $request->attributes->set('applicationSlug', $applicationSlug);
+        $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
         $payload = (array)json_decode((string)$request->getContent(), true);
         $sprint = new Sprint();
         $sprint->setName((string)($payload['name'] ?? ''))
@@ -45,7 +48,12 @@ final readonly class CreateSprintController
             ->setStartDate(isset($payload['startDate']) ? new DateTimeImmutable((string)$payload['startDate']) : null)
             ->setEndDate(isset($payload['endDate']) ? new DateTimeImmutable((string)$payload['endDate']) : null);
         if (is_string($payload['projectId'] ?? null)) {
-            $sprint->setProject($this->projectRepository->find($payload['projectId']));
+            $project = $this->projectRepository->findOneScopedById($payload['projectId'], $crm->getId());
+            if ($project === null) {
+                return new JsonResponse(['message' => 'Unknown "projectId" in this CRM scope.'], JsonResponse::HTTP_NOT_FOUND);
+            }
+
+            $sprint->setProject($project);
         }
 
         $this->entityManager->persist($sprint);
