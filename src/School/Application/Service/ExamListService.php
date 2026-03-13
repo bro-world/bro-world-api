@@ -39,13 +39,17 @@ readonly class ExamListService
             'q' => trim((string)$request->query->get('q', '')),
             'title' => trim((string)$request->query->get('title', '')),
         ];
-        $cacheKey = $this->cacheKeyConventionService->buildSchoolExamListKey($page, $limit, [...$filters, "schoolId" => $schoolId]);
+        $applicationSlug = (string)$request->attributes->get('applicationSlug', 'default');
+        $cacheKey = $this->cacheKeyConventionService->buildSchoolExamListKey($applicationSlug, $page, $limit, [...$filters, "schoolId" => $schoolId]);
 
         /** @var array<string,mixed> $result */
-        $result = $this->cache->get($cacheKey, function (ItemInterface $item) use ($filters, $page, $limit, $schoolId): array {
+        $result = $this->cache->get($cacheKey, function (ItemInterface $item) use ($filters, $page, $limit, $schoolId, $applicationSlug): array {
             $item->expiresAfter(120);
             if (method_exists($item, 'tag') && $this->cache instanceof TagAwareCacheInterface) {
-                $item->tag($this->cacheKeyConventionService->schoolExamListTag());
+                $item->tag([
+                    $this->cacheKeyConventionService->schoolExamListTag(),
+                    $this->cacheKeyConventionService->schoolExamListTagByApplication($applicationSlug),
+                ]);
             }
 
             $esIds = $this->searchIdsFromElastic($filters);

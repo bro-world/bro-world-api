@@ -63,16 +63,22 @@ class CacheInvalidationService
         ]));
     }
 
-    public function invalidateSchoolExamListCaches(): void
+    public function invalidateSchoolExamListCaches(?string $applicationSlug = null): void
     {
         if ($this->cache instanceof TagAwareCacheInterface) {
-            $this->cache->invalidateTags([$this->cacheKeyConventionService->schoolExamListTag()]);
+            if ($applicationSlug !== null && $applicationSlug !== '') {
+                $this->cache->invalidateTags([$this->cacheKeyConventionService->schoolExamListTagByApplication($applicationSlug)]);
+            } else {
+                $this->cache->invalidateTags([$this->cacheKeyConventionService->schoolExamListTag()]);
+            }
         }
 
-        $this->cache->delete($this->cacheKeyConventionService->buildSchoolExamListKey(1, 20, [
-            'q' => '',
-            'title' => '',
-        ]));
+        if ($applicationSlug !== null && $applicationSlug !== '') {
+            $this->cache->delete($this->cacheKeyConventionService->buildSchoolExamListKey($applicationSlug, 1, 20, [
+                'q' => '',
+                'title' => '',
+            ]));
+        }
     }
 
     public function invalidateRecruitJobListCaches(string $applicationSlug): void

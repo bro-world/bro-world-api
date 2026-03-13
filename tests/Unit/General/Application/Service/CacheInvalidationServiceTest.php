@@ -27,4 +27,21 @@ final class CacheInvalidationServiceTest extends TestCase
 
         $service->invalidateBlogCaches('my-app', ['actor', 'author', 'actor', '', null]);
     }
+
+
+    public function testInvalidateSchoolExamCachesByApplicationUsesScopedTag(): void
+    {
+        $cache = $this->createMock(TagAwareCacheInterface::class);
+        $cache->expects(self::once())
+            ->method('invalidateTags')
+            ->with(['cache_school_exam_list_school-campus-core']);
+        $cache->expects(self::once())
+            ->method('delete')
+            ->with(self::stringStartsWith('school_exam_list_'));
+
+        $service = new CacheInvalidationService($cache, new CacheKeyConventionService());
+
+        $service->invalidateSchoolExamListCaches('school-campus-core');
+    }
+
 }

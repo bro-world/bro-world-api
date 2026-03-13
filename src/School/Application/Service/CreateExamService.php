@@ -67,7 +67,10 @@ final readonly class CreateExamService
 
         $this->entityManager->persist($exam);
         $this->entityManager->flush();
-        $this->messageBus->dispatch(new EntityCreated('school_exam', $exam->getId()));
+        $applicationSlug = $class->getSchool()?->getApplication()?->getSlug();
+        $this->messageBus->dispatch(new EntityCreated('school_exam', $exam->getId(), context: [
+            'applicationSlug' => $applicationSlug,
+        ]));
 
         return $exam;
     }
