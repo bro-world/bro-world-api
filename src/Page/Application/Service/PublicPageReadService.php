@@ -15,6 +15,7 @@ use App\Page\Infrastructure\Repository\ContactRepository;
 use App\Page\Infrastructure\Repository\FaqRepository;
 use App\Page\Infrastructure\Repository\HomeRepository;
 use App\Page\Infrastructure\Repository\PageLanguageRepository;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -35,7 +36,9 @@ final readonly class PublicPageReadService
     }
 
     /**
+     * @param string $languageCode
      * @return array<string, mixed>|null
+     * @throws InvalidArgumentException
      */
     public function getHome(string $languageCode): ?array
     {
@@ -43,7 +46,9 @@ final readonly class PublicPageReadService
     }
 
     /**
+     * @param string $languageCode
      * @return array<string, mixed>|null
+     * @throws InvalidArgumentException
      */
     public function getAbout(string $languageCode): ?array
     {
@@ -51,7 +56,9 @@ final readonly class PublicPageReadService
     }
 
     /**
+     * @param string $languageCode
      * @return array<string, mixed>|null
+     * @throws InvalidArgumentException
      */
     public function getContact(string $languageCode): ?array
     {
@@ -59,7 +66,9 @@ final readonly class PublicPageReadService
     }
 
     /**
+     * @param string $languageCode
      * @return array<string, mixed>|null
+     * @throws InvalidArgumentException
      */
     public function getFaq(string $languageCode): ?array
     {
@@ -77,7 +86,10 @@ final readonly class PublicPageReadService
     }
 
     /**
+     * @param string $page
+     * @param string $languageCode
      * @return array<string, mixed>|null
+     * @throws InvalidArgumentException
      */
     private function getPageContent(string $page, string $languageCode): ?array
     {
