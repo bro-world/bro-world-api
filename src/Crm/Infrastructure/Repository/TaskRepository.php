@@ -57,4 +57,17 @@ class TaskRepository extends BaseRepository
             ->getResult();
     }
 
+
+    public function countTasksByCrm(string $crmId): int
+    {
+        return (int)$this->createQueryBuilder('task')
+            ->select('COUNT(task.id)')
+            ->leftJoin('task.project', 'project')
+            ->leftJoin('project.company', 'company')
+            ->andWhere('company.crm = :crmId')
+            ->setParameter('crmId', $crmId)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
 }

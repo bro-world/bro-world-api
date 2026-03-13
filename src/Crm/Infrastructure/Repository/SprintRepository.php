@@ -56,4 +56,69 @@ class SprintRepository extends BaseRepository
             ->getResult();
     }
 
+
+    public function countSprintsByCrm(string $crmId): int
+    {
+        return (int)$this->createQueryBuilder('sprint')
+            ->select('COUNT(sprint.id)')
+            ->leftJoin('sprint.project', 'project')
+            ->leftJoin('project.company', 'company')
+            ->andWhere('company.crm = :crmId')
+            ->setParameter('crmId', $crmId)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * @param array{q?:string,status?:string} $filters
+     * @return list<array<string,mixed>>
+     */
+    public function findScopedProjection(string $crmId, int $limit, int $offset, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('sprint')
+            ->select('sprint.id, sprint.name, sprint.status, sprint.startDate, sprint.endDate, IDENTITY(sprint.project) AS projectId')
+            ->leftJoin('sprint.project', 'project')
+            ->leftJoin('project.company', 'company')
+            ->andWhere('company.crm = :crmId')
+            ->setParameter('crmId', $crmId)
+            ->orderBy('sprint.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset);
+
+        $query = trim((string)($filters['q'] ?? ''));
+        if ($query !== '') {
+            $qb->andWhere('LOWER(sprint.name) LIKE LOWER(:q)')->setParameter('q', '%' . $query . '%');
+        }
+
+        $status = trim((string)($filters['status'] ?? ''));
+        if ($status !== '') {
+            $qb->andWhere('sprint.status = :status')->setParameter('status', $status);
+        }
+
+        return $qb->getQuery()->getArrayResult();
+    }
+
+    /** @param array{q?:string,status?:string} $filters */
+    public function countScopedByCrm(string $crmId, array $filters = []): int
+    {
+        $qb = $this->createQueryBuilder('sprint')
+            ->select('COUNT(sprint.id)')
+            ->leftJoin('sprint.project', 'project')
+            ->leftJoin('project.company', 'company')
+            ->andWhere('company.crm = :crmId')
+            ->setParameter('crmId', $crmId);
+
+        $query = trim((string)($filters['q'] ?? ''));
+        if ($query !== '') {
+            $qb->andWhere('LOWER(sprint.name) LIKE LOWER(:q)')->setParameter('q', '%' . $query . '%');
+        }
+
+        $status = trim((string)($filters['status'] ?? ''));
+        if ($status !== '') {
+            $qb->andWhere('sprint.status = :status')->setParameter('status', $status);
+        }
+
+        return (int)$qb->getQuery()->getSingleScalarResult();
+    }
+
 }
