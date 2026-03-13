@@ -257,7 +257,7 @@ final readonly class EntityProjectionHandler
     {
         if ($message instanceof EntityDeleted) {
             $this->elasticsearchService->delete(SchoolExamProjection::INDEX_NAME, $message->entityId);
-            $this->cacheInvalidationService->invalidateSchoolExamListCaches();
+            $this->cacheInvalidationService->invalidateSchoolExamListCaches(isset($message->context['applicationSlug']) ? (string)$message->context['applicationSlug'] : null);
 
             return;
         }
@@ -276,7 +276,8 @@ final readonly class EntityProjectionHandler
             'updatedAt' => $exam->getUpdatedAt()?->format(DATE_ATOM),
         ]);
 
-        $this->cacheInvalidationService->invalidateSchoolExamListCaches();
+        $applicationSlug = $exam->getSchoolClass()?->getSchool()?->getApplication()?->getSlug();
+        $this->cacheInvalidationService->invalidateSchoolExamListCaches($applicationSlug);
     }
 
     private function projectShopCatalog(): void
@@ -291,6 +292,6 @@ final readonly class EntityProjectionHandler
 
     private function projectSchoolSupportEntities(): void
     {
-        $this->cacheInvalidationService->invalidateSchoolExamListCaches();
+        $this->cacheInvalidationService->invalidateSchoolExamListCaches(null);
     }
 }
