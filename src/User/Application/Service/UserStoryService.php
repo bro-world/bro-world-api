@@ -126,9 +126,7 @@ readonly class UserStoryService
             ->select('story', 'user')
             ->innerJoin('story.user', 'user')
             ->andWhere('story.createdAt >= :since')
-            ->andWhere('user IN (:visibleUsers)')
             ->setParameter('since', $since)
-            ->setParameter('visibleUsers', $visibleUsers)
             ->orderBy('story.createdAt', 'DESC')
             ->setMaxResults($limit);
 
