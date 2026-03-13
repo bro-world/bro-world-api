@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\TaskRequest;
 
+use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\TaskRequest;
 use App\Crm\Infrastructure\Repository\TaskRequestRepository;
 use OpenApi\Attributes as OA;
@@ -20,7 +21,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final readonly class ListTaskRequestsController
 {
     public function __construct(
-        private TaskRequestRepository $taskRequestRepository
+        private TaskRequestRepository $taskRequestRepository,
+        private CrmApplicationScopeResolver $scopeResolver,
     ) {
     }
 
@@ -28,6 +30,7 @@ final readonly class ListTaskRequestsController
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
     public function __invoke(string $applicationSlug): JsonResponse
     {
+        $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
         $items = array_map(static fn (TaskRequest $taskRequest): array => [
             'id' => $taskRequest->getId(),
             'title' => $taskRequest->getTitle(),
@@ -40,9 +43,7 @@ final readonly class ListTaskRequestsController
                 'username' => $assignee->getUsername(),
                 'email' => $assignee->getEmail(),
             ], $taskRequest->getAssignees()->toArray()),
-        ], $this->taskRequestRepository->findBy([], [
-            'createdAt' => 'DESC',
-        ], 200));
+        ], $this->taskRequestRepository->findScoped($crm->getId()));
 
         return new JsonResponse([
             'items' => $items,

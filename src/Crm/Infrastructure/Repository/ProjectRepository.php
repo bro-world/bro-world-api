@@ -26,4 +26,33 @@ class ProjectRepository extends BaseRepository
         protected ManagerRegistry $managerRegistry
     ) {
     }
+
+    public function findOneScopedById(string $id, string $crmId): ?Entity
+    {
+        $entity = $this->createQueryBuilder('project')
+            ->leftJoin('project.company', 'company')
+            ->andWhere('project.id = :id')
+            ->andWhere('company.crm = :crmId')
+            ->setParameter('id', $id)
+            ->setParameter('crmId', $crmId)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $entity instanceof Entity ? $entity : null;
+    }
+
+    /** @return list<Entity> */
+    public function findScoped(string $crmId, int $limit = 200, int $offset = 0): array
+    {
+        return $this->createQueryBuilder('project')
+            ->leftJoin('project.company', 'company')
+            ->andWhere('company.crm = :crmId')
+            ->setParameter('crmId', $crmId)
+            ->orderBy('project.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
+            ->getQuery()
+            ->getResult();
+    }
+
 }

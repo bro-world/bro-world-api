@@ -25,4 +25,35 @@ class SprintRepository extends BaseRepository
         protected ManagerRegistry $managerRegistry
     ) {
     }
+
+    public function findOneScopedById(string $id, string $crmId): ?Entity
+    {
+        $entity = $this->createQueryBuilder('sprint')
+            ->leftJoin('sprint.project', 'project')
+            ->leftJoin('project.company', 'company')
+            ->andWhere('sprint.id = :id')
+            ->andWhere('company.crm = :crmId')
+            ->setParameter('id', $id)
+            ->setParameter('crmId', $crmId)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $entity instanceof Entity ? $entity : null;
+    }
+
+    /** @return list<Entity> */
+    public function findScoped(string $crmId, int $limit = 200, int $offset = 0): array
+    {
+        return $this->createQueryBuilder('sprint')
+            ->leftJoin('sprint.project', 'project')
+            ->leftJoin('project.company', 'company')
+            ->andWhere('company.crm = :crmId')
+            ->setParameter('crmId', $crmId)
+            ->orderBy('sprint.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
+            ->getQuery()
+            ->getResult();
+    }
+
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Project;
 
+use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\Project;
 use App\Crm\Infrastructure\Repository\ProjectRepository;
 use OpenApi\Attributes as OA;
@@ -20,7 +21,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final readonly class ListProjectsController
 {
     public function __construct(
-        private ProjectRepository $projectRepository
+        private ProjectRepository $projectRepository,
+        private CrmApplicationScopeResolver $scopeResolver,
     ) {
     }
 
@@ -28,14 +30,13 @@ final readonly class ListProjectsController
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
     public function __invoke(string $applicationSlug): JsonResponse
     {
+        $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
         $items = array_map(static fn (Project $project): array => [
             'id' => $project->getId(),
             'name' => $project->getName(),
             'companyId' => $project->getCompany()?->getId(),
             'status' => $project->getStatus()->value,
-        ], $this->projectRepository->findBy([], [
-            'createdAt' => 'DESC',
-        ], 200));
+        ], $this->projectRepository->findScoped($crm->getId()));
 
         return new JsonResponse([
             'items' => $items,

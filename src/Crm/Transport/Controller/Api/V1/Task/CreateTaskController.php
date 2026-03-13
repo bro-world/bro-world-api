@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Task;
 
+use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\Task;
 use App\Crm\Domain\Enum\TaskPriority;
 use App\Crm\Domain\Enum\TaskStatus;
@@ -30,6 +31,7 @@ final readonly class CreateTaskController
     public function __construct(
         private ProjectRepository $projectRepository,
         private SprintRepository $sprintRepository,
+        private CrmApplicationScopeResolver $scopeResolver,
         private EntityManagerInterface $entityManager,
         private MessageBusInterface $messageBus,
     ) {
@@ -49,6 +51,7 @@ final readonly class CreateTaskController
     public function __invoke(string $applicationSlug, Request $request): JsonResponse
     {
         $request->attributes->set('applicationSlug', $applicationSlug);
+        $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
         $payload = (array)json_decode((string)$request->getContent(), true);
         $task = new Task();
         $task->setTitle((string)($payload['title'] ?? ''))
@@ -57,12 +60,30 @@ final readonly class CreateTaskController
             ->setPriority(TaskPriority::tryFrom((string)($payload['priority'] ?? '')) ?? TaskPriority::MEDIUM)
             ->setDueAt(isset($payload['dueAt']) ? new DateTimeImmutable((string)$payload['dueAt']) : null)
             ->setEstimatedHours(isset($payload['estimatedHours']) ? (float)$payload['estimatedHours'] : null);
+
+        $project = null;
         if (is_string($payload['projectId'] ?? null)) {
-            $task->setProject($this->projectRepository->find($payload['projectId']));
+            $project = $this->projectRepository->findOneScopedById($payload['projectId'], $crm->getId());
+            if ($project === null) {
+                return new JsonResponse(['message' => 'Unknown "projectId" in this CRM scope.'], JsonResponse::HTTP_NOT_FOUND);
+            }
+
+            $task->setProject($project);
         }
+
         if (is_string($payload['sprintId'] ?? null)) {
-            $task->setSprint($this->sprintRepository->find($payload['sprintId']));
+            $sprint = $this->sprintRepository->findOneScopedById($payload['sprintId'], $crm->getId());
+            if ($sprint === null) {
+                return new JsonResponse(['message' => 'Unknown "sprintId" in this CRM scope.'], JsonResponse::HTTP_NOT_FOUND);
+            }
+
+            if ($project !== null && $sprint->getProject()?->getId() !== $project->getId()) {
+                return new JsonResponse(['message' => 'Provided "sprintId" does not belong to the provided "projectId".'], JsonResponse::HTTP_BAD_REQUEST);
+            }
+
+            $task->setSprint($sprint);
         }
+
         if (is_array($payload['assigneeIds'] ?? null)) {
             foreach ($payload['assigneeIds'] as $assigneeId) {
                 if (!is_string($assigneeId) || $assigneeId === '') {
