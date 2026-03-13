@@ -6,10 +6,8 @@ namespace App\Tests\Unit\Chat\Application\Service;
 
 use App\Chat\Application\Service\ConversationListService;
 use App\Chat\Domain\Entity\ChatMessage;
-use App\Chat\Domain\Entity\ChatMessageReaction;
 use App\Chat\Domain\Entity\Conversation;
 use App\Chat\Domain\Entity\ConversationParticipant;
-use App\Chat\Domain\Enum\ChatReactionType;
 use App\Chat\Domain\Enum\ConversationType;
 use App\Chat\Domain\Repository\Interfaces\ConversationRepositoryInterface;
 use App\General\Application\Service\CacheKeyConventionService;
@@ -105,12 +103,9 @@ final class ConversationListServiceTest extends TestCase
         self::assertSame([], $result['items']);
     }
 
-    public function testGetByUserNormalizesReactionUserIdAsUuidString(): void
+    public function testGetByUserReturnsLightConversationStructureWithLastMessage(): void
     {
         $connectedUser = $this->mockUser();
-
-        $reactionAuthor = $this->createMock(User::class);
-        $reactionAuthor->method('getId')->willReturn('550e8400-e29b-41d4-a716-446655440000');
 
         $sender = $this->createMock(User::class);
         $sender->method('getId')->willReturn('sender-id');
@@ -118,23 +113,12 @@ final class ConversationListServiceTest extends TestCase
         $sender->method('getLastName')->willReturn('User');
         $sender->method('getPhoto')->willReturn(null);
 
-        $reaction = $this->createMock(ChatMessageReaction::class);
-        $reaction->method('getId')->willReturn('reaction-id');
-        $reaction->method('getUser')->willReturn($reactionAuthor);
-        $reaction->method('getReaction')->willReturn(ChatReactionType::LIKE);
-
         $message = $this->createMock(ChatMessage::class);
         $message->method('getId')->willReturn('message-id');
-        $message->method('getContent')->willReturn('hello');
+        $message->method('getContent')->willReturn(str_repeat('hello', 80));
         $message->method('getSender')->willReturn($sender);
-        $message->method('getAttachments')->willReturn([]);
-        $message->method('getMetadata')->willReturn([]);
-        $message->method('isRead')->willReturn(true);
-        $message->method('getReadAt')->willReturn(null);
-        $message->method('getEditedAt')->willReturn(null);
         $message->method('getDeletedAt')->willReturn(null);
-        $message->method('getCreatedAt')->willReturn(new \DateTimeImmutable('2024-01-01T00:00:00+00:00'));
-        $message->method('getReactions')->willReturn(new ArrayCollection([$reaction]));
+        $message->method('getCreatedAt')->willReturn(new \DateTimeImmutable('2024-01-01T10:00:00+00:00'));
 
         $participant = $this->createMock(ConversationParticipant::class);
         $participant->method('getUser')->willReturn($connectedUser);
@@ -175,8 +159,11 @@ final class ConversationListServiceTest extends TestCase
         $service = new ConversationListService($repo, $cache, $elastic, $cacheKeyConventionService);
         $result = $service->getByUser($connectedUser, [], 1, 20);
 
-        self::assertSame('550e8400-e29b-41d4-a716-446655440000', $result['items'][0]['messages'][0]['reactions'][0]['userId']);
-        self::assertIsString($result['items'][0]['messages'][0]['reactions'][0]['userId']);
+        self::assertArrayNotHasKey('messages', $result['items'][0]);
+        self::assertSame('message-id', $result['items'][0]['lastMessage']['id']);
+        self::assertSame(280, mb_strlen($result['items'][0]['lastMessage']['content']));
+        self::assertSame('sender-id', $result['items'][0]['lastMessage']['sender']['id']);
+        self::assertSame('2024-01-01T10:00:00+00:00', $result['items'][0]['lastMessage']['createdAt']);
     }
 
     private function mockUser(): User
