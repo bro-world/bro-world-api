@@ -8,7 +8,11 @@ use App\General\Application\Message\EntityCreated;
 use App\Shop\Application\Service\ShopApplicationResolverService;
 use App\Shop\Application\Service\SlugBuilderService;
 use App\Shop\Domain\Entity\Category;
+use App\Shop\Transport\Controller\Api\V1\Input\Category\CategoryInputValidator;
+use App\Shop\Transport\Controller\Api\V1\Input\Category\CreateCategoryInput;
+use App\Shop\Transport\Controller\Api\V1\Input\Support\ValidationResponseFactory;
 use Doctrine\ORM\EntityManagerInterface;
+use JsonException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,6 +30,7 @@ final readonly class CreateCategoryController
     public function __construct(
         private ShopApplicationResolverService $shopApplicationResolverService,
         private SlugBuilderService $slugBuilderService,
+        private CategoryInputValidator $categoryInputValidator,
         private EntityManagerInterface $entityManager,
         private MessageBusInterface $messageBus,
     ) {
@@ -37,12 +42,24 @@ final readonly class CreateCategoryController
     {
         $request->attributes->set('applicationSlug', $applicationSlug);
         $shop = $this->shopApplicationResolverService->resolveOrCreateShopByApplicationSlug($applicationSlug);
-        $payload = (array)json_decode((string)$request->getContent(), true);
+
+        try {
+            $payload = (array) json_decode((string) $request->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            return ValidationResponseFactory::invalidJson();
+        }
+
+        $input = CreateCategoryInput::fromArray($payload);
+        $validationResponse = $this->categoryInputValidator->validate($input);
+        if ($validationResponse instanceof JsonResponse) {
+            return $validationResponse;
+        }
+
         $category = (new Category())
             ->setShop($shop)
-            ->setName((string)($payload['name'] ?? ''))
-            ->setSlug($this->slugBuilderService->buildSlug((string)($payload['slug'] ?? $payload['name'] ?? '')))
-            ->setDescription(($payload['description'] ?? null) !== null ? (string)$payload['description'] : null);
+            ->setName($input->name)
+            ->setSlug($this->slugBuilderService->buildSlug((string) ($input->slug ?? $input->name)))
+            ->setDescription($input->description);
 
         $this->entityManager->persist($category);
         $this->entityManager->flush();
