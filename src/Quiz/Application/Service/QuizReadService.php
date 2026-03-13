@@ -4,33 +4,33 @@ declare(strict_types=1);
 
 namespace App\Quiz\Application\Service;
 
+use App\Quiz\Domain\Entity\Quiz;
+use App\Quiz\Domain\Enum\QuizCategory;
+use App\Quiz\Domain\Enum\QuizLevel;
+use App\Quiz\Infrastructure\Repository\QuizQuestionRepository;
+use App\Quiz\Infrastructure\Repository\QuizRepository;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
+
+use function is_string;
+use function round;
+use function sprintf;
+
+final readonly class QuizReadService
+{
+    private const QUIZ_CACHE_TTL = 120;
     private const QUIZ_STATS_CACHE_TTL = 120;
-        $cacheKey = sprintf('quiz_stats_%s', $slug);
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($slug): array {
-            $item->expiresAfter(self::QUIZ_STATS_CACHE_TTL);
-            $quiz = $this->quizRepository->findOneByApplicationSlugWithConfiguration($slug);
-            if ($quiz === null) {
-                return [];
-            }
 
-            $stats = $this->quizQuestionRepository->getQuizStats($quiz);
+    public function __construct(
+        private QuizRepository $quizRepository,
+        private QuizQuestionRepository $quizQuestionRepository,
+        private CacheInterface $cache,
+    ) {
+    }
 
-            return [
-                'questionCount' => $stats['questionCount'],
-                'answerCount' => $stats['answerCount'],
-                'averageAnswersPerQuestion' => $stats['questionCount'] > 0
-                    ? round($stats['answerCount'] / $stats['questionCount'], 2)
-                    : 0.0,
-                'totalPoints' => $stats['totalPoints'],
-            ];
-        });
-
-    /**
-     * @throws InvalidArgumentException
-     */
     public function getByApplicationSlug(string $slug, ?string $level = null, ?string $category = null): array
     {
-        $cacheKey = sprintf('quiz_%s_%s_%s', $slug, (string)$level, (string)$category);
+        $cacheKey = sprintf('quiz_%s_%s_%s', $slug, (string) $level, (string) $category);
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($slug, $level, $category): array {
             $item->expiresAfter(self::QUIZ_CACHE_TTL);
@@ -73,31 +73,27 @@ namespace App\Quiz\Application\Service;
         });
     }
 
-    /**
-     * @throws InvalidArgumentException
-     */
     public function getStatsByApplicationSlug(string $slug): array
     {
-        $quiz = $this->getByApplicationSlug($slug);
-        if ($quiz === []) {
-            return [];
-        }
+        $cacheKey = sprintf('quiz_stats_%s', $slug);
 
-        $questionCount = 0;
-        $answerCount = 0;
-        $totalPoints = 0;
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($slug): array {
+            $item->expiresAfter(self::QUIZ_STATS_CACHE_TTL);
+            $quiz = $this->quizRepository->findOneByApplicationSlugWithConfiguration($slug);
+            if ($quiz === null) {
+                return [];
+            }
 
-        foreach ($quiz['questions'] as $question) {
-            ++$questionCount;
-            $answerCount += count($question['answers']);
-            $totalPoints += (int)$question['points'];
-        }
+            $stats = $this->quizQuestionRepository->getQuizStats($quiz);
 
-        return [
-            'questionCount' => $questionCount,
-            'answerCount' => $answerCount,
-            'averageAnswersPerQuestion' => $questionCount > 0 ? round($answerCount / $questionCount, 2) : 0.0,
-            'totalPoints' => $totalPoints,
-        ];
+            return [
+                'questionCount' => $stats['questionCount'],
+                'answerCount' => $stats['answerCount'],
+                'averageAnswersPerQuestion' => $stats['questionCount'] > 0
+                    ? round($stats['answerCount'] / $stats['questionCount'], 2)
+                    : 0.0,
+                'totalPoints' => $stats['totalPoints'],
+            ];
+        });
     }
 }
