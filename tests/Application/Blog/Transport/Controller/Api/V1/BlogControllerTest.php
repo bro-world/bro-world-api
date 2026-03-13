@@ -6,6 +6,8 @@ namespace App\Tests\Application\Blog\Transport\Controller\Api\V1;
 
 use App\Blog\Domain\Entity\Blog;
 use App\Blog\Domain\Enum\BlogVisibility;
+use App\Blog\Infrastructure\Repository\BlogCommentRepository;
+use App\Blog\Infrastructure\Repository\BlogReactionRepository;
 use App\Tests\TestCase\WebTestCase;
 use App\User\Infrastructure\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -204,6 +206,64 @@ final class BlogControllerTest extends WebTestCase
 
         self::assertCount(1, $johnUserReactionTypes);
         self::assertSame('laugh', $johnUserReactionTypes[0]);
+    }
+
+    public function testCreateReactionDoubleSubmissionKeepsSingleDatabaseRow(): void
+    {
+        $client = $this->getTestClient('john-user', 'password-user');
+
+        $client->request(Request::METHOD_GET, self::API_URL_PREFIX . '/v1/blog/shop-ops-center/feed');
+        self::assertResponseStatusCodeSame(200);
+        /** @var array<string, mixed> $payload */
+        $payload = json_decode((string)$client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        $targetCommentId = self::findFirstCommentId($payload);
+        self::assertNotNull($targetCommentId);
+
+        $client->request(
+            Request::METHOD_POST,
+            self::API_URL_PREFIX . '/v1/private/blog/comments/' . $targetCommentId . '/reactions',
+            [],
+            [],
+            $this->getJsonHeaders(),
+            json_encode([
+                'type' => 'heart',
+            ], JSON_THROW_ON_ERROR),
+        );
+        self::assertResponseStatusCodeSame(202);
+
+        $client->request(
+            Request::METHOD_POST,
+            self::API_URL_PREFIX . '/v1/private/blog/comments/' . $targetCommentId . '/reactions',
+            [],
+            [],
+            $this->getJsonHeaders(),
+            json_encode([
+                'type' => 'laugh',
+            ], JSON_THROW_ON_ERROR),
+        );
+        self::assertResponseStatusCodeSame(202);
+
+        /** @var UserRepository $userRepository */
+        $userRepository = static::getContainer()->get(UserRepository::class);
+        $johnUser = $userRepository->findOneBy([
+            'username' => 'john-user',
+        ]);
+        self::assertNotNull($johnUser);
+
+        /** @var BlogCommentRepository $commentRepository */
+        $commentRepository = static::getContainer()->get(BlogCommentRepository::class);
+        $comment = $commentRepository->find($targetCommentId);
+        self::assertNotNull($comment);
+
+        /** @var BlogReactionRepository $reactionRepository */
+        $reactionRepository = static::getContainer()->get(BlogReactionRepository::class);
+        $reactions = $reactionRepository->findBy([
+            'comment' => $comment,
+            'author' => $johnUser,
+        ]);
+
+        self::assertCount(1, $reactions);
     }
 
 
