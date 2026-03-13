@@ -11,8 +11,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
+#[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
 #[OA\Tag(name: 'Shop')]
 final readonly class ConfirmPaymentController
 {
@@ -23,6 +26,11 @@ final readonly class ConfirmPaymentController
 
     #[Route('/v1/shop/applications/{applicationSlug}/orders/{orderId}/payment-confirm', methods: [Request::METHOD_POST])]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\Post(
+        security: [['Bearer' => []]],
+        summary: 'Confirm a payment for an order (private endpoint, full authentication required).',
+    )]
+    #[OA\Response(response: JsonResponse::HTTP_FORBIDDEN, description: 'Forbidden. The order does not belong to the authenticated user or requested application.')]
     public function __invoke(string $applicationSlug, string $orderId, Request $request): JsonResponse
     {
         $request->attributes->set('applicationSlug', $applicationSlug);
@@ -33,7 +41,7 @@ final readonly class ConfirmPaymentController
             throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, 'providerReference is required.');
         }
 
-        $transaction = $this->paymentService->confirmPayment($orderId, $providerReference, $payload);
+        $transaction = $this->paymentService->confirmPayment($applicationSlug, $orderId, $providerReference, $payload);
 
         return new JsonResponse([
             'id' => $transaction->getId(),

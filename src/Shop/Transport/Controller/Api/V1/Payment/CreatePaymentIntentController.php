@@ -10,8 +10,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
+#[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
 #[OA\Tag(name: 'Shop')]
 final readonly class CreatePaymentIntentController
 {
@@ -22,9 +25,14 @@ final readonly class CreatePaymentIntentController
 
     #[Route('/v1/shop/applications/{applicationSlug}/orders/{orderId}/payment-intent', methods: [Request::METHOD_POST])]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\Post(
+        security: [['Bearer' => []]],
+        summary: 'Create a payment intent for an order (private endpoint, full authentication required).',
+    )]
+    #[OA\Response(response: JsonResponse::HTTP_FORBIDDEN, description: 'Forbidden. The order does not belong to the authenticated user or requested application.')]
     public function __invoke(string $applicationSlug, string $orderId): JsonResponse
     {
-        $transaction = $this->paymentService->createPaymentIntent($orderId);
+        $transaction = $this->paymentService->createPaymentIntent($applicationSlug, $orderId);
 
         return new JsonResponse([
             'id' => $transaction->getId(),
