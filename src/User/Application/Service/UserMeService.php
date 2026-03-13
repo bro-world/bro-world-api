@@ -19,6 +19,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Cache\InvalidArgumentException;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -44,6 +45,7 @@ readonly class UserMeService
         private ElasticsearchServiceInterface $elasticsearchService,
         private MessageBusInterface $messageBus,
         private UserPasswordHasherInterface $passwordHasher,
+        private UserFriendService $userFriendService
     ) {
     }
 
@@ -151,11 +153,20 @@ readonly class UserMeService
                 'providerId' => $social->getProviderId(),
             ], $user->getSocials()->toArray()),
             'sessions' => $this->getSessions($user),
+            'applications' => $this->getApplications($user),
+            'friends' => $this->userFriendService->getMyFriends($user),
+            'friendRequests' => $this->userFriendService->getMySentRequests($user),
+            'blockedUsers' => $this->userFriendService->getMyBlockedUsers($user),
+            'incomingRequests' => $this->userFriendService->getMyIncomingRequests($user),
         ];
     }
 
     /**
+     * @param User $user
      * @param array<string,mixed> $payload
+     * @return array
+     * @throws \DateMalformedStringException
+     * @throws ExceptionInterface
      */
     public function patchProfile(User $user, array $payload): array
     {

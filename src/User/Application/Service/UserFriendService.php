@@ -10,6 +10,7 @@ use App\User\Domain\Entity\User;
 use App\User\Domain\Entity\UserFriendRelation;
 use App\User\Domain\Enum\FriendStatus;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Cache\InvalidArgumentException;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -41,7 +42,13 @@ readonly class UserFriendService
     }
 
     /**
+     * @param User $loggedInUser
+     * @param User $targetUser
      * @return array<string,string>
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws Throwable
      */
     public function sendRequest(User $loggedInUser, User $targetUser): array
     {
@@ -244,7 +251,9 @@ readonly class UserFriendService
     }
 
     /**
+     * @param User $loggedInUser
      * @return array<int,array<string,string>>
+     * @throws InvalidArgumentException
      */
     public function getMyFriends(User $loggedInUser): array
     {
@@ -286,7 +295,9 @@ readonly class UserFriendService
     }
 
     /**
+     * @param User $loggedInUser
      * @return array<int,array<string,string>>
+     * @throws InvalidArgumentException
      */
     public function getMyIncomingRequests(User $loggedInUser): array
     {
@@ -321,7 +332,9 @@ readonly class UserFriendService
     }
 
     /**
+     * @param User $loggedInUser
      * @return array<int,array<string,string>>
+     * @throws InvalidArgumentException
      */
     public function getMySentRequests(User $loggedInUser): array
     {

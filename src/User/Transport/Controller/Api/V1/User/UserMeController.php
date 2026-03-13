@@ -25,6 +25,9 @@ class UserMeController
     ) {
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     #[Route(path: '/v1/users/me', methods: [Request::METHOD_GET])]
     #[OA\Response(response: 200, description: 'Current authenticated user')]
     public function me(User $loggedInUser): JsonResponse

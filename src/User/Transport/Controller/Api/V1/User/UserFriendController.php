@@ -20,10 +20,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[AsController]
 #[OA\Tag(name: 'User Friends')]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-class UserFriendController
+readonly class UserFriendController
 {
     public function __construct(
-        private readonly UserFriendService $userFriendService
+        private UserFriendService $userFriendService
     ) {
     }
 
