@@ -11,6 +11,7 @@ use App\User\Domain\Enum\UserRelationshipStatus;
 use App\User\Domain\Repository\Interfaces\UserRelationshipRepositoryInterface;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
+use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 
 /**
  * @package App\User
@@ -62,7 +63,7 @@ class UserRelationshipRepository extends BaseRepository implements UserRelations
             ->createQueryBuilder('ur')
             ->where('ur.addressee = :user')
             ->andWhere('ur.status = :status')
-            ->setParameter('user', $user)
+            ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
             ->setParameter('status', UserRelationshipStatus::PENDING)
             ->orderBy('ur.createdAt', 'DESC')
             ->getQuery()
@@ -75,7 +76,7 @@ class UserRelationshipRepository extends BaseRepository implements UserRelations
             ->createQueryBuilder('ur')
             ->where('ur.requester = :user')
             ->andWhere('ur.status = :status')
-            ->setParameter('user', $user)
+            ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
             ->setParameter('status', UserRelationshipStatus::PENDING)
             ->orderBy('ur.createdAt', 'DESC')
             ->getQuery()
@@ -88,7 +89,7 @@ class UserRelationshipRepository extends BaseRepository implements UserRelations
             ->createQueryBuilder('ur')
             ->where('(ur.requester = :user OR ur.addressee = :user)')
             ->andWhere('ur.status = :status')
-            ->setParameter('user', $user)
+            ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
             ->setParameter('status', UserRelationshipStatus::ACCEPTED)
             ->orderBy('ur.updatedAt', 'DESC')
             ->getQuery()
