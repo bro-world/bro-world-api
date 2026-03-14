@@ -81,7 +81,7 @@ final readonly class CreateTaskController
                 content: new OA\JsonContent(
                     examples: [
                         'invalidJson' => new OA\Examples(example: 'invalidJson', summary: 'JSON invalide', value: ['message' => 'Invalid JSON payload.', 'errors' => []]),
-                        'invalidDate' => new OA\Examples(example: 'invalidJson', summary: 'Date invalide', value: ['message' => 'Invalid date format for "dueAt".', 'errors' => []]),
+                        'invalidDate' => new OA\Examples(example: 'invalidDate', summary: 'Date invalide', value: ['message' => 'Invalid date format for "dueAt".', 'errors' => []]),
                     ],
                 ),
             ),
