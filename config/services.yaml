@@ -110,6 +110,10 @@ services:
             $senderEmail: '%recruit.interview_invitation.sender_email%'
             $createTemplate: '%recruit.interview_invitation.template_create%'
             $updateTemplate: '%recruit.interview_invitation.template_update%'
+            
+    App\General\Domain\Service\Interfaces\MetricsCounterInterface:
+        class: App\General\Infrastructure\Service\NullMetricsCounter
+
     app.serializer.normalizer.object.external_message:
         class: Symfony\Component\Serializer\Normalizer\ObjectNormalizer
         autoconfigure: false
