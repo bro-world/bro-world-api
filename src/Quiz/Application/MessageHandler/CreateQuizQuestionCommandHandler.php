@@ -22,6 +22,12 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
+use function count;
+use function is_array;
+use function is_string;
+use function preg_replace;
+use function trim;
+
 #[AsMessageHandler]
 final readonly class CreateQuizQuestionCommandHandler
 {
@@ -56,6 +62,40 @@ final readonly class CreateQuizQuestionCommandHandler
             throw new HttpException(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, 'At least two answers are required.');
         }
 
+        $normalizedAnswers = [];
+        $correctAnswersCount = 0;
+
+        foreach (array_values($command->answers) as $index => $answerItem) {
+            if (!is_array($answerItem)) {
+                throw new HttpException(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, 'Each answer must be an object with "label" and "correct" fields.');
+            }
+
+            $label = is_string($answerItem['label'] ?? null) ? $answerItem['label'] : '';
+            $normalizedLabel = trim((string)preg_replace('/\s+/', ' ', $label));
+            if ($normalizedLabel == '') {
+                throw new HttpException(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, 'Answer labels must be non-empty.');
+            }
+
+            $isCorrect = ($answerItem['correct'] ?? false) === true;
+            if ($isCorrect) {
+                ++$correctAnswersCount;
+            }
+
+            $normalizedAnswers[] = [
+                'label' => $normalizedLabel,
+                'correct' => $isCorrect,
+                'position' => $index + 1,
+            ];
+        }
+
+        if ($correctAnswersCount < 1) {
+            throw new HttpException(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, 'At least one answer must be marked as correct.');
+        }
+
+        if ($correctAnswersCount > 1) {
+            throw new HttpException(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, 'Single-choice quizzes require exactly one correct answer per question.');
+        }
+
         $question = (new QuizQuestion())
             ->setQuiz($quiz)
             ->setTitle($command->title)
@@ -65,12 +105,12 @@ final readonly class CreateQuizQuestionCommandHandler
             ->setExplanation($command->explanation)
             ->setPosition($this->questionRepository->nextPositionForQuiz($quiz));
 
-        foreach (array_values($command->answers) as $index => $answerItem) {
+        foreach ($normalizedAnswers as $answerItem) {
             $answer = (new QuizAnswer())
                 ->setQuestion($question)
-                ->setLabel((string)($answerItem['label'] ?? ''))
-                ->setCorrect((bool)($answerItem['correct'] ?? false))
-                ->setPosition($index + 1);
+                ->setLabel($answerItem['label'])
+                ->setCorrect($answerItem['correct'])
+                ->setPosition($answerItem['position']);
             $this->questionRepository->getEntityManager()->persist($answer);
         }
 

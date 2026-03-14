@@ -9,6 +9,7 @@ use App\Quiz\Application\Message\CreateQuizQuestionCommand;
 use App\Quiz\Application\MessageHandler\CreateQuizQuestionCommandHandler;
 use App\Quiz\Domain\Entity\Quiz;
 use App\Tests\TestCase\WebTestCase;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\TestDox;
 use Symfony\Component\HttpFoundation\Response;
@@ -74,6 +75,120 @@ final class QuizCacheInvalidationTest extends WebTestCase
 
         self::assertSame((int)$initialStatsPayload['questionCount'] + 1, (int)$updatedStatsPayload['questionCount']);
         self::assertSame((int)$initialStatsPayload['answerCount'] + 2, (int)$updatedStatsPayload['answerCount']);
+    }
+
+    #[TestDox('Creating a question requires at least one correct answer.')]
+    public function testCreateQuestionValidationRequiresAtLeastOneCorrectAnswer(): void
+    {
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $quiz = $this->getPublishedQuizOwnedByRoot($entityManager);
+
+        /** @var InMemoryTransport $transport */
+        $transport = static::getContainer()->get('messenger.transport.async_priority_high');
+        $transport->reset();
+
+        $ownerClient = $this->getTestClient('john-root', 'password-root');
+        $ownerClient->request('POST', $this->baseUrl . '/' . $quiz->getApplication()->getSlug() . '/questions', content: JSON::encode([
+            'title' => 'Invalid question no correct answer',
+            'level' => 'easy',
+            'category' => 'general',
+            'points' => 2,
+            'answers' => [
+                ['label' => 'Wrong A', 'correct' => false],
+                ['label' => 'Wrong B', 'correct' => false],
+            ],
+        ]));
+
+        self::assertSame(Response::HTTP_ACCEPTED, $ownerClient->getResponse()->getStatusCode());
+
+        $envelopes = $transport->getSent();
+        self::assertCount(1, $envelopes);
+        $command = $envelopes[0]->getMessage();
+        self::assertInstanceOf(CreateQuizQuestionCommand::class, $command);
+
+        /** @var CreateQuizQuestionCommandHandler $handler */
+        $handler = static::getContainer()->get(CreateQuizQuestionCommandHandler::class);
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(Response::HTTP_UNPROCESSABLE_ENTITY);
+        $this->expectExceptionMessage('At least one answer must be marked as correct.');
+        $handler($command);
+    }
+
+    #[TestDox('Creating a question rejects multi-choice answers for single-choice quizzes.')]
+    public function testCreateQuestionValidationRejectsMultipleCorrectAnswers(): void
+    {
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $quiz = $this->getPublishedQuizOwnedByRoot($entityManager);
+
+        /** @var InMemoryTransport $transport */
+        $transport = static::getContainer()->get('messenger.transport.async_priority_high');
+        $transport->reset();
+
+        $ownerClient = $this->getTestClient('john-root', 'password-root');
+        $ownerClient->request('POST', $this->baseUrl . '/' . $quiz->getApplication()->getSlug() . '/questions', content: JSON::encode([
+            'title' => 'Invalid question multi-correct',
+            'level' => 'easy',
+            'category' => 'general',
+            'points' => 2,
+            'answers' => [
+                ['label' => 'Right A', 'correct' => true],
+                ['label' => 'Right B', 'correct' => true],
+            ],
+        ]));
+
+        self::assertSame(Response::HTTP_ACCEPTED, $ownerClient->getResponse()->getStatusCode());
+
+        $envelopes = $transport->getSent();
+        self::assertCount(1, $envelopes);
+        $command = $envelopes[0]->getMessage();
+        self::assertInstanceOf(CreateQuizQuestionCommand::class, $command);
+
+        /** @var CreateQuizQuestionCommandHandler $handler */
+        $handler = static::getContainer()->get(CreateQuizQuestionCommandHandler::class);
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(Response::HTTP_UNPROCESSABLE_ENTITY);
+        $this->expectExceptionMessage('Single-choice quizzes require exactly one correct answer per question.');
+        $handler($command);
+    }
+
+    #[TestDox('Creating a question rejects empty answer labels.')]
+    public function testCreateQuestionValidationRejectsEmptyLabels(): void
+    {
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $quiz = $this->getPublishedQuizOwnedByRoot($entityManager);
+
+        /** @var InMemoryTransport $transport */
+        $transport = static::getContainer()->get('messenger.transport.async_priority_high');
+        $transport->reset();
+
+        $ownerClient = $this->getTestClient('john-root', 'password-root');
+        $ownerClient->request('POST', $this->baseUrl . '/' . $quiz->getApplication()->getSlug() . '/questions', content: JSON::encode([
+            'title' => 'Invalid question empty label',
+            'level' => 'easy',
+            'category' => 'general',
+            'points' => 2,
+            'answers' => [
+                ['label' => '    ', 'correct' => true],
+                ['label' => 'Wrong', 'correct' => false],
+            ],
+        ]));
+
+        self::assertSame(Response::HTTP_ACCEPTED, $ownerClient->getResponse()->getStatusCode());
+
+        $envelopes = $transport->getSent();
+        self::assertCount(1, $envelopes);
+        $command = $envelopes[0]->getMessage();
+        self::assertInstanceOf(CreateQuizQuestionCommand::class, $command);
+
+        /** @var CreateQuizQuestionCommandHandler $handler */
+        $handler = static::getContainer()->get(CreateQuizQuestionCommandHandler::class);
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionCode(Response::HTTP_UNPROCESSABLE_ENTITY);
+        $this->expectExceptionMessage('Answer labels must be non-empty.');
+        $handler($command);
     }
 
     private function getPublishedQuizOwnedByRoot(EntityManagerInterface $entityManager): Quiz
