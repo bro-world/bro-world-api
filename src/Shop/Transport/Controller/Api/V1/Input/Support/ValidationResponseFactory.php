@@ -29,16 +29,27 @@ final class ValidationResponseFactory
      */
     public static function fromViolations(iterable $violations): JsonResponse
     {
+        /** @var list<array{field: string, message: string, code: string|null}> $errors */
+        $errors = array_map(
+            static fn (ConstraintViolationInterface $violation): array => [
+                'field' => $violation->getPropertyPath(),
+                'message' => $violation->getMessage(),
+                'code' => $violation->getCode(),
+            ],
+            iterator_to_array($violations),
+        );
+
+        return self::fromErrors($errors);
+    }
+
+    /**
+     * @param list<array{field: string, message: string, code: string|null}> $errors
+     */
+    public static function fromErrors(array $errors): JsonResponse
+    {
         return new JsonResponse([
             'message' => 'Validation failed.',
-            'errors' => array_map(
-                static fn (ConstraintViolationInterface $violation): array => [
-                    'field' => $violation->getPropertyPath(),
-                    'message' => $violation->getMessage(),
-                    'code' => $violation->getCode(),
-                ],
-                iterator_to_array($violations),
-            ),
+            'errors' => $errors,
         ], JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
     }
 }

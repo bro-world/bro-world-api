@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Shop\Transport\Controller\Api\V1\Payment;
 
 use App\Shop\Application\Service\PaymentService;
+use App\Shop\Transport\Controller\Api\V1\Input\Support\ValidationResponseFactory;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
 use JsonException;
@@ -39,7 +40,11 @@ final readonly class PaymentWebhookController
     public function __invoke(string $applicationSlug, Request $request): JsonResponse
     {
         $request->attributes->set('applicationSlug', $applicationSlug);
-        $payload = (array)json_decode((string)$request->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        try {
+            $payload = (array)json_decode((string)$request->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            return ValidationResponseFactory::invalidJson();
+        }
         $signature = $request->headers->get('x-signature');
 
         $transaction = $this->paymentService->processWebhook($payload, $signature);

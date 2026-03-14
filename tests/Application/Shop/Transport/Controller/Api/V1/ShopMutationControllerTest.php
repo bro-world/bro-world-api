@@ -130,4 +130,98 @@ final class ShopMutationControllerTest extends WebTestCase
 
         self::assertNull($productRepository->find($product->getId()));
     }
+
+    public function testCreateProductReturnsStandardValidationErrorForMalformedJsonPayload(): void
+    {
+        $client = $this->getTestClient('john-user', 'password-user');
+
+        $client->request(
+            Request::METHOD_POST,
+            self::API_URL_PREFIX . '/v1/shop/applications/shop-ops-center/products',
+            [],
+            [],
+            $this->getJsonHeaders(),
+            '{"name":"Broken payload"'
+        );
+
+        self::assertResponseStatusCodeSame(400);
+
+        /** @var array{message?: string, errors?: list<array{field?: string, code?: string}>} $payload */
+        $payload = json_decode((string)$client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('Validation failed.', $payload['message'] ?? null);
+        self::assertSame('payload', $payload['errors'][0]['field'] ?? null);
+        self::assertSame('INVALID_JSON', $payload['errors'][0]['code'] ?? null);
+    }
+
+    public function testCreateProductReturnsStandardValidationErrorWhenSkuIsMissing(): void
+    {
+        $client = $this->getTestClient('john-user', 'password-user');
+
+        $client->request(
+            Request::METHOD_POST,
+            self::API_URL_PREFIX . '/v1/shop/applications/shop-ops-center/products',
+            [],
+            [],
+            $this->getJsonHeaders(),
+            json_encode([
+                'name' => 'SKU missing product',
+                'price' => 12.34,
+            ], JSON_THROW_ON_ERROR)
+        );
+
+        self::assertResponseStatusCodeSame(422);
+
+        /** @var array{message?: string, errors?: list<array{field?: string, message?: string}>} $payload */
+        $payload = json_decode((string)$client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('Validation failed.', $payload['message'] ?? null);
+        self::assertContains('sku', array_column($payload['errors'] ?? [], 'field'));
+    }
+
+    public function testCreateProductReturnsStandardValidationErrorsForInvalidBusinessValues(): void
+    {
+        $client = $this->getTestClient('john-user', 'password-user');
+
+        $client->request(
+            Request::METHOD_POST,
+            self::API_URL_PREFIX . '/v1/shop/applications/shop-ops-center/products',
+            [],
+            [],
+            $this->getJsonHeaders(),
+            json_encode([
+                'name' => 'Invalid business values',
+                'sku' => 'INVALID-BUSINESS',
+                'price' => 0,
+                'stock' => -1,
+            ], JSON_THROW_ON_ERROR)
+        );
+
+        self::assertResponseStatusCodeSame(422);
+
+        /** @var array{message?: string, errors?: list<array{field?: string}>} $payload */
+        $payload = json_decode((string)$client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('Validation failed.', $payload['message'] ?? null);
+        self::assertContains('price', array_column($payload['errors'] ?? [], 'field'));
+        self::assertContains('stock', array_column($payload['errors'] ?? [], 'field'));
+    }
+
+    public function testConfirmPaymentReturnsStandardValidationErrorWhenProviderReferenceIsMissing(): void
+    {
+        $client = $this->getTestClient('john-user', 'password-user');
+
+        $client->request(
+            Request::METHOD_POST,
+            self::API_URL_PREFIX . '/v1/shop/applications/shop-ops-center/orders/11111111-1111-1111-1111-111111111111/payment-confirm',
+            [],
+            [],
+            $this->getJsonHeaders(),
+            json_encode([], JSON_THROW_ON_ERROR)
+        );
+
+        self::assertResponseStatusCodeSame(422);
+
+        /** @var array{message?: string, errors?: list<array{field?: string}>} $payload */
+        $payload = json_decode((string)$client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('Validation failed.', $payload['message'] ?? null);
+        self::assertSame('providerReference', $payload['errors'][0]['field'] ?? null);
+    }
 }

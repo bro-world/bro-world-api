@@ -60,9 +60,6 @@ final readonly class ProductInputValidator
             return null;
         }
 
-        return new JsonResponse([
-            'message' => 'Validation failed.',
-            'errors' => $errors,
-        ], JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
+        return ValidationResponseFactory::fromErrors($errors);
     }
 }
