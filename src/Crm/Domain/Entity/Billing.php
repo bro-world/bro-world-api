@@ -11,6 +11,7 @@ use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Override;
+use Ramsey\Uuid\Uuid as RamseyUuid;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Ramsey\Uuid\UuidInterface;
 
@@ -52,6 +53,7 @@ class Billing implements EntityInterface
 
     #[Override]
     public function getId(): string { return $this->id->toString(); }
+    public function setId(string $id): self { $this->id = RamseyUuid::fromString($id); return $this; }
     public function getCompany(): ?Company { return $this->company; }
     public function setCompany(?Company $company): self { $this->company = $company; return $this; }
     public function getLabel(): string { return $this->label; }

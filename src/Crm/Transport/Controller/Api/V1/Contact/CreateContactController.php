@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Contact;
 
+use App\Crm\Application\Message\CreateContactCommand;
 use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\Contact;
 use App\Crm\Infrastructure\Repository\CompanyRepository;
 use App\Crm\Transport\Request\CreateContactRequest;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
 use App\Role\Domain\Enum\Role;
-use Doctrine\ORM\EntityManagerInterface;
 use JsonException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -30,7 +31,7 @@ final readonly class CreateContactController
         private CompanyRepository $companyRepository,
         private CrmApiErrorResponseFactory $errorResponseFactory,
         private ValidatorInterface $validator,
-        private EntityManagerInterface $entityManager,
+        private MessageBusInterface $messageBus,
     ) {}
 
     #[Route('/v1/crm/applications/{applicationSlug}/contacts', methods: [Request::METHOD_POST])]
@@ -55,7 +56,6 @@ final readonly class CreateContactController
         }
 
         $contact = (new Contact())
-            ->setCrm($crm)
             ->setFirstName((string)$input->firstName)
             ->setLastName((string)$input->lastName)
             ->setEmail($input->email)
@@ -64,15 +64,27 @@ final readonly class CreateContactController
             ->setCity($input->city)
             ->setScore($input->score ?? 0);
 
+        $companyId = null;
         if (($input->companyId ?? '') !== '') {
             $company = $this->companyRepository->findOneScopedById((string)$input->companyId, $crm->getId());
             if ($company !== null) {
-                $contact->setCompany($company);
+                $companyId = $company->getId();
             }
         }
 
-        $this->entityManager->persist($contact);
-        $this->entityManager->flush();
+        $this->messageBus->dispatch(new CreateContactCommand(
+            id: $contact->getId(),
+            crmId: $crm->getId(),
+            firstName: $contact->getFirstName(),
+            lastName: $contact->getLastName(),
+            email: $contact->getEmail(),
+            phone: $contact->getPhone(),
+            jobTitle: $contact->getJobTitle(),
+            city: $contact->getCity(),
+            score: $contact->getScore(),
+            companyId: $companyId,
+            applicationSlug: $applicationSlug,
+        ));
 
         return new JsonResponse(['id' => $contact->getId()], JsonResponse::HTTP_CREATED);
     }

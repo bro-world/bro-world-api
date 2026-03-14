@@ -10,6 +10,7 @@ use App\General\Domain\Entity\Traits\Uuid;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Override;
+use Ramsey\Uuid\Uuid as RamseyUuid;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Ramsey\Uuid\UuidInterface;
 
@@ -63,6 +64,13 @@ class Contact implements EntityInterface
     public function getId(): string
     {
         return $this->id->toString();
+    }
+
+    public function setId(string $id): self
+    {
+        $this->id = RamseyUuid::fromString($id);
+
+        return $this;
     }
 
     public function getCrm(): ?Crm { return $this->crm; }
