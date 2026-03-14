@@ -7,8 +7,15 @@ namespace App\Crm\Infrastructure\Repository;
 use App\Crm\Domain\Entity\TaskRequest as Entity;
 use App\General\Infrastructure\Repository\BaseRepository;
 use Doctrine\DBAL\LockMode;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
+
+use function array_filter;
+use function array_map;
+use function array_values;
+use function implode;
+use function trim;
 
 /**
  * @method Entity|null find(string $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null, ?string $entityManagerName = null)
@@ -30,16 +37,12 @@ class TaskRequestRepository extends BaseRepository
 
     public function findOneScopedById(string $id, string $crmId): ?Entity
     {
-        $entity = $this->createQueryBuilder('taskRequest')
-            ->leftJoin('taskRequest.task', 'task')
-            ->leftJoin('task.project', 'project')
-            ->leftJoin('project.company', 'company')
+        $qb = $this->createScopedBaseQb($crmId)
             ->andWhere('taskRequest.id = :id')
-            ->andWhere('company.crm = :crmId')
             ->setParameter('id', $id, UuidBinaryOrderedTimeType::NAME)
-            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
-            ->getQuery()
-            ->getOneOrNullResult();
+            ->setMaxResults(1);
+
+        $entity = $qb->getQuery()->getOneOrNullResult();
 
         return $entity instanceof Entity ? $entity : null;
     }
@@ -49,42 +52,28 @@ class TaskRequestRepository extends BaseRepository
      */
     public function findScoped(string $crmId, int $limit = 200, int $offset = 0): array
     {
-        return $this->createQueryBuilder('taskRequest')
-            ->leftJoin('taskRequest.task', 'task')
-            ->leftJoin('task.project', 'project')
-            ->leftJoin('project.company', 'company')
-            ->andWhere('company.crm = :crmId')
-            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
+        /** @var list<Entity> $items */
+        $items = $this->createScopedBaseQb($crmId)
             ->orderBy('taskRequest.createdAt', 'DESC')
             ->setMaxResults($limit)
             ->setFirstResult($offset)
             ->getQuery()
             ->getResult();
+
+        return $items;
     }
 
     public function countTaskRequestsByCrm(string $crmId): int
     {
-        return (int)$this->createQueryBuilder('taskRequest')
-            ->select('COUNT(taskRequest.id)')
-            ->leftJoin('taskRequest.task', 'task')
-            ->leftJoin('task.project', 'project')
-            ->leftJoin('project.company', 'company')
-            ->andWhere('company.crm = :crmId')
-            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
+        return (int) $this->createScopedCountQb($crmId)
             ->getQuery()
             ->getSingleScalarResult();
     }
 
     public function countTaskRequestsByCrmAndStatus(string $crmId, string $status): int
     {
-        return (int)$this->createQueryBuilder('taskRequest')
-            ->select('COUNT(taskRequest.id)')
-            ->leftJoin('taskRequest.task', 'task')
-            ->leftJoin('task.project', 'project')
-            ->leftJoin('project.company', 'company')
-            ->andWhere('company.crm = :crmId')
+        return (int) $this->createScopedCountQb($crmId)
             ->andWhere('taskRequest.status = :status')
-            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
             ->setParameter('status', $status)
             ->getQuery()
             ->getSingleScalarResult();
@@ -92,74 +81,93 @@ class TaskRequestRepository extends BaseRepository
 
     /**
      * @param array{q?:string,status?:string} $filters
+     *
      * @return list<array<string,mixed>>
      */
     public function findScopedProjection(string $crmId, int $limit, int $offset, array $filters = []): array
     {
-        $qb = $this->createQueryBuilder('taskRequest')
-            ->select('taskRequest.id, taskRequest.title, taskRequest.status, taskRequest.requestedAt, taskRequest.resolvedAt, IDENTITY(taskRequest.task) AS taskId')
+        $idsQb = $this->createQueryBuilder('taskRequest')
+            ->select('taskRequest.id AS id')
             ->leftJoin('taskRequest.task', 'task')
             ->leftJoin('task.project', 'project')
             ->leftJoin('project.company', 'company')
-            ->andWhere('company.crm = :crmId')
+            ->andWhere('IDENTITY(company.crm) = :crmId')
             ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
             ->orderBy('taskRequest.createdAt', 'DESC')
             ->setMaxResults($limit)
             ->setFirstResult($offset);
 
-        $query = trim((string)($filters['q'] ?? ''));
-        if ($query !== '') {
-            $qb->andWhere('LOWER(taskRequest.title) LIKE LOWER(:q)')->setParameter('q', '%' . $query . '%');
+        $this->applyProjectionFilters($idsQb, $filters);
+
+        /** @var list<array{id:string}> $idRows */
+        $idRows = $idsQb->getQuery()->getArrayResult();
+
+        $taskRequestIds = array_values(array_map(
+            static fn (array $row): string => (string) $row['id'],
+            $idRows
+        ));
+
+        if ($taskRequestIds === []) {
+            return [];
         }
 
-        $status = trim((string)($filters['status'] ?? ''));
-        if ($status !== '') {
-            $qb->andWhere('taskRequest.status = :status')->setParameter('status', $status);
-        }
+        $itemsQb = $this->createQueryBuilder('taskRequest')
+            ->select('taskRequest.id, taskRequest.title, taskRequest.status, taskRequest.requestedAt, taskRequest.resolvedAt, IDENTITY(taskRequest.task) AS taskId');
 
-        $items = $qb->getQuery()->getArrayResult();
+        $this->applyBinaryUuidIdsFilter($itemsQb, 'taskRequest.id', $taskRequestIds, 'task_request_id_');
+
+        /** @var list<array<string,mixed>> $items */
+        $items = $itemsQb->getQuery()->getArrayResult();
+
         if ($items === []) {
             return [];
         }
 
-        /** @var list<string> $taskRequestIds */
-        $taskRequestIds = array_values(array_filter(array_map(static fn (array $item): string => (string)($item['id'] ?? ''), $items)));
-        if ($taskRequestIds === []) {
-            return $items;
-        }
-
-        $assigneeRows = $this->createQueryBuilder('taskRequest')
+        $assigneeQb = $this->createQueryBuilder('taskRequest')
             ->select('taskRequest.id AS taskRequestId, assignee.id, assignee.username, assignee.firstName, assignee.lastName, assignee.photo')
             ->leftJoin('taskRequest.assignees', 'assignee')
-            ->andWhere('taskRequest.id IN (:taskRequestIds)')
-            ->andWhere('assignee.id IS NOT NULL')
-            ->setParameter('taskRequestIds', $taskRequestIds)
-            ->getQuery()
-            ->getArrayResult();
+            ->andWhere('assignee.id IS NOT NULL');
 
-        /** @var array<string,list<array<string,mixed>>> $assigneesByTaskRequest */
+        $this->applyBinaryUuidIdsFilter($assigneeQb, 'taskRequest.id', $taskRequestIds, 'assignee_task_request_id_');
+
+        /** @var list<array<string,mixed>> $assigneeRows */
+        $assigneeRows = $assigneeQb->getQuery()->getArrayResult();
+
         $assigneesByTaskRequest = [];
-        foreach ($assigneeRows as $assigneeRow) {
-            $taskRequestId = (string)($assigneeRow['taskRequestId'] ?? '');
+        foreach ($assigneeRows as $row) {
+            $taskRequestId = (string) ($row['taskRequestId'] ?? '');
             if ($taskRequestId === '') {
                 continue;
             }
 
             $assigneesByTaskRequest[$taskRequestId][] = [
-                'id' => $assigneeRow['id'] ?? null,
-                'username' => $assigneeRow['username'] ?? null,
-                'firstName' => $assigneeRow['firstName'] ?? null,
-                'lastName' => $assigneeRow['lastName'] ?? null,
-                'photo' => $assigneeRow['photo'] ?? null,
+                'id' => $row['id'] ?? null,
+                'username' => $row['username'] ?? null,
+                'firstName' => $row['firstName'] ?? null,
+                'lastName' => $row['lastName'] ?? null,
+                'photo' => $row['photo'] ?? null,
             ];
         }
 
-        foreach ($items as $index => $item) {
-            $taskRequestId = (string)($item['id'] ?? '');
-            $items[$index]['assignees'] = $assigneesByTaskRequest[$taskRequestId] ?? [];
+        $itemsById = [];
+        foreach ($items as $item) {
+            $id = (string) ($item['id'] ?? '');
+            if ($id === '') {
+                continue;
+            }
+
+            $item['assignees'] = $assigneesByTaskRequest[$id] ?? [];
+            $itemsById[$id] = $item;
         }
 
-        return $items;
+        $orderedItems = [];
+        foreach ($taskRequestIds as $id) {
+            if (isset($itemsById[$id])) {
+                $orderedItems[] = $itemsById[$id];
+            }
+        }
+
+        return $orderedItems;
     }
 
     /**
@@ -167,24 +175,78 @@ class TaskRequestRepository extends BaseRepository
      */
     public function countScopedByCrm(string $crmId, array $filters = []): int
     {
-        $qb = $this->createQueryBuilder('taskRequest')
+        $qb = $this->createScopedCountQb($crmId);
+
+        $this->applyProjectionFilters($qb, $filters);
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    private function createScopedBaseQb(string $crmId): QueryBuilder
+    {
+        return $this->createQueryBuilder('taskRequest')
+            ->leftJoin('taskRequest.task', 'task')
+            ->leftJoin('task.project', 'project')
+            ->leftJoin('project.company', 'company')
+            ->andWhere('IDENTITY(company.crm) = :crmId')
+            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME);
+    }
+
+    private function createScopedCountQb(string $crmId): QueryBuilder
+    {
+        return $this->createQueryBuilder('taskRequest')
             ->select('COUNT(taskRequest.id)')
             ->leftJoin('taskRequest.task', 'task')
             ->leftJoin('task.project', 'project')
             ->leftJoin('project.company', 'company')
-            ->andWhere('company.crm = :crmId')
+            ->andWhere('IDENTITY(company.crm) = :crmId')
             ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME);
+    }
 
-        $query = trim((string)($filters['q'] ?? ''));
+    /**
+     * @param array{q?:string,status?:string} $filters
+     */
+    private function applyProjectionFilters(QueryBuilder $qb, array $filters): void
+    {
+        $query = trim((string) ($filters['q'] ?? ''));
         if ($query !== '') {
-            $qb->andWhere('LOWER(taskRequest.title) LIKE LOWER(:q)')->setParameter('q', '%' . $query . '%');
+            $qb->andWhere('LOWER(taskRequest.title) LIKE LOWER(:q)')
+                ->setParameter('q', '%' . $query . '%');
         }
 
-        $status = trim((string)($filters['status'] ?? ''));
+        $status = trim((string) ($filters['status'] ?? ''));
         if ($status !== '') {
-            $qb->andWhere('taskRequest.status = :status')->setParameter('status', $status);
+            $qb->andWhere('taskRequest.status = :status')
+                ->setParameter('status', $status);
+        }
+    }
+
+    /**
+     * @param list<string>|null $ids
+     */
+    private function applyBinaryUuidIdsFilter(
+        QueryBuilder $qb,
+        string $field,
+        ?array $ids,
+        string $parameterPrefix,
+    ): void {
+        if ($ids === null) {
+            return;
         }
 
-        return (int)$qb->getQuery()->getSingleScalarResult();
+        if ($ids === []) {
+            $qb->andWhere('1 = 0');
+            return;
+        }
+
+        $parts = [];
+
+        foreach (array_values($ids) as $index => $id) {
+            $parameterName = $parameterPrefix . $index;
+            $parts[] = $field . ' = :' . $parameterName;
+            $qb->setParameter($parameterName, $id, UuidBinaryOrderedTimeType::NAME);
+        }
+
+        $qb->andWhere('(' . implode(' OR ', $parts) . ')');
     }
 }

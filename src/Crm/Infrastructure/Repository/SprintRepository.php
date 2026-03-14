@@ -82,7 +82,7 @@ class SprintRepository extends BaseRepository
             ->leftJoin('sprint.project', 'project')
             ->leftJoin('project.company', 'company')
             ->andWhere('company.crm = :crmId')
-            ->setParameter('crmId', $crmId)
+            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
             ->orderBy('sprint.createdAt', 'DESC')
             ->setMaxResults($limit)
             ->setFirstResult($offset);

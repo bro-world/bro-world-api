@@ -85,8 +85,7 @@ final class CrmApiNormalizer
         return [
             'id' => (string)($item['id'] ?? ''),
             'name' => (string)($item['name'] ?? ''),
-            'status' => (string)($item['status'] ?? ''),
-            'projectId' => $item['projectId'] ?? null,
+            'status' => (bool)($item['status'] ?? ''),
             'startDate' => $this->normalizeDateValue($item['startDate'] ?? null),
             'endDate' => $this->normalizeDateValue($item['endDate'] ?? null),
         ];
