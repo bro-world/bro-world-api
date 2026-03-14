@@ -427,4 +427,15 @@ class User implements EntityInterface, UserInterface, UserGroupAwareInterface
     {
         $this->plainPassword = '';
     }
+
+    public function toArray(): array {
+        return [
+            'username' => $this->getUsername(),
+            'firstName' => $this->getFirstName(),
+            'lastName' => $this->getLastName(),
+            'photo' => $this->getPhoto(),
+        ];
+    }
+
+
 }

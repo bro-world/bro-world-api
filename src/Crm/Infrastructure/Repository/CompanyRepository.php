@@ -36,7 +36,7 @@ class CompanyRepository extends BaseRepository
             ->andWhere('company.id = :id')
             ->andWhere('company.crm = :crmId')
             ->setParameter('id', $id)
-            ->setParameter('crmId', $crmId)
+            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
             ->getQuery()
             ->getOneOrNullResult();
 

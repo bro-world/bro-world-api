@@ -211,4 +211,15 @@ class Project implements EntityInterface
         return $this;
     }
 
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->getId(),
+            'name' => $this->getName(),
+            'code' => $this->getCode(),
+            'description' => $this->getDescription(),
+            'status' => $this->getStatus(),
+        ];
+    }
+
 }

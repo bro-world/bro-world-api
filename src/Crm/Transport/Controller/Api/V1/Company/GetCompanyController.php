@@ -24,12 +24,8 @@ final readonly class GetCompanyController
     public function __construct(private CompanyRepository $companyRepository, private CrmApplicationScopeResolver $scopeResolver, private CrmApiErrorResponseFactory $errorResponseFactory) {}
 
     #[Route('/v1/crm/applications/{applicationSlug}/companies/{id}', methods: [Request::METHOD_GET])]
-    public function __invoke(string $applicationSlug, string $id): JsonResponse
+    public function __invoke(string $applicationSlug, Company $company): JsonResponse
     {
-        $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
-        $company = $this->companyRepository->findOneScopedById($id, $crm->getId());
-        if (!$company instanceof Company) { return $this->errorResponseFactory->notFoundReference('companyId'); }
-
         return new JsonResponse([
             'id' => $company->getId(),
             'name' => $company->getName(),

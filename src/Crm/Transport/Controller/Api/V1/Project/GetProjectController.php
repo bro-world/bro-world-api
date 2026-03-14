@@ -23,13 +23,9 @@ final readonly class GetProjectController
 {
     public function __construct(private ProjectRepository $projectRepository, private CrmApplicationScopeResolver $scopeResolver, private CrmApiErrorResponseFactory $errorResponseFactory) {}
 
-    #[Route('/v1/crm/applications/{applicationSlug}/projects/{id}', methods: [Request::METHOD_GET])]
-    public function __invoke(string $applicationSlug, string $id): JsonResponse
+    #[Route('/v1/crm/applications/{applicationSlug}/projects/{project}', methods: [Request::METHOD_GET])]
+    public function __invoke(string $applicationSlug, Project $project): JsonResponse
     {
-        $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
-        $project = $this->projectRepository->findOneScopedById($id, $crm->getId());
-        if (!$project instanceof Project) { return $this->errorResponseFactory->notFoundReference('projectId'); }
-
         return new JsonResponse([
             'id' => $project->getId(),
             'companyId' => $project->getCompany()?->getId(),

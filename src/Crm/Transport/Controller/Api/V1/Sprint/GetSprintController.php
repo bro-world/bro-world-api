@@ -23,21 +23,23 @@ final readonly class GetSprintController
 {
     public function __construct(private SprintRepository $sprintRepository, private CrmApplicationScopeResolver $scopeResolver, private CrmApiErrorResponseFactory $errorResponseFactory) {}
 
-    #[Route('/v1/crm/applications/{applicationSlug}/sprints/{id}', methods: [Request::METHOD_GET])]
-    public function __invoke(string $applicationSlug, string $id): JsonResponse
+    #[Route('/v1/crm/applications/{applicationSlug}/sprints/{sprint}', methods: [Request::METHOD_GET])]
+    public function __invoke(string $applicationSlug, Sprint $sprint): JsonResponse
     {
-        $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
-        $sprint = $this->sprintRepository->findOneScopedById($id, $crm->getId());
-        if (!$sprint instanceof Sprint) { return $this->errorResponseFactory->notFoundReference('sprintId'); }
+        $assignee = $sprint->getAssignees()->toArray();
 
+        foreach ($assignee as $key => $value) {
+            $assignee[$key] = $value->toArray();
+        }
         return new JsonResponse([
             'id' => $sprint->getId(),
-            'projectId' => $sprint->getProject()?->getId(),
+            'project' => $sprint->getProject()->toArray(),
             'name' => $sprint->getName(),
             'goal' => $sprint->getGoal(),
             'status' => $sprint->getStatus()->value,
             'startDate' => $sprint->getStartDate()?->format('Y-m-d'),
             'endDate' => $sprint->getEndDate()?->format('Y-m-d'),
+            'assignee' => $assignee,
         ]);
     }
 }
