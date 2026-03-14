@@ -19,3 +19,18 @@ Pour conserver la compatibilité avec les clients existants:
 
 ## Recommandation technique
 Quand le slug n'est pas dérivable automatiquement, retourner `400` avec un message explicite pour forcer la migration client.
+
+## Note de migration API – Shop Products
+
+### Shop products (`/v1/shop/products`)
+- Les routes legacy `GET /v1/shop/products` et `POST /v1/shop/products` sont **dépréciées**.
+- Les consommateurs externes doivent migrer vers les routes canoniques :
+  - `GET /v1/shop/applications/{applicationSlug}/products`
+  - `POST /v1/shop/applications/{applicationSlug}/products`
+  - `GET|PATCH|DELETE /v1/shop/applications/{applicationSlug}/products/{id}`
+- Pendant la fenêtre de migration, les routes legacy restent accessibles mais répondent avec les en-têtes HTTP:
+  - `Deprecation: true`
+  - `Sunset: Wed, 31 Dec 2026 23:59:59 GMT`
+  - `Warning: 299 - "Deprecated endpoint: use /v1/shop/applications/{applicationSlug}/products instead."`
+
+Action attendue côté clients: renseigner explicitement `applicationSlug` dans les chemins d'URL et retirer l'usage de `/v1/shop/products`.

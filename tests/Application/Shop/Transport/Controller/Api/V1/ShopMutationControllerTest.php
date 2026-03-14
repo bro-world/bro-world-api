@@ -16,7 +16,7 @@ final class ShopMutationControllerTest extends WebTestCase
 
         $client->request(
             Request::METHOD_POST,
-            self::API_URL_PREFIX . '/v1/shop/products',
+            self::API_URL_PREFIX . '/v1/shop/applications/shop-ops-center/products',
             [],
             [],
             $this->getJsonHeaders(),
@@ -28,10 +28,12 @@ final class ShopMutationControllerTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(201);
 
-        /** @var array{id: string} $payload */
+        /** @var array{id: string, shopId: string, applicationSlug: string} $payload */
         $payload = json_decode((string)$client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertArrayHasKey('id', $payload);
         self::assertNotSame('', $payload['id']);
+        self::assertSame('shop-ops-center', $payload['applicationSlug']);
+        self::assertNotSame('', $payload['shopId']);
 
         /** @var ProductRepository $productRepository */
         $productRepository = static::getContainer()->get(ProductRepository::class);
@@ -77,6 +79,30 @@ final class ShopMutationControllerTest extends WebTestCase
         self::assertSame($products[0]->getId(), $payload['id']);
     }
 
+
+    public function testLegacyCreateProductRouteReturnsDeprecationHeaders(): void
+    {
+        $client = $this->getTestClient('john-user', 'password-user');
+
+        $client->request(
+            Request::METHOD_POST,
+            self::API_URL_PREFIX . '/v1/shop/products',
+            [],
+            [],
+            $this->getJsonHeaders(),
+            json_encode([
+                'name' => 'Legacy Messenger Product',
+                'price' => 45.67,
+                'applicationSlug' => 'shop-ops-center',
+            ], JSON_THROW_ON_ERROR)
+        );
+
+        self::assertResponseStatusCodeSame(201);
+        self::assertSame('true', $client->getResponse()->headers->get('Deprecation'));
+        self::assertSame('Wed, 31 Dec 2026 23:59:59 GMT', $client->getResponse()->headers->get('Sunset'));
+        self::assertNotFalse(strpos((string)$client->getResponse()->headers->get('Warning'), 'Deprecated endpoint'));
+    }
+
     public function testDeleteProductDispatchesCommandAndRemovesEntity(): void
     {
         /** @var ProductRepository $productRepository */
@@ -89,7 +115,7 @@ final class ShopMutationControllerTest extends WebTestCase
         $client = $this->getTestClient('john-user', 'password-user');
         $client->request(
             Request::METHOD_DELETE,
-            self::API_URL_PREFIX . '/v1/shop/products/' . $product->getId(),
+            self::API_URL_PREFIX . '/v1/shop/applications/shop-ops-center/products/' . $product->getId(),
             [],
             [],
             $this->getJsonHeaders(),
