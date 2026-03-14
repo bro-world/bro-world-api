@@ -4,9 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Application\Crm\Transport\Controller\Api\V1;
 
+use App\Crm\Application\Message\CreateBillingCommand;
+use App\Crm\Application\Message\CreateContactCommand;
+use App\Crm\Application\Message\CreateEmployeeCommand;
 use App\Crm\Domain\Entity\TaskRequest;
+use App\Crm\Infrastructure\Repository\BillingRepository;
 use App\Crm\Infrastructure\Repository\CompanyRepository;
+use App\Crm\Infrastructure\Repository\ContactRepository;
 use App\Crm\Infrastructure\Repository\CrmRepository;
+use App\Crm\Infrastructure\Repository\EmployeeRepository;
 use App\Crm\Infrastructure\Repository\ProjectRepository;
 use App\Crm\Infrastructure\Repository\TaskRepository;
 use App\General\Application\Message\EntityCreated;
@@ -295,6 +301,104 @@ final class CrmControllerTest extends WebTestCase
         self::assertSame($this->getCrmIdByApplicationSlug(self::PRIMARY_APPLICATION_SLUG), $message->context['crmId'] ?? null);
     }
 
+    #[TestDox('CreateBillingController dispatches CreateBillingCommand and does not flush in controller.')] 
+    public function testCreateBillingDispatchesCommandWithoutImmediatePersistence(): void
+    {
+        $companyId = $this->createCompany();
+        $client = $this->getTestClient('john-root', 'password-root');
+
+        /** @var InMemoryTransport $transport */
+        $transport = static::getContainer()->get('messenger.transport.async_priority_high');
+        $transport->reset();
+
+        $client->request(
+            'POST',
+            sprintf('%s/v1/crm/applications/%s/billings', self::API_URL_PREFIX, self::PRIMARY_APPLICATION_SLUG),
+            content: JSON::encode([
+                'companyId' => $companyId,
+                'label' => 'Billing ' . uniqid('', true),
+                'amount' => 42.5,
+                'currency' => 'EUR',
+            ])
+        );
+
+        self::assertSame(Response::HTTP_CREATED, $client->getResponse()->getStatusCode(), "Response:\n" . $client->getResponse());
+        $payload = $this->decodeJsonResponse($client->getResponse()->getContent());
+
+        self::assertArrayHasKey('id', $payload);
+        self::assertSame($companyId, $payload['companyId'] ?? null);
+
+        $message = $this->getLastDispatchedMessage($transport);
+        self::assertInstanceOf(CreateBillingCommand::class, $message);
+        self::assertSame(self::PRIMARY_APPLICATION_SLUG, $message->applicationSlug);
+        self::assertSame($this->getCrmIdByApplicationSlug(self::PRIMARY_APPLICATION_SLUG), $message->crmId);
+
+        $billingRepository = static::getContainer()->get(BillingRepository::class);
+        self::assertNull($billingRepository->find($payload['id']));
+    }
+
+    #[TestDox('CreateContactController dispatches CreateContactCommand and does not flush in controller.')]
+    public function testCreateContactDispatchesCommandWithoutImmediatePersistence(): void
+    {
+        $client = $this->getTestClient('john-root', 'password-root');
+
+        /** @var InMemoryTransport $transport */
+        $transport = static::getContainer()->get('messenger.transport.async_priority_high');
+        $transport->reset();
+
+        $client->request(
+            'POST',
+            sprintf('%s/v1/crm/applications/%s/contacts', self::API_URL_PREFIX, self::PRIMARY_APPLICATION_SLUG),
+            content: JSON::encode([
+                'firstName' => 'Test',
+                'lastName' => 'Contact',
+                'email' => 'test.contact@example.com',
+            ])
+        );
+
+        self::assertSame(Response::HTTP_CREATED, $client->getResponse()->getStatusCode(), "Response:\n" . $client->getResponse());
+        $payload = $this->decodeJsonResponse($client->getResponse()->getContent());
+
+        $message = $this->getLastDispatchedMessage($transport);
+        self::assertInstanceOf(CreateContactCommand::class, $message);
+        self::assertSame(self::PRIMARY_APPLICATION_SLUG, $message->applicationSlug);
+        self::assertSame($this->getCrmIdByApplicationSlug(self::PRIMARY_APPLICATION_SLUG), $message->crmId);
+
+        $contactRepository = static::getContainer()->get(ContactRepository::class);
+        self::assertNull($contactRepository->find($payload['id']));
+    }
+
+    #[TestDox('CreateEmployeeController dispatches CreateEmployeeCommand and does not flush in controller.')]
+    public function testCreateEmployeeDispatchesCommandWithoutImmediatePersistence(): void
+    {
+        $client = $this->getTestClient('john-root', 'password-root');
+
+        /** @var InMemoryTransport $transport */
+        $transport = static::getContainer()->get('messenger.transport.async_priority_high');
+        $transport->reset();
+
+        $client->request(
+            'POST',
+            sprintf('%s/v1/crm/applications/%s/employees', self::API_URL_PREFIX, self::PRIMARY_APPLICATION_SLUG),
+            content: JSON::encode([
+                'firstName' => 'Test',
+                'lastName' => 'Employee',
+                'email' => 'test.employee@example.com',
+            ])
+        );
+
+        self::assertSame(Response::HTTP_CREATED, $client->getResponse()->getStatusCode(), "Response:\n" . $client->getResponse());
+        $payload = $this->decodeJsonResponse($client->getResponse()->getContent());
+
+        $message = $this->getLastDispatchedMessage($transport);
+        self::assertInstanceOf(CreateEmployeeCommand::class, $message);
+        self::assertSame(self::PRIMARY_APPLICATION_SLUG, $message->applicationSlug);
+        self::assertSame($this->getCrmIdByApplicationSlug(self::PRIMARY_APPLICATION_SLUG), $message->crmId);
+
+        $employeeRepository = static::getContainer()->get(EmployeeRepository::class);
+        self::assertNull($employeeRepository->find($payload['id']));
+    }
+
     #[TestDox('Delete endpoints reject IDs from another CRM application scope.')]
     #[DataProvider('crossScopeDeleteProvider')]
     public function testDeleteRejectsForeignScopeIds(string $resource, string $foreignIdKey): void
@@ -429,6 +533,14 @@ final class CrmControllerTest extends WebTestCase
         self::assertInstanceOf(EntityCreated::class, $message);
 
         return $message;
+    }
+
+    private function getLastDispatchedMessage(InMemoryTransport $transport): object
+    {
+        $envelopes = $transport->getSent();
+        self::assertNotEmpty($envelopes);
+
+        return $envelopes[array_key_last($envelopes)]->getMessage();
     }
 
     private function createSprint(string $projectId): string

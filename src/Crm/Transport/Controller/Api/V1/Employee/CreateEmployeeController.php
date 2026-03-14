@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Employee;
 
-use App\Crm\Application\Security\CrmPermissions;
+use App\Crm\Application\Message\CreateEmployeeCommand;
 use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\Employee;
 use App\Crm\Transport\Request\CreateEmployeeRequest;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
 use App\Role\Domain\Enum\Role;
-use Doctrine\ORM\EntityManagerInterface;
 use JsonException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -29,7 +29,7 @@ final readonly class CreateEmployeeController
         private CrmApplicationScopeResolver $scopeResolver,
         private CrmApiErrorResponseFactory $errorResponseFactory,
         private ValidatorInterface $validator,
-        private EntityManagerInterface $entityManager,
+        private MessageBusInterface $messageBus,
     ) {}
 
     #[Route('/v1/crm/applications/{applicationSlug}/employees', methods: [Request::METHOD_POST])]
@@ -54,15 +54,22 @@ final readonly class CreateEmployeeController
         }
 
         $employee = (new Employee())
-            ->setCrm($crm)
             ->setFirstName((string)$input->firstName)
             ->setLastName((string)$input->lastName)
             ->setEmail($input->email)
             ->setPositionName($input->positionName)
             ->setRoleName($input->roleName);
 
-        $this->entityManager->persist($employee);
-        $this->entityManager->flush();
+        $this->messageBus->dispatch(new CreateEmployeeCommand(
+            id: $employee->getId(),
+            crmId: $crm->getId(),
+            firstName: $employee->getFirstName(),
+            lastName: $employee->getLastName(),
+            email: $employee->getEmail(),
+            positionName: $employee->getPositionName(),
+            roleName: $employee->getRoleName(),
+            applicationSlug: $applicationSlug,
+        ));
 
         return new JsonResponse(['id' => $employee->getId()], JsonResponse::HTTP_CREATED);
     }

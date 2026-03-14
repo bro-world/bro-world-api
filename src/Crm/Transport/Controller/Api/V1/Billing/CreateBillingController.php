@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Billing;
 
-use App\Crm\Application\Security\CrmPermissions;
+use App\Crm\Application\Message\CreateBillingCommand;
 use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\Billing;
 use App\Crm\Infrastructure\Repository\CompanyRepository;
@@ -12,13 +12,13 @@ use App\Crm\Transport\Request\CreateBillingRequest;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
 use App\Role\Domain\Enum\Role;
 use DateTimeImmutable;
-use Doctrine\ORM\EntityManagerInterface;
 use JsonException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -33,7 +33,7 @@ final readonly class CreateBillingController
         private CompanyRepository $companyRepository,
         private CrmApiErrorResponseFactory $errorResponseFactory,
         private ValidatorInterface $validator,
-        private EntityManagerInterface $entityManager,
+        private MessageBusInterface $messageBus,
     ) {}
 
     #[Route('/v1/crm/applications/{applicationSlug}/billings', methods: [Request::METHOD_POST])]
@@ -63,7 +63,6 @@ final readonly class CreateBillingController
         }
 
         $billing = (new Billing())
-            ->setCompany($company)
             ->setLabel((string)$input->label)
             ->setAmount((float)$input->amount)
             ->setCurrency($input->currency ?: 'EUR')
@@ -73,8 +72,17 @@ final readonly class CreateBillingController
             $billing->setDueAt(new DateTimeImmutable((string)$input->dueAt));
         }
 
-        $this->entityManager->persist($billing);
-        $this->entityManager->flush();
+        $this->messageBus->dispatch(new CreateBillingCommand(
+            id: $billing->getId(),
+            companyId: $company->getId(),
+            label: $billing->getLabel(),
+            amount: $billing->getAmount(),
+            currency: $billing->getCurrency(),
+            status: $billing->getStatus(),
+            dueAt: $billing->getDueAt()?->format(DATE_ATOM),
+            applicationSlug: $applicationSlug,
+            crmId: $crm->getId(),
+        ));
 
         return new JsonResponse(['id' => $billing->getId(), 'companyId' => $company->getId()], JsonResponse::HTTP_CREATED);
     }
