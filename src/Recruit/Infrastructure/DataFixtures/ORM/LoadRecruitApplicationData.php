@@ -67,7 +67,13 @@ final class LoadRecruitApplicationData extends Fixture implements OrderedFixture
             coverLetter: 'Profil polyvalent pour postes techniques orientés SaaS B2B.'
         );
 
-        foreach ([$johnRootApplicant, $johnAdminApplicant, $johnUserApplicant, $johnApiApplicant, $johnLoggedApplicant] as $entity) {
+        $aliceApplicant = $this->createApplicantWithResume(
+            owner: $this->getReference('User-alice', User::class),
+            key: 'alice',
+            coverLetter: 'Candidate orientée coordination d\'entretiens et expérience candidat.'
+        );
+
+        foreach ([$johnRootApplicant, $johnAdminApplicant, $johnUserApplicant, $johnApiApplicant, $johnLoggedApplicant, $aliceApplicant] as $entity) {
             $manager->persist($entity->getResume());
             $manager->persist($entity);
         }
@@ -128,9 +134,9 @@ final class LoadRecruitApplicationData extends Fixture implements OrderedFixture
         );
 
         $noShowApplication = $this->createApplication(
-            applicant: $johnUserApplicant,
+            applicant: $aliceApplicant,
             job: $jobOwnedByOtherUser,
-            reference: 'Recruit-Application-john-user-on-other-owner-no-show',
+            reference: 'Recruit-Application-alice-on-other-owner-no-show',
             status: ApplicationStatus::INTERVIEW_PLANNED
         );
 
