@@ -41,6 +41,7 @@ final readonly class ListProjectsController
         ];
 
         $items = array_map(fn (array $item): array => $this->crmApiNormalizer->normalizeProjectProjection($item), $this->projectRepository->findScopedProjection($crm->getId(), $limit, ($page - 1) * $limit, $filters));
+
         $totalItems = $this->projectRepository->countScopedByCrm($crm->getId(), $filters);
 
         return new JsonResponse([

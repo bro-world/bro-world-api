@@ -8,6 +8,7 @@ use App\Crm\Domain\Entity\Task;
 use App\Crm\Domain\Entity\TaskRequest;
 use App\User\Domain\Entity\User;
 use DateTimeInterface;
+use function Psl\Type\bool;
 
 final class CrmApiNormalizer
 {
@@ -99,8 +100,7 @@ final class CrmApiNormalizer
         return [
             'id' => (string)($item['id'] ?? ''),
             'name' => (string)($item['name'] ?? ''),
-            'status' => (string)($item['status'] ?? ''),
-            'companyId' => $item['companyId'] ?? null,
+            'status' => (bool)($item['status'] ?? ''),
         ];
     }
 
@@ -128,7 +128,7 @@ final class CrmApiNormalizer
             'id' => (string)($item['id'] ?? ''),
             'taskId' => $item['taskId'] ?? null,
             'title' => (string)($item['title'] ?? ''),
-            'status' => (string)($item['status'] ?? ''),
+            'status' => (bool)($item['status'] ?? ''),
             'requestedAt' => $this->normalizeDateValue($item['requestedAt'] ?? null),
             'resolvedAt' => $this->normalizeDateValue($item['resolvedAt'] ?? null),
             'assignees' => $assignees,
