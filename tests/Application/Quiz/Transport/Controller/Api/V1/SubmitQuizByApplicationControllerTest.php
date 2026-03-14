@@ -67,6 +67,87 @@ final class SubmitQuizByApplicationControllerTest extends WebTestCase
         self::assertSame(count($questions), (int)$responseData['correctAnswers']);
     }
 
+    #[TestDox('A quiz submission is scored with single-choice rules per question.')]
+    public function testSubmitQuizAppliesSingleChoiceScoring(): void
+    {
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $quiz = $this->getAnyPublishedQuiz($entityManager);
+        $questions = $entityManager->getRepository(QuizQuestion::class)->findBy([
+            'quiz' => $quiz,
+        ], [
+            'position' => 'ASC',
+        ]);
+
+        $answersPayload = [];
+        $expectedTotalPoints = 0;
+        $expectedEarnedPoints = 0;
+        $expectedCorrectAnswers = 0;
+        $hasForcedWrongAnswer = false;
+
+        foreach ($questions as $question) {
+            $expectedTotalPoints += $question->getPoints();
+
+            $correctAnswerId = null;
+            $wrongAnswerId = null;
+            foreach ($question->getAnswers() as $answer) {
+                if (!$answer instanceof QuizAnswer) {
+                    continue;
+                }
+
+                if ($answer->isCorrect() && $correctAnswerId === null) {
+                    $correctAnswerId = $answer->getId();
+                }
+
+                if (!$answer->isCorrect() && $wrongAnswerId === null) {
+                    $wrongAnswerId = $answer->getId();
+                }
+            }
+
+            self::assertNotNull($correctAnswerId);
+
+            $selectedAnswerId = $correctAnswerId;
+            if (!$hasForcedWrongAnswer && $wrongAnswerId !== null) {
+                $selectedAnswerId = $wrongAnswerId;
+                $hasForcedWrongAnswer = true;
+            } else {
+                $expectedEarnedPoints += $question->getPoints();
+                ++$expectedCorrectAnswers;
+            }
+
+            $answersPayload[] = [
+                'questionId' => $question->getId(),
+                'answerId' => $selectedAnswerId,
+            ];
+        }
+
+        self::assertTrue($hasForcedWrongAnswer, 'The selected quiz fixture must include at least one wrong answer option.');
+
+        $expectedScore = $expectedTotalPoints > 0
+            ? round(($expectedEarnedPoints / $expectedTotalPoints) * 100, 2)
+            : 0.0;
+
+        $client = $this->getTestClient('john-user', 'password-user');
+        $client->request(
+            'POST',
+            $this->baseUrl . '/' . $quiz->getApplication()->getSlug() . '/submit',
+            content: JSON::encode([
+                'answers' => $answersPayload,
+            ])
+        );
+
+        $response = $client->getResponse();
+        $content = $response->getContent();
+
+        self::assertNotFalse($content);
+        self::assertSame(Response::HTTP_OK, $response->getStatusCode(), "Response:\n" . $response);
+
+        $responseData = JSON::decode($content, true);
+        self::assertSame($expectedScore, (float)$responseData['score']);
+        self::assertSame($expectedCorrectAnswers, (int)$responseData['correctAnswers']);
+        self::assertSame($expectedEarnedPoints, (int)$responseData['earnedPoints']);
+        self::assertSame($expectedTotalPoints, (int)$responseData['totalPoints']);
+    }
+
     #[TestDox('GET quiz by application does not expose answers correction data.')]
     public function testGetQuizByApplicationDoesNotExposeAnswerCorrection(): void
     {
@@ -94,7 +175,6 @@ final class SubmitQuizByApplicationControllerTest extends WebTestCase
             }
         }
     }
-
 
     #[TestDox('GET quiz by application returns 404 for an unpublished quiz.')]
     public function testGetQuizByApplicationReturnsNotFoundWhenQuizIsNotPublished(): void
@@ -143,6 +223,27 @@ final class SubmitQuizByApplicationControllerTest extends WebTestCase
             content: JSON::encode([
                 'answers' => [[
                     'questionId' => 12,
+                ]],
+            ])
+        );
+
+        self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $client->getResponse()->getStatusCode());
+    }
+
+    #[TestDox('Submitting quiz payload with non-string answer id returns 422.')]
+    public function testSubmitQuizWithNonStringAnswerIdReturnsValidationError(): void
+    {
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $quiz = $this->getAnyPublishedQuiz($entityManager);
+
+        $client = $this->getTestClient('john-user', 'password-user');
+        $client->request(
+            'POST',
+            $this->baseUrl . '/' . $quiz->getApplication()->getSlug() . '/submit',
+            content: JSON::encode([
+                'answers' => [[
+                    'questionId' => 'q_1',
+                    'answerId' => ['a_1'],
                 ]],
             ])
         );
