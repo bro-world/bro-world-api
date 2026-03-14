@@ -52,10 +52,15 @@ class Company implements EntityInterface
     #[ORM\OneToMany(targetEntity: Project::class, mappedBy: 'company')]
     private Collection|ArrayCollection $projects;
 
+    /** @var Collection<int, Billing>|ArrayCollection<int, Billing> */
+    #[ORM\OneToMany(targetEntity: Billing::class, mappedBy: 'company')]
+    private Collection|ArrayCollection $billings;
+
     public function __construct()
     {
         $this->id = $this->createUuid();
         $this->projects = new ArrayCollection();
+        $this->billings = new ArrayCollection();
     }
 
     #[Override]
@@ -143,4 +148,13 @@ class Company implements EntityInterface
     {
         return $this->projects;
     }
+
+    /**
+     * @return Collection<int, Billing>|ArrayCollection<int, Billing>
+     */
+    public function getBillings(): Collection|ArrayCollection
+    {
+        return $this->billings;
+    }
 }
+
