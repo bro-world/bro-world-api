@@ -32,6 +32,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
 final readonly class CreateProductController
 {
+    private const LEGACY_ROUTE_WARNING = 'Deprecated endpoint: use /v1/shop/applications/{applicationSlug}/products instead.';
+
     public function __construct(
         private ProductHydratorService $productHydratorService,
         private ProductInputValidator $productInputValidator,
@@ -48,6 +50,11 @@ final readonly class CreateProductController
      * @throws ExceptionInterface
      */
     #[Route('/v1/shop/products', methods: [Request::METHOD_POST])]
+    #[OA\Post(
+        deprecated: true,
+        summary: 'Legacy create product endpoint',
+        description: 'Deprecated: migrate to /v1/shop/applications/{applicationSlug}/products.',
+    )]
     public function __invoke(Request $request): JsonResponse
     {
         try {
@@ -80,9 +87,14 @@ final readonly class CreateProductController
         $this->entityManager->flush();
         $this->messageBus->dispatch(new EntityCreated('shop_product', $product->getId()));
 
-        return new JsonResponse([
+        $response = new JsonResponse([
             'id' => $product->getId(),
         ], JsonResponse::HTTP_CREATED);
+        $response->headers->set('Deprecation', 'true');
+        $response->headers->set('Sunset', 'Wed, 31 Dec 2026 23:59:59 GMT');
+        $response->headers->set('Warning', sprintf('299 - "%s"', self::LEGACY_ROUTE_WARNING));
+
+        return $response;
     }
 
     /**

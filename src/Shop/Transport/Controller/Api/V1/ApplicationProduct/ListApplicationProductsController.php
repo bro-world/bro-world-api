@@ -32,6 +32,7 @@ final readonly class ListApplicationProductsController
      * @throws InvalidArgumentException
      */
     #[Route('/v1/shop/applications/{applicationSlug}/products', methods: [Request::METHOD_GET])]
+    #[OA\Get(summary: 'List products by application scope')]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
     public function __invoke(string $applicationSlug, Request $request): JsonResponse
     {
