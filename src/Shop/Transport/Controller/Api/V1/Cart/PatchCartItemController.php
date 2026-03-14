@@ -9,6 +9,9 @@ use App\Shop\Domain\Entity\CartItem;
 use App\Shop\Domain\Entity\Shop;
 use App\Shop\Infrastructure\Repository\CartItemRepository;
 use App\Shop\Infrastructure\Repository\ShopRepository;
+use App\Shop\Transport\Controller\Api\V1\Input\Cart\CartInputValidator;
+use App\Shop\Transport\Controller\Api\V1\Input\Cart\PatchCartItemInput;
+use App\Shop\Transport\Controller\Api\V1\Input\Support\ValidationResponseFactory;
 use App\User\Domain\Entity\User;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
@@ -33,6 +36,7 @@ final readonly class PatchCartItemController
         private ShopRepository $shopRepository,
         private CartItemRepository $cartItemRepository,
         private CartService $cartService,
+        private CartInputValidator $cartInputValidator,
     ) {
     }
 
@@ -67,13 +71,19 @@ final readonly class PatchCartItemController
             ], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $payload = (array)json_decode((string)$request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        $quantity = (int)($payload['quantity'] ?? 0);
-        if ($quantity <= 0) {
-            return new JsonResponse([
-                'message' => 'Quantity must be greater than 0.',
-            ], JsonResponse::HTTP_BAD_REQUEST);
+        try {
+            $payload = (array)json_decode((string)$request->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            return ValidationResponseFactory::invalidJson();
         }
+
+        $input = PatchCartItemInput::fromArray($payload);
+        $validationResponse = $this->cartInputValidator->validate($input);
+        if ($validationResponse instanceof JsonResponse) {
+            return $validationResponse;
+        }
+
+        $quantity = $input->quantity;
 
         $cart = $this->cartService->updateItemQuantity($cart, $item, $quantity);
 

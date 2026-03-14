@@ -9,6 +9,9 @@ use App\Shop\Domain\Entity\Product;
 use App\Shop\Domain\Entity\Shop;
 use App\Shop\Infrastructure\Repository\ProductRepository;
 use App\Shop\Infrastructure\Repository\ShopRepository;
+use App\Shop\Transport\Controller\Api\V1\Input\Cart\AddCartItemInput;
+use App\Shop\Transport\Controller\Api\V1\Input\Cart\CartInputValidator;
+use App\Shop\Transport\Controller\Api\V1\Input\Support\ValidationResponseFactory;
 use App\User\Domain\Entity\User;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
@@ -33,6 +36,7 @@ final readonly class AddCartItemController
         private ShopRepository $shopRepository,
         private ProductRepository $productRepository,
         private CartService $cartService,
+        private CartInputValidator $cartInputValidator,
     ) {
     }
 
@@ -58,9 +62,20 @@ final readonly class AddCartItemController
             ], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $payload = (array)json_decode((string)$request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        $productId = (string)($payload['productId'] ?? '');
-        $quantity = max(1, (int)($payload['quantity'] ?? 1));
+        try {
+            $payload = (array)json_decode((string)$request->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            return ValidationResponseFactory::invalidJson();
+        }
+
+        $input = AddCartItemInput::fromArray($payload);
+        $validationResponse = $this->cartInputValidator->validate($input);
+        if ($validationResponse instanceof JsonResponse) {
+            return $validationResponse;
+        }
+
+        $productId = $input->productId;
+        $quantity = $input->quantity;
 
         $product = $this->productRepository->find($productId);
         if (!$product instanceof Product || $product->getShop()?->getId() !== $shop->getId()) {
