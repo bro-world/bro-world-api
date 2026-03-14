@@ -11,6 +11,7 @@ use App\Crm\Infrastructure\Repository\ProjectRepository;
 use App\Crm\Transport\Request\CreateSprintRequest;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
 use App\General\Application\Message\EntityCreated;
+use App\Role\Domain\Enum\Role;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,13 +22,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Crm\Application\Security\CrmPermissions;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
-#[IsGranted(CrmPermissions::EDIT)]
+#[IsGranted(Role::CRM_MANAGER->value)]
 final readonly class CreateSprintController
 {
     public function __construct(
@@ -50,10 +50,10 @@ final readonly class CreateSprintController
                 required: ['name', 'projectId'],
                 properties: [
                     new OA\Property(property: 'name', type: 'string', maxLength: 255, example: 'Sprint Q1 - Pipeline'),
-                    new OA\Property(property: 'goal', type: 'string', maxLength: 5000, nullable: true, example: 'Automatiser la qualification des leads.'),
-                    new OA\Property(property: 'status', type: 'string', enum: ['planned', 'active', 'closed'], nullable: true, example: 'planned'),
-                    new OA\Property(property: 'startDate', type: 'string', format: 'date-time', nullable: true, example: '2026-02-01T08:00:00+00:00'),
-                    new OA\Property(property: 'endDate', type: 'string', format: 'date-time', nullable: true, example: '2026-02-14T18:00:00+00:00'),
+                    new OA\Property(property: 'goal', type: 'string', maxLength: 5000, example: 'Automatiser la qualification des leads.', nullable: true),
+                    new OA\Property(property: 'status', type: 'string', enum: ['planned', 'active', 'closed'], example: 'planned', nullable: true),
+                    new OA\Property(property: 'startDate', type: 'string', format: 'date-time', example: '2026-02-01T08:00:00+00:00', nullable: true),
+                    new OA\Property(property: 'endDate', type: 'string', format: 'date-time', example: '2026-02-14T18:00:00+00:00', nullable: true),
                     new OA\Property(property: 'projectId', type: 'string', format: 'uuid', example: 'ebf77366-d60c-4ac4-b204-9f91a7f7ee12'),
                 ],
             ),

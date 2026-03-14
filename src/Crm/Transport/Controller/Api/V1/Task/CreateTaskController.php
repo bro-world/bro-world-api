@@ -13,6 +13,7 @@ use App\Crm\Infrastructure\Repository\SprintRepository;
 use App\Crm\Transport\Request\CreateTaskRequest;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
 use App\General\Application\Message\EntityCreated;
+use App\Role\Domain\Enum\Role;
 use App\User\Domain\Entity\User;
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -22,6 +23,7 @@ use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Crm\Application\Security\CrmPermissions;
@@ -30,7 +32,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
-#[IsGranted(CrmPermissions::EDIT)]
+#[IsGranted(Role::CRM_MANAGER->value)]
 final readonly class CreateTaskController
 {
     public function __construct(
@@ -44,6 +46,9 @@ final readonly class CreateTaskController
     ) {
     }
 
+    /**
+     * @throws ExceptionInterface
+     */
     #[Route('/v1/crm/applications/{applicationSlug}/tasks', methods: [Request::METHOD_POST])]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
     #[OA\Post(

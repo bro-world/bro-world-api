@@ -4,37 +4,34 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Task;
 
-use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\Task;
 use App\Crm\Infrastructure\Repository\TaskRepository;
-use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
+use App\Role\Domain\Enum\Role;
 use App\User\Domain\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Crm\Application\Security\CrmPermissions;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
-#[IsGranted(CrmPermissions::EDIT)]
+#[IsGranted(Role::CRM_MANAGER->value)]
 final readonly class AddTaskAssigneeController
 {
-    public function __construct(private TaskRepository $taskRepository, private CrmApplicationScopeResolver $scopeResolver, private CrmApiErrorResponseFactory $errorResponseFactory, private EntityManagerInterface $entityManager) {}
+    public function __construct(private TaskRepository $taskRepository,
+    ) {}
 
-    #[Route('/v1/crm/applications/{applicationSlug}/tasks/{id}/assignees/{userId}', methods: [Request::METHOD_PUT])]
-    public function __invoke(string $applicationSlug, string $id, string $userId): JsonResponse
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
+    #[Route('/v1/crm/applications/{applicationSlug}/tasks/{task}/assignees/{user}', methods: [Request::METHOD_PUT])]
+    public function __invoke(string $applicationSlug, Task $task, User $user): JsonResponse
     {
-        $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
-        $task = $this->taskRepository->findOneScopedById($id, $crm->getId());
-        if (!$task instanceof Task) { return $this->errorResponseFactory->notFoundReference('taskId'); }
-
-        $user = $this->entityManager->getRepository(User::class)->find($userId);
-        if (!$user instanceof User) { return $this->errorResponseFactory->notFoundReference('userId'); }
-
         $task->addAssignee($user);
         $this->taskRepository->save($task);
 

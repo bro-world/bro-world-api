@@ -10,6 +10,7 @@ use App\Crm\Domain\Entity\Contact;
 use App\Crm\Infrastructure\Repository\CompanyRepository;
 use App\Crm\Transport\Request\CreateContactRequest;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
+use App\Role\Domain\Enum\Role;
 use Doctrine\ORM\EntityManagerInterface;
 use JsonException;
 use OpenApi\Attributes as OA;
@@ -22,7 +23,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
-#[IsGranted(CrmPermissions::EDIT)]
+#[IsGranted(Role::CRM_ADMIN->value)]
 final readonly class CreateContactController
 {
     public function __construct(

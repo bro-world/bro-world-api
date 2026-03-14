@@ -8,19 +8,22 @@ use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\Project;
 use App\Crm\Infrastructure\Repository\ProjectRepository;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
+use App\Role\Domain\Enum\Role;
 use DateTimeImmutable;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use JsonException;
 use OpenApi\Attributes as OA;
+use Random\RandomException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Crm\Application\Security\CrmPermissions;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
-#[IsGranted(CrmPermissions::EDIT)]
+#[IsGranted(Role::CRM_MANAGER->value)]
 final readonly class AddProjectWikiPageController
 {
     public function __construct(
@@ -30,6 +33,11 @@ final readonly class AddProjectWikiPageController
     ) {
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws RandomException
+     * @throws ORMException
+     */
     #[Route('/v1/crm/applications/{applicationSlug}/projects/{id}/wiki-pages', methods: [Request::METHOD_POST])]
     public function __invoke(string $applicationSlug, string $id, Request $request): JsonResponse
     {
@@ -62,7 +70,7 @@ final readonly class AddProjectWikiPageController
             'id' => bin2hex(random_bytes(16)),
             'title' => $title,
             'content' => $content,
-            'createdAt' => (new DateTimeImmutable())->format(DATE_ATOM),
+            'createdAt' => new DateTimeImmutable()->format(DATE_ATOM),
         ];
 
         $project->addWikiPage($wikiPage);

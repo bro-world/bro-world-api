@@ -11,6 +11,7 @@ use App\Crm\Infrastructure\Repository\TaskRepository;
 use App\Crm\Transport\Request\CreateTaskRequestEntryRequest;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
 use App\General\Application\Message\EntityCreated;
+use App\Role\Domain\Enum\Role;
 use App\User\Domain\Entity\User;
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -20,15 +21,15 @@ use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Crm\Application\Security\CrmPermissions;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
-#[IsGranted(CrmPermissions::EDIT)]
+#[IsGranted(Role::CRM_VIEWER->value)]
 final readonly class CreateTaskRequestController
 {
     public function __construct(
@@ -41,6 +42,9 @@ final readonly class CreateTaskRequestController
     ) {
     }
 
+    /**
+     * @throws ExceptionInterface
+     */
     #[Route('/v1/crm/applications/{applicationSlug}/task-requests', methods: [Request::METHOD_POST])]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
     #[OA\Post(
@@ -51,11 +55,11 @@ final readonly class CreateTaskRequestController
                 required: ['title', 'taskId'],
                 properties: [
                     new OA\Property(property: 'title', type: 'string', maxLength: 255, example: 'Demande de revue produit'),
-                    new OA\Property(property: 'description', type: 'string', maxLength: 5000, nullable: true, example: 'Valider les nouveaux critères de qualification.'),
-                    new OA\Property(property: 'status', type: 'string', enum: ['pending', 'approved', 'rejected'], nullable: true, example: 'pending'),
-                    new OA\Property(property: 'resolvedAt', type: 'string', format: 'date-time', nullable: true, example: '2026-03-20T16:30:00+00:00'),
+                    new OA\Property(property: 'description', type: 'string', maxLength: 5000, example: 'Valider les nouveaux critères de qualification.', nullable: true),
+                    new OA\Property(property: 'status', type: 'string', enum: ['pending', 'approved', 'rejected'], example: 'pending', nullable: true),
+                    new OA\Property(property: 'resolvedAt', type: 'string', format: 'date-time', example: '2026-03-20T16:30:00+00:00', nullable: true),
                     new OA\Property(property: 'taskId', type: 'string', format: 'uuid', example: '8f6a3550-9a07-4f69-9f75-0089f7d83e7f'),
-                    new OA\Property(property: 'assigneeIds', type: 'array', nullable: true, items: new OA\Items(type: 'string', format: 'uuid'), example: ['7d3c919e-5d4e-406a-a615-ffaf6dddbd85']),
+                    new OA\Property(property: 'assigneeIds', type: 'array', items: new OA\Items(type: 'string', format: 'uuid'), example: ['7d3c919e-5d4e-406a-a615-ffaf6dddbd85'], nullable: true),
                 ],
             ),
         ),

@@ -7,6 +7,7 @@ namespace App\Crm\Transport\Controller\Api\V1\Project;
 use App\Crm\Application\Service\CrmApiNormalizer;
 use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Infrastructure\Repository\ProjectRepository;
+use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
-#[IsGranted(CrmPermissions::VIEW)]
+#[IsGranted(Role::CRM_VIEWER->value)]
 final readonly class ListProjectsController
 {
     public function __construct(

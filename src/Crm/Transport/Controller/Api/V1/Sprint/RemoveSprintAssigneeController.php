@@ -4,35 +4,33 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Sprint;
 
-use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\Sprint;
 use App\Crm\Infrastructure\Repository\SprintRepository;
-use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
+use App\Role\Domain\Enum\Role;
 use App\User\Domain\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Crm\Application\Security\CrmPermissions;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
-#[IsGranted(CrmPermissions::EDIT)]
+#[IsGranted(Role::CRM_MANAGER->value)]
 final readonly class RemoveSprintAssigneeController
 {
-    public function __construct(private SprintRepository $sprintRepository, private CrmApplicationScopeResolver $scopeResolver, private CrmApiErrorResponseFactory $errorResponseFactory, private EntityManagerInterface $entityManager) {}
+    public function __construct(
+        private SprintRepository $sprintRepository
+    ) {}
 
-    #[Route('/v1/crm/applications/{applicationSlug}/sprints/{id}/assignees/{userId}', methods: [Request::METHOD_DELETE])]
-    public function __invoke(string $applicationSlug, string $id, string $userId): JsonResponse
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
+    #[Route('/v1/crm/applications/{applicationSlug}/sprints/{sprint}/assignees/{user}', methods: [Request::METHOD_DELETE])]
+    public function __invoke(string $applicationSlug, Sprint $sprint, User $user): JsonResponse
     {
-        $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
-        $sprint = $this->sprintRepository->findOneScopedById($id, $crm->getId());
-        if (!$sprint instanceof Sprint) { return $this->errorResponseFactory->notFoundReference('sprintId'); }
-
-        $user = $this->entityManager->getRepository(User::class)->find($userId);
-        if (!$user instanceof User) { return $this->errorResponseFactory->notFoundReference('userId'); }
-
         $sprint->removeAssignee($user);
         $this->sprintRepository->save($sprint);
 

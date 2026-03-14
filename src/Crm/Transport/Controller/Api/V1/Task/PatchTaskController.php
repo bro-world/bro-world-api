@@ -11,6 +11,7 @@ use App\Crm\Domain\Enum\TaskStatus;
 use App\Crm\Infrastructure\Repository\SprintRepository;
 use App\Crm\Infrastructure\Repository\TaskRepository;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
+use App\Role\Domain\Enum\Role;
 use DateTimeImmutable;
 use DateTimeInterface;
 use JsonException;
@@ -19,12 +20,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Crm\Application\Security\CrmPermissions;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
-#[IsGranted(CrmPermissions::EDIT)]
+#[IsGranted(Role::CRM_VIEWER->value)]
 final readonly class PatchTaskController
 {
     public function __construct(
@@ -35,14 +35,10 @@ final readonly class PatchTaskController
     ) {
     }
 
-    #[Route('/v1/crm/applications/{applicationSlug}/tasks/{id}', methods: [Request::METHOD_PATCH])]
-    public function __invoke(string $applicationSlug, string $id, Request $request): JsonResponse
+    #[Route('/v1/crm/applications/{applicationSlug}/tasks/{task}', methods: [Request::METHOD_PATCH])]
+    public function __invoke(string $applicationSlug, Task $task, Request $request): JsonResponse
     {
         $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
-        $task = $this->taskRepository->findOneScopedById($id, $crm->getId());
-        if (!$task instanceof Task) {
-            return $this->errorResponseFactory->notFoundReference('taskId');
-        }
 
         try { $payload = json_decode((string) $request->getContent(), true, 512, JSON_THROW_ON_ERROR);} catch (JsonException) { return $this->errorResponseFactory->invalidJson(); }
         if (!is_array($payload)) { return $this->errorResponseFactory->invalidJson(); }

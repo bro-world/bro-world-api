@@ -19,7 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
-#[IsGranted(CrmPermissions::VIEW)]
+#[IsGranted(Role::CRM_OWNER->value)]
 final readonly class ListCompaniesByApplicationController
 {
     public function __construct(

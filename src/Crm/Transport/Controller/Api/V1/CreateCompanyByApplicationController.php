@@ -9,6 +9,7 @@ use App\Crm\Domain\Entity\Company;
 use App\Crm\Transport\Request\CreateCompanyRequest;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
 use App\General\Application\Message\EntityCreated;
+use App\Role\Domain\Enum\Role;
 use Doctrine\ORM\EntityManagerInterface;
 use JsonException;
 use OpenApi\Attributes as OA;
@@ -24,7 +25,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
-#[IsGranted(CrmPermissions::EDIT)]
+#[IsGranted(Role::CRM_OWNER->value)]
 final readonly class CreateCompanyByApplicationController
 {
     public function __construct(

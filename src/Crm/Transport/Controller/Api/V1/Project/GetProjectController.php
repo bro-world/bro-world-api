@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Project;
 
-use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\Project;
-use App\Crm\Infrastructure\Repository\ProjectRepository;
-use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,7 +18,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(CrmPermissions::VIEW)]
 final readonly class GetProjectController
 {
-    public function __construct(private ProjectRepository $projectRepository, private CrmApplicationScopeResolver $scopeResolver, private CrmApiErrorResponseFactory $errorResponseFactory) {}
 
     #[Route('/v1/crm/applications/{applicationSlug}/projects/{project}', methods: [Request::METHOD_GET])]
     public function __invoke(string $applicationSlug, Project $project): JsonResponse

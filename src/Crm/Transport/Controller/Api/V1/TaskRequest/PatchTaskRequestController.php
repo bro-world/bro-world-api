@@ -4,44 +4,45 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\TaskRequest;
 
-use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\TaskRequest;
 use App\Crm\Domain\Enum\TaskRequestStatus;
 use App\Crm\Infrastructure\Repository\TaskRequestRepository;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
+use App\Role\Domain\Enum\Role;
 use DateTimeImmutable;
 use DateTimeInterface;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use JsonException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Crm\Application\Security\CrmPermissions;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
-#[IsGranted(CrmPermissions::EDIT)]
+#[IsGranted(Role::CRM_VIEWER->value)]
 final readonly class PatchTaskRequestController
 {
     public function __construct(
         private TaskRequestRepository $taskRequestRepository,
-        private CrmApplicationScopeResolver $scopeResolver,
         private CrmApiErrorResponseFactory $errorResponseFactory,
     ) {
     }
 
-    #[Route('/v1/crm/applications/{applicationSlug}/task-requests/{id}', methods: [Request::METHOD_PATCH])]
-    public function __invoke(string $applicationSlug, string $id, Request $request): JsonResponse
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
+    #[Route('/v1/crm/applications/{applicationSlug}/task-requests/{taskRequest}', methods: [Request::METHOD_PATCH])]
+    public function __invoke(string $applicationSlug, TaskRequest $taskRequest, Request $request): JsonResponse
     {
-        $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
-        $taskRequest = $this->taskRequestRepository->findOneScopedById($id, $crm->getId());
-        if (!$taskRequest instanceof TaskRequest) {
-            return $this->errorResponseFactory->notFoundReference('taskRequestId');
-        }
-
-        try { $payload = json_decode((string) $request->getContent(), true, 512, JSON_THROW_ON_ERROR);} catch (JsonException) { return $this->errorResponseFactory->invalidJson(); }
+        try {
+            $payload = json_decode(
+            (string) $request->getContent(),
+            true, 512, JSON_THROW_ON_ERROR);} catch (JsonException) { return $this->errorResponseFactory->invalidJson(); }
         if (!is_array($payload)) { return $this->errorResponseFactory->invalidJson(); }
 
         if (isset($payload['title'])) { $taskRequest->setTitle((string) $payload['title']); }
@@ -56,7 +57,7 @@ final readonly class PatchTaskRequestController
 
     private function parseDate(mixed $value): ?DateTimeImmutable
     {
-        if ($value === null || $value === '' || !is_string($value)) { return null; }
+        if ($value === '' || !is_string($value)) { return null; }
         $parsed = DateTimeImmutable::createFromFormat(DateTimeInterface::ATOM, $value);
 
         return $parsed === false ? null : $parsed;

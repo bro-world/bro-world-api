@@ -6,18 +6,19 @@ namespace App\Crm\Transport\Controller\Api\V1\Task;
 
 use App\Crm\Application\Service\CrmApiNormalizer;
 use App\Crm\Application\Service\CrmApplicationScopeResolver;
+use App\Crm\Domain\Entity\Sprint;
 use App\Crm\Infrastructure\Repository\TaskRepository;
+use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Crm\Application\Security\CrmPermissions;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
-#[IsGranted(CrmPermissions::VIEW)]
+#[IsGranted(Role::CRM_VIEWER->value)]
 final readonly class ListTasksByApplicationAndSprintController
 {
     public function __construct(
@@ -27,11 +28,11 @@ final readonly class ListTasksByApplicationAndSprintController
     ) {
     }
 
-    #[Route('/v1/crm/applications/{applicationSlug}/sprints/{sprintId}/tasks', methods: [Request::METHOD_GET])]
-    public function __invoke(string $applicationSlug, string $sprintId): JsonResponse
+    #[Route('/v1/crm/applications/{applicationSlug}/sprints/{sprint}/tasks', methods: [Request::METHOD_GET])]
+    public function __invoke(string $applicationSlug, Sprint $sprint): JsonResponse
     {
         $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
-        $tasks = $this->taskRepository->findScopedBySprint($crm->getId(), $sprintId);
+        $tasks = $this->taskRepository->findScopedBySprint($crm->getId(), $sprint->getId());
 
         return new JsonResponse([
             'items' => array_map(fn ($task): array => $this->crmApiNormalizer->normalizeTask($task), $tasks),

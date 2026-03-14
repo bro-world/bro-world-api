@@ -10,6 +10,7 @@ use App\Crm\Infrastructure\Repository\CompanyRepository;
 use App\Crm\Infrastructure\Repository\ProjectRepository;
 use App\Crm\Infrastructure\Repository\TaskRepository;
 use App\Crm\Infrastructure\Repository\TaskRequestRepository;
+use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,7 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
-#[IsGranted(CrmPermissions::VIEW)]
+#[IsGranted(Role::CRM_OWNER->value)]
 final readonly class GetCrmDashboardController
 {
     public function __construct(

@@ -11,6 +11,7 @@ use App\Crm\Infrastructure\Repository\CompanyRepository;
 use App\Crm\Transport\Request\CreateProjectRequest;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
 use App\General\Application\Message\EntityCreated;
+use App\Role\Domain\Enum\Role;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,7 +29,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
-#[IsGranted(CrmPermissions::EDIT)]
+#[IsGranted(Role::CRM_MANAGER->value)]
 final readonly class CreateProjectController
 {
     public function __construct(
@@ -54,11 +55,11 @@ final readonly class CreateProjectController
                 required: ['name', 'companyId'],
                 properties: [
                     new OA\Property(property: 'name', type: 'string', maxLength: 255, example: 'Refonte CRM 2026'),
-                    new OA\Property(property: 'code', type: 'string', maxLength: 64, nullable: true, example: 'CRM26'),
-                    new OA\Property(property: 'description', type: 'string', maxLength: 5000, nullable: true, example: 'Refonte des workflows commerciaux.'),
-                    new OA\Property(property: 'status', type: 'string', enum: ['planned', 'active', 'on_hold', 'completed'], nullable: true, example: 'active'),
-                    new OA\Property(property: 'startedAt', type: 'string', format: 'date-time', nullable: true, example: '2026-01-15T09:00:00+00:00'),
-                    new OA\Property(property: 'dueAt', type: 'string', format: 'date-time', nullable: true, example: '2026-06-30T18:00:00+00:00'),
+                    new OA\Property(property: 'code', type: 'string', maxLength: 64, example: 'CRM26', nullable: true),
+                    new OA\Property(property: 'description', type: 'string', maxLength: 5000, example: 'Refonte des workflows commerciaux.', nullable: true),
+                    new OA\Property(property: 'status', type: 'string', enum: ['planned', 'active', 'on_hold', 'completed'], example: 'active', nullable: true),
+                    new OA\Property(property: 'startedAt', type: 'string', format: 'date-time', example: '2026-01-15T09:00:00+00:00', nullable: true),
+                    new OA\Property(property: 'dueAt', type: 'string', format: 'date-time', example: '2026-06-30T18:00:00+00:00', nullable: true),
                     new OA\Property(property: 'companyId', type: 'string', format: 'uuid', example: '4db7f53d-cf31-4b36-9b9b-78e914c36a39'),
                 ],
             ),

@@ -9,6 +9,7 @@ use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Infrastructure\Repository\EmployeeRepository;
 use App\Crm\Transport\Request\AssignEmployeeRoleRequest;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
+use App\Role\Domain\Enum\Role;
 use Doctrine\ORM\EntityManagerInterface;
 use JsonException;
 use OpenApi\Attributes as OA;
@@ -22,7 +23,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
-#[IsGranted(CrmPermissions::EDIT)]
+#[IsGranted(Role::CRM_ADMIN->value)]
 final readonly class AddEmployeeRoleController
 {
     public function __construct(

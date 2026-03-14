@@ -4,36 +4,40 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\TaskRequest;
 
-use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\TaskRequest;
 use App\Crm\Domain\Enum\TaskRequestStatus;
 use App\Crm\Infrastructure\Repository\TaskRequestRepository;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
 use App\Crm\Transport\Request\UpdateTaskRequestStatusRequest;
+use App\Role\Domain\Enum\Role;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use JsonException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Crm\Application\Security\CrmPermissions;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
-#[IsGranted(CrmPermissions::EDIT)]
+#[IsGranted(Role::CRM_VIEWER->value)]
 final readonly class UpdateTaskRequestStatusController
 {
     public function __construct(
         private TaskRequestRepository $taskRequestRepository,
-        private CrmApplicationScopeResolver $scopeResolver,
         private CrmApiErrorResponseFactory $errorResponseFactory,
         private ValidatorInterface $validator,
     ) {
     }
 
-    #[Route('/v1/crm/applications/{applicationSlug}/task-requests/{id}/status', methods: [Request::METHOD_PATCH, Request::METHOD_PUT])]
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
+    #[Route('/v1/crm/applications/{applicationSlug}/task-requests/{taskRequest}/status', methods: [Request::METHOD_PATCH, Request::METHOD_PUT])]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
     #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Patch(
@@ -54,15 +58,9 @@ final readonly class UpdateTaskRequestStatusController
             new OA\Response(response: 422, description: 'Validation failed.'),
         ],
     )]
-    public function __invoke(string $applicationSlug, string $id, Request $request): JsonResponse
+    public function __invoke(string $applicationSlug, TaskRequest $taskRequest, Request $request): JsonResponse
     {
         $request->attributes->set('applicationSlug', $applicationSlug);
-        $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
-        $taskRequest = $this->taskRequestRepository->findOneScopedById($id, $crm->getId());
-
-        if (!$taskRequest instanceof TaskRequest) {
-            return $this->errorResponseFactory->notFoundReference('taskRequestId');
-        }
 
         try {
             $payload = json_decode((string) $request->getContent(), true, 512, JSON_THROW_ON_ERROR);
