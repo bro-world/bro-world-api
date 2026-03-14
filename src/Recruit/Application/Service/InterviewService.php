@@ -36,6 +36,7 @@ readonly class InterviewService
     public function __construct(
         private ApplicationRepository $applicationRepository,
         private InterviewRepository $interviewRepository,
+        private RecruitNotificationService $recruitNotificationService,
         private InterviewInvitationService $interviewInvitationService,
     ) {
     }
@@ -57,6 +58,7 @@ readonly class InterviewService
             ->setNotes($this->extractNotes($payload));
 
         $this->interviewRepository->save($interview);
+        $this->recruitNotificationService->notifyInterviewScheduled($interview);
         $this->interviewInvitationService->sendInvitation($interview, false);
 
         return $interview;
@@ -94,6 +96,8 @@ readonly class InterviewService
             $interview->setInterviewerIds($this->extractInterviewerIds($payload));
         }
 
+        $statusBeforeUpdate = $interview->getStatus();
+
         if (isset($payload['status'])) {
             $interview->setStatus($this->extractStatus($payload, true));
         }
@@ -104,6 +108,12 @@ readonly class InterviewService
 
         $this->interviewRepository->save($interview);
         $this->interviewInvitationService->sendInvitation($interview, true);
+
+        if ($interview->getStatus() === InterviewStatus::CANCELED && $statusBeforeUpdate !== InterviewStatus::CANCELED) {
+            $this->recruitNotificationService->notifyInterviewCanceled($interview);
+        } else {
+            $this->recruitNotificationService->notifyInterviewUpdated($interview);
+        }
 
         return $interview;
     }
