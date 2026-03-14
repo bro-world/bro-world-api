@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Recruit\Application\Service;
 
+use App\Recruit\Application\Service\InterviewInvitationService;
 use App\Recruit\Application\Service\InterviewService;
 use App\Recruit\Domain\Entity\Applicant;
 use App\Recruit\Domain\Entity\Application;
@@ -32,7 +33,7 @@ class InterviewServiceTest extends TestCase
         $interviewRepository = $this->createMock(InterviewRepository::class);
         $interviewRepository->expects(self::never())->method('save');
 
-        $service = new InterviewService($applicationRepository, $interviewRepository);
+        $service = new InterviewService($applicationRepository, $interviewRepository, $this->createMock(InterviewInvitationService::class));
 
         $this->expectException(HttpException::class);
         $this->expectExceptionMessage('Cannot schedule or update interviews for applications with status REJECTED or HIRED.');
@@ -58,7 +59,7 @@ class InterviewServiceTest extends TestCase
 
         $interviewRepository = $this->createMock(InterviewRepository::class);
 
-        $service = new InterviewService($applicationRepository, $interviewRepository);
+        $service = new InterviewService($applicationRepository, $interviewRepository, $this->createMock(InterviewInvitationService::class));
 
         $this->expectException(HttpException::class);
         $this->expectExceptionMessage('Field "scheduledAt" must be in the future.');
@@ -84,7 +85,7 @@ class InterviewServiceTest extends TestCase
 
         $interviewRepository = $this->createMock(InterviewRepository::class);
 
-        $service = new InterviewService($applicationRepository, $interviewRepository);
+        $service = new InterviewService($applicationRepository, $interviewRepository, $this->createMock(InterviewInvitationService::class));
 
         $this->expectException(HttpException::class);
         $this->expectExceptionMessage('Field "durationMinutes" must be between 15 and 240.');
@@ -111,7 +112,10 @@ class InterviewServiceTest extends TestCase
         $interviewRepository = $this->createMock(InterviewRepository::class);
         $interviewRepository->expects(self::once())->method('save')->with(self::isInstanceOf(Interview::class));
 
-        $service = new InterviewService($applicationRepository, $interviewRepository);
+        $invitationService = $this->createMock(InterviewInvitationService::class);
+        $invitationService->expects(self::once())->method('sendInvitation')->with(self::isInstanceOf(Interview::class), false);
+
+        $service = new InterviewService($applicationRepository, $interviewRepository, $invitationService);
 
         $interview = $service->create('app-id', [
             'scheduledAt' => (new DateTimeImmutable('+1 day'))->format(DATE_ATOM),

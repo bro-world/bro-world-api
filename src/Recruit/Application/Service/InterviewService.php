@@ -36,6 +36,7 @@ readonly class InterviewService
     public function __construct(
         private ApplicationRepository $applicationRepository,
         private InterviewRepository $interviewRepository,
+        private InterviewInvitationService $interviewInvitationService,
     ) {
     }
 
@@ -56,6 +57,7 @@ readonly class InterviewService
             ->setNotes($this->extractNotes($payload));
 
         $this->interviewRepository->save($interview);
+        $this->interviewInvitationService->sendInvitation($interview, false);
 
         return $interview;
     }
@@ -101,6 +103,7 @@ readonly class InterviewService
         }
 
         $this->interviewRepository->save($interview);
+        $this->interviewInvitationService->sendInvitation($interview, true);
 
         return $interview;
     }
