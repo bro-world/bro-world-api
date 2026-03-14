@@ -24,6 +24,29 @@ readonly class InterviewCreateController
     }
 
     #[Route(path: '/v1/recruit/private/applications/{applicationId}/interviews', methods: [Request::METHOD_POST])]
+    #[OA\Post(
+        summary: 'Crée un entretien pour une candidature.',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['scheduledAt', 'durationMinutes', 'mode'],
+                properties: [
+                    new OA\Property(property: 'scheduledAt', type: 'string', format: 'date-time'),
+                    new OA\Property(property: 'durationMinutes', type: 'integer', minimum: 1),
+                    new OA\Property(property: 'mode', type: 'string', enum: ['visio', 'phone', 'onsite']),
+                    new OA\Property(property: 'locationOrUrl', type: 'string', nullable: true),
+                    new OA\Property(property: 'interviewerIds', type: 'array', items: new OA\Items(type: 'string')),
+                    new OA\Property(property: 'notes', type: 'string', nullable: true),
+                ],
+            ),
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Entretien créé.'),
+            new OA\Response(response: 400, description: 'Payload invalide ou statut incompatible.'),
+            new OA\Response(response: 403, description: 'Accès interdit.'),
+        ],
+    )]
+    #[OA\Parameter(name: 'applicationId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     public function __invoke(string $applicationId, Request $request, User $loggedInUser): JsonResponse
     {
         /** @var array<string,mixed> $payload */

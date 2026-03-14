@@ -27,6 +27,15 @@ readonly class InterviewListController
     }
 
     #[Route(path: '/v1/recruit/private/applications/{applicationId}/interviews', methods: [Request::METHOD_GET])]
+    #[OA\Get(
+        summary: 'Liste les entretiens d\'une candidature.',
+        responses: [
+            new OA\Response(response: 200, description: 'Liste des entretiens.'),
+            new OA\Response(response: 403, description: 'Accès interdit.'),
+            new OA\Response(response: 404, description: 'Candidature introuvable.'),
+        ],
+    )]
+    #[OA\Parameter(name: 'applicationId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     public function __invoke(string $applicationId, User $loggedInUser): JsonResponse
     {
         $items = $this->interviewService->listByApplication($applicationId, $loggedInUser);

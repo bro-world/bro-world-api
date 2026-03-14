@@ -31,7 +31,15 @@ readonly class ApplicationStatusHistoryListController
 
     #[Route(path: '/v1/recruit/applications/{applicationSlug}/private/applications/{applicationId}/status-history', methods: [Request::METHOD_GET])]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
-    #[OA\Get(summary: 'Retourne l\'historique des transitions de statut d\'une candidature.')]
+    #[OA\Parameter(name: 'applicationId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Get(
+        summary: 'Retourne l\'historique des transitions de statut d\'une candidature.',
+        responses: [
+            new OA\Response(response: 200, description: 'Historique des transitions.'),
+            new OA\Response(response: 403, description: 'Accès interdit.'),
+            new OA\Response(response: 404, description: 'Candidature introuvable.'),
+        ],
+    )]
     public function __invoke(string $applicationSlug, string $applicationId, User $loggedInUser): JsonResponse
     {
         $application = $this->applicationRepository->find($applicationId);
