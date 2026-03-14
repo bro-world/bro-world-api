@@ -40,6 +40,7 @@ readonly class ApplicationStatusUpdateController
      */
     #[Route(path: '/v1/recruit/applications/{applicationSlug}/private/applications/{applicationId}/status', methods: [Request::METHOD_PATCH, Request::METHOD_PUT])]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'applicationId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Patch(
         summary: 'Modifie le statut d\'une candidature.',
         requestBody: new OA\RequestBody(
@@ -54,7 +55,9 @@ readonly class ApplicationStatusUpdateController
         ),
         responses: [
             new OA\Response(response: 200, description: 'Statut de candidature mis à jour.'),
+            new OA\Response(response: 400, description: 'Transition invalide ou payload incomplet.'),
             new OA\Response(response: 403, description: 'Vous n\'êtes pas propriétaire du job.'),
+            new OA\Response(response: 404, description: 'Candidature introuvable.'),
         ],
     )]
     public function __invoke(string $applicationSlug, string $applicationId, Request $request, User $loggedInUser): JsonResponse

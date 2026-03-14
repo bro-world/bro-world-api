@@ -26,6 +26,15 @@ readonly class InterviewDeleteController
     }
 
     #[Route(path: '/v1/recruit/private/interviews/{interviewId}', methods: [Request::METHOD_DELETE])]
+    #[OA\Delete(
+        summary: 'Supprime un entretien.',
+        responses: [
+            new OA\Response(response: 204, description: 'Entretien supprimé.'),
+            new OA\Response(response: 403, description: 'Accès interdit.'),
+            new OA\Response(response: 404, description: 'Entretien introuvable.'),
+        ],
+    )]
+    #[OA\Parameter(name: 'interviewId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     public function __invoke(string $interviewId, User $loggedInUser): JsonResponse
     {
         $this->interviewService->delete($interviewId, $loggedInUser);
