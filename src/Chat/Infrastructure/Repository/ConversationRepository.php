@@ -16,6 +16,12 @@ use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 
+use function array_map;
+use function array_values;
+use function implode;
+use function max;
+use function sprintf;
+
 /**
  * @method Entity|null find(string $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null, ?string $entityManagerName = null)
  * @method Entity[] findBy(array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null, ?string $entityManagerName = null)
@@ -43,87 +49,67 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
         return $conversation;
     }
 
+    /**
+     * @return list<Entity>
+     */
     public function findByUser(User $user, array $filters = [], int $page = 1, int $limit = 20, ?array $esIds = null): array
     {
         $offset = max(0, ($page - 1) * $limit);
 
-        $qb = $this->applyListFilters($this->getConversationListQueryBuilder(), $filters, $esIds)
-            ->innerJoin('conversation.participants', 'participant');
+        $ids = $this->findConversationIdsByUser($user, $filters, $offset, $limit, $esIds);
 
-        return $qb
-            ->andWhere('participant.user = :user')
-            ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
-            ->orderBy('conversation.lastMessageAt', 'DESC')
-            ->addOrderBy('conversation.createdAt', 'DESC')
-            ->setFirstResult($offset)
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
+        return $this->findConversationsWithRelationsByIds($ids);
     }
 
     public function countByUser(User $user, array $filters = [], ?array $esIds = null): int
     {
-        return (int)$this->applyListFilters($this->getConversationCountQueryBuilder(), $filters, $esIds)
+        return (int) $this->applyListFilters($this->getConversationCountQueryBuilder(), $filters, $esIds)
             ->innerJoin('conversation.participants', 'participant')
             ->andWhere('participant.user = :user')
-            ->andWhere('conversation.archivedAt IS NULL')
             ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
             ->getQuery()
             ->getSingleScalarResult();
     }
 
+    /**
+     * @return list<Entity>
+     */
     public function findByChatId(string $chatId, array $filters = [], int $page = 1, int $limit = 20, ?array $esIds = null): array
     {
         $offset = max(0, ($page - 1) * $limit);
 
-        return $this->applyListFilters($this->getConversationListQueryBuilder(), $filters, $esIds)
-            ->andWhere('chat.id = :chatId')
-            ->andWhere('conversation.archivedAt IS NULL')
-            ->setParameter('chatId', $chatId, UuidBinaryOrderedTimeType::NAME)
-            ->orderBy('conversation.lastMessageAt', 'DESC')
-            ->addOrderBy('conversation.createdAt', 'DESC')
-            ->setFirstResult($offset)
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
+        $ids = $this->findConversationIdsByChatId($chatId, $filters, $offset, $limit, $esIds);
+
+        return $this->findConversationsWithRelationsByIds($ids);
     }
 
     public function countByChatId(string $chatId, array $filters = [], ?array $esIds = null): int
     {
-        return (int)$this->applyListFilters($this->getConversationCountQueryBuilder(), $filters, $esIds)
+        return (int) $this->applyListFilters($this->getConversationCountQueryBuilder(), $filters, $esIds)
             ->andWhere('chat.id = :chatId')
-            ->andWhere('conversation.archivedAt IS NULL')
             ->setParameter('chatId', $chatId, UuidBinaryOrderedTimeType::NAME)
             ->getQuery()
             ->getSingleScalarResult();
     }
 
+    /**
+     * @return list<Entity>
+     */
     public function findByChatIdAndUser(string $chatId, User $user, array $filters = [], int $page = 1, int $limit = 20, ?array $esIds = null): array
     {
         $offset = max(0, ($page - 1) * $limit);
 
-        return $this->applyListFilters($this->getConversationListQueryBuilder(), $filters, $esIds)
-            ->innerJoin('conversation.participants', 'participant')
-            ->andWhere('chat.id = :chatId')
-            ->andWhere('participant.user = :user')
-            ->andWhere('conversation.archivedAt IS NULL')
-            ->setParameter('chatId', $chatId, UuidBinaryOrderedTimeType::NAME)
-            ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
-            ->orderBy('conversation.lastMessageAt', 'DESC')
-            ->addOrderBy('conversation.createdAt', 'DESC')
-            ->setFirstResult($offset)
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
+        $ids = $this->findConversationIdsByChatIdAndUser($chatId, $user, $filters, $offset, $limit, $esIds);
+
+        return $this->findConversationsWithRelationsByIds($ids);
     }
 
     public function countByChatIdAndUser(string $chatId, User $user, array $filters = [], ?array $esIds = null): int
     {
-        return (int)$this->applyListFilters($this->getConversationCountQueryBuilder(), $filters, $esIds)
+        return (int) $this->applyListFilters($this->getConversationCountQueryBuilder(), $filters, $esIds)
             ->innerJoin('conversation.participants', 'participant')
             ->andWhere('chat.id = :chatId')
             ->andWhere('participant.user = :user')
-            ->andWhere('conversation.archivedAt IS NULL')
             ->setParameter('chatId', $chatId, UuidBinaryOrderedTimeType::NAME)
             ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
             ->getQuery()
@@ -158,6 +144,76 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
         return $conversation instanceof Entity ? $conversation : null;
     }
 
+    /**
+     * @return list<string>
+     */
+    private function findConversationIdsByUser(User $user, array $filters, int $offset, int $limit, ?array $esIds): array
+    {
+        $qb = $this->applyListFilters($this->getConversationListIdsQueryBuilder(), $filters, $esIds)
+            ->innerJoin('conversation.participants', 'participant')
+            ->andWhere('participant.user = :user')
+            ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
+            ->orderBy('conversation.lastMessageAt', 'DESC')
+            ->addOrderBy('conversation.createdAt', 'DESC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit);
+
+        /** @var list<array{id:string}> $rows */
+        $rows = $qb->getQuery()->getArrayResult();
+
+        return array_values(array_map(
+            static fn (array $row): string => (string) $row['id'],
+            $rows
+        ));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function findConversationIdsByChatId(string $chatId, array $filters, int $offset, int $limit, ?array $esIds): array
+    {
+        $qb = $this->applyListFilters($this->getConversationListIdsQueryBuilder(), $filters, $esIds)
+            ->andWhere('chat.id = :chatId')
+            ->setParameter('chatId', $chatId, UuidBinaryOrderedTimeType::NAME)
+            ->orderBy('conversation.lastMessageAt', 'DESC')
+            ->addOrderBy('conversation.createdAt', 'DESC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit);
+
+        /** @var list<array{id:string}> $rows */
+        $rows = $qb->getQuery()->getArrayResult();
+
+        return array_values(array_map(
+            static fn (array $row): string => (string) $row['id'],
+            $rows
+        ));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function findConversationIdsByChatIdAndUser(string $chatId, User $user, array $filters, int $offset, int $limit, ?array $esIds): array
+    {
+        $qb = $this->applyListFilters($this->getConversationListIdsQueryBuilder(), $filters, $esIds)
+            ->innerJoin('conversation.participants', 'participant')
+            ->andWhere('chat.id = :chatId')
+            ->andWhere('participant.user = :user')
+            ->setParameter('chatId', $chatId, UuidBinaryOrderedTimeType::NAME)
+            ->setParameter('user', $user->getId(), UuidBinaryOrderedTimeType::NAME)
+            ->orderBy('conversation.lastMessageAt', 'DESC')
+            ->addOrderBy('conversation.createdAt', 'DESC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit);
+
+        /** @var list<array{id:string}> $rows */
+        $rows = $qb->getQuery()->getArrayResult();
+
+        return array_values(array_map(
+            static fn (array $row): string => (string) $row['id'],
+            $rows
+        ));
+    }
+
     private function getConversationQueryBuilder(): QueryBuilder
     {
         return $this->createQueryBuilder('conversation')
@@ -173,22 +229,47 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
             ->distinct();
     }
 
-    private function getConversationListQueryBuilder(): QueryBuilder
+    private function getConversationListIdsQueryBuilder(): QueryBuilder
     {
         return $this->createQueryBuilder('conversation')
-            ->addSelect('chat', 'participants', 'participantUser', 'lastMessage', 'lastMessageSender')
+            ->select('conversation.id AS id')
             ->innerJoin('conversation.chat', 'chat')
-            ->leftJoin('conversation.participants', 'participants')
-            ->leftJoin('participants.user', 'participantUser')
-            ->leftJoin(
-                'conversation.messages',
-                'lastMessage',
-                'WITH',
-                'lastMessage.deletedAt IS NULL AND lastMessage.createdAt = conversation.lastMessageAt'
-            )
-            ->leftJoin('lastMessage.sender', 'lastMessageSender')
-            ->andWhere('conversation.archivedAt IS NULL')
-            ->distinct();
+            ->andWhere('conversation.archivedAt IS NULL');
+    }
+
+    /**
+     * @param list<string> $ids
+     *
+     * @return list<Entity>
+     */
+    private function findConversationsWithRelationsByIds(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $qb = $this->createQueryBuilder('conversation')
+            ->addSelect('chat')
+            ->innerJoin('conversation.chat', 'chat');
+
+        $this->applyBinaryUuidIdsFilter($qb, 'conversation.id', $ids, 'conversation_id_');
+
+        /** @var list<Entity> $conversations */
+        $conversations = $qb->getQuery()->getResult();
+
+        $byId = [];
+        foreach ($conversations as $conversation) {
+            $byId[$conversation->getId()] = $conversation;
+        }
+
+        $ordered = [];
+        foreach ($ids as $id) {
+            if (isset($byId[$id])) {
+                $ordered[] = $byId[$id];
+            }
+        }
+
+        return $ordered;
     }
 
     private function getConversationCountQueryBuilder(): QueryBuilder
@@ -201,11 +282,7 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
 
     private function applyListFilters(QueryBuilder $queryBuilder, array $filters, ?array $esIds): QueryBuilder
     {
-        if ($esIds !== null) {
-            return $queryBuilder
-                ->andWhere('conversation.id IN (:esIds)')
-                ->setParameter('esIds', $esIds);
-        }
+        $this->applyBinaryUuidIdsFilter($queryBuilder, 'conversation.id', $esIds, 'conversation_filter_id_');
 
         if (($filters['message'] ?? '') !== '') {
             $queryBuilder
@@ -217,5 +294,35 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
         }
 
         return $queryBuilder;
+    }
+
+    /**
+     * @param list<string>|null $ids
+     */
+    private function applyBinaryUuidIdsFilter(
+        QueryBuilder $qb,
+        string $field,
+        ?array $ids,
+        string $parameterPrefix,
+    ): void {
+        if ($ids === null) {
+            return;
+        }
+
+        if ($ids === []) {
+            $qb->andWhere('1 = 0');
+
+            return;
+        }
+
+        $parts = [];
+
+        foreach (array_values($ids) as $index => $id) {
+            $parameterName = $parameterPrefix . $index;
+            $parts[] = $field . ' = :' . $parameterName;
+            $qb->setParameter($parameterName, $id, UuidBinaryOrderedTimeType::NAME);
+        }
+
+        $qb->andWhere('(' . implode(' OR ', $parts) . ')');
     }
 }
