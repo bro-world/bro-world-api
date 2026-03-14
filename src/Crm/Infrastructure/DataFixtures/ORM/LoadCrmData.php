@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Crm\Infrastructure\DataFixtures\ORM;
 
+use App\Crm\Domain\Entity\Billing;
 use App\Crm\Domain\Entity\Company;
+use App\Crm\Domain\Entity\Contact;
+use App\Crm\Domain\Entity\Employee;
 use App\Crm\Domain\Entity\Crm;
 use App\Crm\Domain\Entity\Project;
 use App\Crm\Domain\Entity\Sprint;
@@ -119,6 +122,7 @@ final class LoadCrmData extends Fixture implements OrderedFixtureInterface
                         ->setStatus(TaskRequestStatus::PENDING),
                 );
 
+
                 $manager->persist(
                     new TaskRequest()
                         ->setTask($taskAutomation)
@@ -126,6 +130,39 @@ final class LoadCrmData extends Fixture implements OrderedFixtureInterface
                         ->setDescription('Valider la conformité RGPD avant diffusion')
                         ->setStatus(TaskRequestStatus::APPROVED)
                         ->setResolvedAt(new DateTimeImmutable('-1 day')),
+                );
+
+                $manager->persist(
+                    (new Contact())
+                        ->setCrm($crm)
+                        ->setCompany($company)
+                        ->setFirstName($companyIndex === 0 ? 'Camille' : 'Nadia')
+                        ->setLastName($companyIndex === 0 ? 'R.' : 'K.')
+                        ->setEmail($companyIndex === 0 ? 'camille@acme.example.com' : 'nadia@globex.example.com')
+                        ->setPhone($companyIndex === 0 ? '+33 6 11 22 33 44' : '+33 6 22 33 44 55')
+                        ->setJobTitle($companyIndex === 0 ? 'Senior Frontend Engineer' : 'Product Designer')
+                        ->setCity($companyIndex === 0 ? 'Paris' : 'Remote')
+                        ->setScore($companyIndex === 0 ? 92 : 88),
+                );
+
+                $manager->persist(
+                    (new Employee())
+                        ->setCrm($crm)
+                        ->setFirstName($companyIndex === 0 ? 'Yanis' : 'Lina')
+                        ->setLastName($companyIndex === 0 ? 'M.' : 'D.')
+                        ->setEmail($companyIndex === 0 ? 'yanis@acme.example.com' : 'lina@globex.example.com')
+                        ->setPositionName($companyIndex === 0 ? 'Data Analyst' : 'Customer Success Manager')
+                        ->setRoleName($companyIndex === 0 ? 'sales' : 'support'),
+                );
+
+                $manager->persist(
+                    (new Billing())
+                        ->setCompany($company)
+                        ->setLabel('Abonnement CRM ' . (string)($companyIndex + 1))
+                        ->setAmount($companyIndex === 0 ? 1800.0 : 2400.0)
+                        ->setCurrency('EUR')
+                        ->setStatus($companyIndex === 0 ? 'paid' : 'pending')
+                        ->setDueAt(new DateTimeImmutable('+15 days')),
                 );
             }
         }

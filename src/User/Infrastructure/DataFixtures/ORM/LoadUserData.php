@@ -119,6 +119,12 @@ final class LoadUserData extends Fixture implements OrderedFixtureInterface
             /** @var UserGroup $userGroup */
             $userGroup = $this->getReference('UserGroup-' . $this->rolesService->getShort($role), UserGroup::class);
             $entity->addUserGroup($userGroup);
+
+            if ($this->rolesService->getShort($role) === 'root') {
+                /** @var UserGroup $crmOwnerGroup */
+                $crmOwnerGroup = $this->getReference('UserGroup-crm_owner', UserGroup::class);
+                $entity->addUserGroup($crmOwnerGroup);
+            }
         }
 
         PhpUnitUtil::setProperty('id', UuidHelper::fromString(self::$uuids['john' . $suffix]), $entity);

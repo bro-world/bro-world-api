@@ -36,6 +36,14 @@ class Crm implements EntityInterface
     #[ORM\OneToMany(targetEntity: Company::class, mappedBy: 'crm')]
     private Collection|ArrayCollection $companies;
 
+    /** @var Collection<int, Contact>|ArrayCollection<int, Contact> */
+    #[ORM\OneToMany(targetEntity: Contact::class, mappedBy: 'crm')]
+    private Collection|ArrayCollection $contacts;
+
+    /** @var Collection<int, Employee>|ArrayCollection<int, Employee> */
+    #[ORM\OneToMany(targetEntity: Employee::class, mappedBy: 'crm')]
+    private Collection|ArrayCollection $employees;
+
     /**
      * @throws Throwable
      */
@@ -43,6 +51,8 @@ class Crm implements EntityInterface
     {
         $this->id = $this->createUuid();
         $this->companies = new ArrayCollection();
+        $this->contacts = new ArrayCollection();
+        $this->employees = new ArrayCollection();
     }
 
     #[Override]
@@ -69,5 +79,21 @@ class Crm implements EntityInterface
     public function getCompanies(): Collection|ArrayCollection
     {
         return $this->companies;
+    }
+
+    /**
+     * @return Collection<int, Contact>|ArrayCollection<int, Contact>
+     */
+    public function getContacts(): Collection|ArrayCollection
+    {
+        return $this->contacts;
+    }
+
+    /**
+     * @return Collection<int, Employee>|ArrayCollection<int, Employee>
+     */
+    public function getEmployees(): Collection|ArrayCollection
+    {
+        return $this->employees;
     }
 }
