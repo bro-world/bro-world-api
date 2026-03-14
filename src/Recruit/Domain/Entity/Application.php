@@ -8,6 +8,8 @@ use App\General\Domain\Entity\Interfaces\EntityInterface;
 use App\General\Domain\Entity\Traits\Timestampable;
 use App\General\Domain\Entity\Traits\Uuid;
 use App\Recruit\Domain\Enum\ApplicationStatus;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Override;
@@ -40,9 +42,14 @@ class Application implements EntityInterface
     ])]
     private ApplicationStatus $status = ApplicationStatus::WAITING;
 
+    /** @var Collection<int, Interview>|ArrayCollection<int, Interview> */
+    #[ORM\OneToMany(targetEntity: Interview::class, mappedBy: 'application', cascade: ['remove'], orphanRemoval: true)]
+    private Collection|ArrayCollection $interviews;
+
     public function __construct()
     {
         $this->id = $this->createUuid();
+        $this->interviews = new ArrayCollection();
     }
 
     #[Override]
@@ -83,5 +90,13 @@ class Application implements EntityInterface
         $this->status = $status instanceof ApplicationStatus ? $status : ApplicationStatus::from($status);
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Interview>|ArrayCollection<int, Interview>
+     */
+    public function getInterviews(): Collection|ArrayCollection
+    {
+        return $this->interviews;
     }
 }
