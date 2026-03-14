@@ -8,6 +8,7 @@ use App\Crm\Domain\Entity\Project as Entity;
 use App\General\Infrastructure\Repository\BaseRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
+use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 
 /**
  * @method Entity|null find(string $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null, ?string $entityManagerName = null)
@@ -34,7 +35,7 @@ class ProjectRepository extends BaseRepository
             ->andWhere('project.id = :id')
             ->andWhere('company.crm = :crmId')
             ->setParameter('id', $id)
-            ->setParameter('crmId', $crmId)
+            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
             ->getQuery()
             ->getOneOrNullResult();
 
@@ -49,7 +50,7 @@ class ProjectRepository extends BaseRepository
         return $this->createQueryBuilder('project')
             ->leftJoin('project.company', 'company')
             ->andWhere('company.crm = :crmId')
-            ->setParameter('crmId', $crmId)
+            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
             ->orderBy('project.createdAt', 'DESC')
             ->setMaxResults($limit)
             ->setFirstResult($offset)
@@ -63,7 +64,7 @@ class ProjectRepository extends BaseRepository
             ->select('COUNT(project.id)')
             ->leftJoin('project.company', 'company')
             ->andWhere('company.crm = :crmId')
-            ->setParameter('crmId', $crmId)
+            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
             ->getQuery()
             ->getSingleScalarResult();
     }
@@ -105,7 +106,7 @@ class ProjectRepository extends BaseRepository
             ->select('COUNT(project.id)')
             ->leftJoin('project.company', 'company')
             ->andWhere('company.crm = :crmId')
-            ->setParameter('crmId', $crmId);
+            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME);
 
         $query = trim((string)($filters['q'] ?? ''));
         if ($query !== '') {

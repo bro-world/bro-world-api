@@ -83,7 +83,7 @@ class BlogPostRepository extends BaseRepository
             ->orderBy('post.createdAt', 'DESC')
             ->setFirstResult($offset)
             ->setMaxResults($limit)
-            ->setParameter('author', $author)
+            ->setParameter('author', $author->getId(), UuidBinaryOrderedTimeType::NAME)
             ->getQuery()
             ->getArrayResult();
 
@@ -103,7 +103,7 @@ class BlogPostRepository extends BaseRepository
         return (int) $this->createQueryBuilder('post')
             ->select('COUNT(post.id)')
             ->where('post.author = :author')
-            ->setParameter('author', $author)
+            ->setParameter('author', $author->getId(), UuidBinaryOrderedTimeType::NAME)
             ->getQuery()
             ->getSingleScalarResult();
     }

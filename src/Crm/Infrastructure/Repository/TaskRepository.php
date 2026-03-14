@@ -8,6 +8,7 @@ use App\Crm\Domain\Entity\Task as Entity;
 use App\General\Infrastructure\Repository\BaseRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
+use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 
 /**
  * @method Entity|null find(string $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null, ?string $entityManagerName = null)
@@ -34,8 +35,8 @@ class TaskRepository extends BaseRepository
             ->leftJoin('project.company', 'company')
             ->andWhere('task.id = :id')
             ->andWhere('company.crm = :crmId')
-            ->setParameter('id', $id)
-            ->setParameter('crmId', $crmId)
+            ->setParameter('id', $id, UuidBinaryOrderedTimeType::NAME)
+            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
             ->getQuery()
             ->getOneOrNullResult();
 
@@ -51,7 +52,7 @@ class TaskRepository extends BaseRepository
             ->leftJoin('task.project', 'project')
             ->leftJoin('project.company', 'company')
             ->andWhere('company.crm = :crmId')
-            ->setParameter('crmId', $crmId)
+            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
             ->orderBy('task.createdAt', 'DESC')
             ->setMaxResults($limit)
             ->setFirstResult($offset)
@@ -66,7 +67,7 @@ class TaskRepository extends BaseRepository
             ->leftJoin('task.project', 'project')
             ->leftJoin('project.company', 'company')
             ->andWhere('company.crm = :crmId')
-            ->setParameter('crmId', $crmId)
+            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
             ->getQuery()
             ->getSingleScalarResult();
     }

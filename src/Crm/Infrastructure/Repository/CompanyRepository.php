@@ -8,6 +8,7 @@ use App\Crm\Domain\Entity\Company as Entity;
 use App\General\Infrastructure\Repository\BaseRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
+use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 
 /**
  * @method Entity|null find(string $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null, ?string $entityManagerName = null)
@@ -49,7 +50,7 @@ class CompanyRepository extends BaseRepository
     {
         return $this->createQueryBuilder('company')
             ->andWhere('company.crm = :crmId')
-            ->setParameter('crmId', $crmId)
+            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
             ->orderBy('company.createdAt', 'DESC')
             ->setMaxResults($limit)
             ->setFirstResult($offset)
@@ -62,7 +63,7 @@ class CompanyRepository extends BaseRepository
         return (int)$this->createQueryBuilder('company')
             ->select('COUNT(company.id)')
             ->andWhere('company.crm = :crmId')
-            ->setParameter('crmId', $crmId)
+            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
             ->getQuery()
             ->getSingleScalarResult();
     }
@@ -76,7 +77,7 @@ class CompanyRepository extends BaseRepository
         $qb = $this->createQueryBuilder('company')
             ->select('company.id, company.name, company.industry, company.website, company.contactEmail, company.phone')
             ->andWhere('company.crm = :crmId')
-            ->setParameter('crmId', $crmId)
+            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
             ->orderBy('company.createdAt', 'DESC')
             ->setMaxResults($limit)
             ->setFirstResult($offset);
@@ -97,7 +98,7 @@ class CompanyRepository extends BaseRepository
         $qb = $this->createQueryBuilder('company')
             ->select('COUNT(company.id)')
             ->andWhere('company.crm = :crmId')
-            ->setParameter('crmId', $crmId);
+            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME);
 
         $query = trim((string)($filters['q'] ?? ''));
         if ($query !== '') {

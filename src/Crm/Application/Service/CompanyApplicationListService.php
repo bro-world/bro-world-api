@@ -7,6 +7,8 @@ namespace App\Crm\Application\Service;
 use App\Crm\Domain\Entity\Crm;
 use App\Crm\Infrastructure\Repository\CompanyRepository;
 use App\General\Application\Service\CacheKeyConventionService;
+use JsonException;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -22,7 +24,12 @@ readonly class CompanyApplicationListService
     }
 
     /**
+     * @param Request $request
+     * @param string $applicationSlug
+     * @param Crm $crm
      * @return array<string,mixed>
+     * @throws JsonException
+     * @throws InvalidArgumentException
      */
     public function getList(Request $request, string $applicationSlug, Crm $crm): array
     {
