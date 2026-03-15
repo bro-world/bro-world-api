@@ -41,6 +41,7 @@ final readonly class ListEmployeesController
                 'email' => $employee->getEmail(),
                 'userId' => $employee->getUserId(),
                 'positionName' => $employee->getPositionName(),
+                'photo' => $employee->getUser()->getPhoto(),
                 'roleName' => $employee->getRoleName(),
                 'createdAt' => $employee->getCreatedAt()->format(DATE_ATOM),
                 'updatedAt' => $employee->getUpdatedAt()->format(DATE_ATOM),

@@ -33,6 +33,15 @@ final readonly class GetProjectController
             'dueAt' => $project->getDueAt()?->format(DATE_ATOM),
             'attachments' => $project->getAttachments(),
             'wikiPages' => $project->getWikiPages(),
+            'assignees' => array_map(
+                static fn ($assignee) => [
+                    'id' => $assignee->getId(),
+                    'email' => $assignee->getEmail(),
+                    'firstName' => $assignee->getFirstName(),
+                    'lastName' => $assignee->getLastName(),
+                    'photo' => $assignee->getPhoto(),
+                ],
+                $project->getAssignees()->toArray())
         ]);
     }
 }
