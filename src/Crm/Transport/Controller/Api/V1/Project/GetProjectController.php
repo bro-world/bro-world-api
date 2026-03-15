@@ -6,6 +6,7 @@ namespace App\Crm\Transport\Controller\Api\V1\Project;
 
 use App\Crm\Application\Security\CrmPermissions;
 use App\Crm\Domain\Entity\Project;
+use App\Crm\Domain\Entity\Task;
 use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -33,6 +34,15 @@ final readonly class GetProjectController
             'dueAt' => $project->getDueAt()?->format(DATE_ATOM),
             'attachments' => $project->getAttachments(),
             'wikiPages' => $project->getWikiPages(),
+            'tasks' => array_map(
+                static fn (Task $task) => [
+                    'id' => $task->getId(),
+                    'TITLE' => $task->getTitle(),
+                    'description' => $task->getDescription(),
+                    'status' => $task->getStatus()->value,
+                    'dueAt' => $task->getDueAt()?->format(DATE_ATOM),
+                ],
+                $project->getTasks()->toArray()),
             'assignees' => array_map(
                 static fn ($assignee) => [
                     'id' => $assignee->getId(),

@@ -61,7 +61,14 @@ final class CrmApiNormalizer
                     'photo' => $assignee->getPhoto(),
                 ],
                 $task->getAssignees()->toArray()),
-            'children' => $children,
+            'children' => array_map(
+                static fn (TaskRequest $taskRequest) => [
+                    'id' => $taskRequest->getId(),
+                    'title' => $taskRequest->getTitle(),
+                    'description' => $taskRequest->getDescription(),
+                    'status' => $taskRequest->getStatus(),
+                ],
+                $task->getTaskRequests()->toArray()),
             'blog' => $this->crmBlogNormalizer->normalizeBlog($task->getBlog()),
         ];
     }

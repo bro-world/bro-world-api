@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Crm\Transport\Controller\Api\V1\Company;
 
 use App\Crm\Domain\Entity\Company;
+use App\Crm\Domain\Entity\Project;
 use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -28,6 +29,13 @@ final readonly class GetCompanyController
             'website' => $company->getWebsite(),
             'contactEmail' => $company->getContactEmail(),
             'phone' => $company->getPhone(),
+            'projects' => array_map(
+                static fn (Project $project) =>
+                [
+                    'id' => $project->getId(),
+                    'name' => $project->getName(),
+                ],
+                $company->getProjects()->toArray())
         ]);
     }
 }
