@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Crm\Transport\Controller\Api\V1\Billing;
 
 use App\Crm\Application\Service\BillingReadService;
+use App\Crm\Domain\Entity\Billing;
 use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,9 +26,9 @@ final readonly class GetBillingController
     }
 
     #[Route('/v1/crm/applications/{applicationSlug}/billings/{billing}', methods: [Request::METHOD_GET])]
-    public function __invoke(string $applicationSlug, string $billing): JsonResponse
+    public function __invoke(string $applicationSlug, Billing $billing): JsonResponse
     {
-        $payload = $this->billingReadService->getDetail($applicationSlug, $billing);
+        $payload = $this->billingReadService->getDetail($applicationSlug, $billing->getId());
         if ($payload === null) {
             throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Billing not found for this CRM scope.');
         }

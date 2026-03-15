@@ -6,7 +6,9 @@ namespace App\Crm\Transport\Controller\Api\V1\Billing;
 
 use App\Crm\Application\Service\BillingReadService;
 use App\Role\Domain\Enum\Role;
+use JsonException;
 use OpenApi\Attributes as OA;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
@@ -23,6 +25,10 @@ final readonly class ListBillingsController
     ) {
     }
 
+    /**
+     * @throws JsonException
+     * @throws InvalidArgumentException
+     */
     #[Route('/v1/crm/applications/{applicationSlug}/billings', methods: [Request::METHOD_GET])]
     public function __invoke(string $applicationSlug, Request $request): JsonResponse
     {

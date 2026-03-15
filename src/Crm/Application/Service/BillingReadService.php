@@ -8,6 +8,8 @@ use App\Crm\Infrastructure\Repository\BillingRepository;
 use App\General\Application\Service\CacheKeyConventionService;
 use App\General\Domain\Service\Interfaces\ElasticsearchServiceInterface;
 use DateTimeInterface;
+use JsonException;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -34,7 +36,11 @@ readonly class BillingReadService
     }
 
     /**
+     * @param string $applicationSlug
+     * @param Request $request
      * @return array<string,mixed>
+     * @throws JsonException
+     * @throws InvalidArgumentException
      */
     public function getList(string $applicationSlug, Request $request): array
     {
@@ -153,7 +159,6 @@ readonly class BillingReadService
     {
         return [
             'id' => (string)($item['id'] ?? ''),
-            'companyId' => $item['companyId'] ?? null,
             'label' => (string)($item['label'] ?? ''),
             'amount' => isset($item['amount']) ? (float)$item['amount'] : 0.0,
             'currency' => (string)($item['currency'] ?? 'EUR'),
