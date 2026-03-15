@@ -52,7 +52,15 @@ final class CrmApiNormalizer
             'estimatedHours' => $task->getEstimatedHours(),
             'updatedAt' => $this->normalizeDate($task->getUpdatedAt()),
             'attachments' => $task->getAttachments(),
-            'assignees' => $assignees,
+            'assignees' => array_map(
+                static fn ($assignee) => [
+                    'id' => $assignee->getId(),
+                    'email' => $assignee->getEmail(),
+                    'firstName' => $assignee->getFirstName(),
+                    'lastName' => $assignee->getLastName(),
+                    'photo' => $assignee->getPhoto(),
+                ],
+                $task->getAssignees()->toArray()),
             'children' => $children,
             'blog' => $this->crmBlogNormalizer->normalizeBlog($task->getBlog()),
         ];

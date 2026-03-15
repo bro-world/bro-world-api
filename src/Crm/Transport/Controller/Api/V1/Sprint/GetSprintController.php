@@ -35,7 +35,15 @@ final readonly class GetSprintController
             'status' => $sprint->getStatus()->value,
             'startDate' => $sprint->getStartDate()?->format('Y-m-d'),
             'endDate' => $sprint->getEndDate()?->format('Y-m-d'),
-            'assignee' => $assignee,
+            'assignees' => array_map(
+                static fn ($assignee) => [
+                    'id' => $assignee->getId(),
+                    'email' => $assignee->getEmail(),
+                    'firstName' => $assignee->getFirstName(),
+                    'lastName' => $assignee->getLastName(),
+                    'photo' => $assignee->getPhoto(),
+                ],
+                $sprint->getAssignees()->toArray())
         ]);
     }
 }

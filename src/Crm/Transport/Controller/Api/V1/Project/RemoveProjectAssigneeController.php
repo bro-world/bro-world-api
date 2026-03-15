@@ -6,10 +6,8 @@ namespace App\Crm\Transport\Controller\Api\V1\Project;
 
 use App\Crm\Domain\Entity\Project;
 use App\Crm\Infrastructure\Repository\ProjectRepository;
-use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
 use App\Role\Domain\Enum\Role;
 use App\User\Domain\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,9 +23,7 @@ use OpenApi\Attributes as OA;
 final readonly class RemoveProjectAssigneeController
 {
     public function __construct(
-        private ProjectRepository $projectRepository,
-        private CrmApiErrorResponseFactory $errorResponseFactory,
-        private EntityManagerInterface $entityManager
+        private ProjectRepository $projectRepository
     ) {
     }
 
@@ -35,14 +31,9 @@ final readonly class RemoveProjectAssigneeController
      * @throws OptimisticLockException
      * @throws ORMException
      */
-    #[Route('/v1/crm/applications/{applicationSlug}/projects/{id}/assignees/{userId}', methods: [Request::METHOD_DELETE])]
-    public function __invoke(string $applicationSlug, Project $project, string $userId): JsonResponse
+    #[Route('/v1/crm/applications/{applicationSlug}/projects/{id}/assignees/{user}', methods: [Request::METHOD_DELETE])]
+    public function __invoke(string $applicationSlug, Project $project, User $user): JsonResponse
     {
-        $user = $this->entityManager->getRepository(User::class)->find($userId);
-        if (!$user instanceof User) {
-            return $this->errorResponseFactory->notFoundReference('userId');
-        }
-
         $project->removeAssignee($user);
         $this->projectRepository->save($project);
 

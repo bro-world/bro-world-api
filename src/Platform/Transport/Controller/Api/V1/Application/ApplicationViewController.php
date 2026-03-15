@@ -24,7 +24,7 @@ readonly class ApplicationViewController
     ) {
     }
 
-    #[Route(path: '/v1/application/{applicationSlug}', methods: [Request::METHOD_GET])]
+    #[Route(path: '/v1/application/private/{applicationSlug}', methods: [Request::METHOD_GET])]
     public function __invoke(string $applicationSlug, ?User $loggedInUser = null): JsonResponse
     {
         $application = $this->applicationRepository->findOneBy(['slug' => $applicationSlug]);
