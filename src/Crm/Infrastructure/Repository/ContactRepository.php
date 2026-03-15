@@ -62,7 +62,7 @@ class ContactRepository extends BaseRepository
     public function findScopedProjection(string $crmId, int $limit, int $offset, array $filters = []): array
     {
         $qb = $this->createQueryBuilder('contact')
-            ->select('contact.id, contact.firstName, contact.lastName, contact.email, contact.phone, contact.jobTitle, contact.city, contact.score, IDENTITY(contact.company) AS companyId')
+            ->select('contact.id, contact.firstName, contact.lastName, contact.email, contact.phone, contact.jobTitle, contact.city, contact.score')
             ->andWhere('contact.crm = :crmId')
             ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
             ->orderBy('contact.createdAt', 'DESC')
