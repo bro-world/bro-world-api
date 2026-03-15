@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Crm\Transport\Controller\Api\V1\Sprint;
 
 use App\Crm\Domain\Entity\Sprint;
+use App\Crm\Domain\Entity\Task;
 use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -35,6 +36,15 @@ final readonly class GetSprintController
             'status' => $sprint->getStatus()->value,
             'startDate' => $sprint->getStartDate()?->format('Y-m-d'),
             'endDate' => $sprint->getEndDate()?->format('Y-m-d'),
+            'tasks' => array_map(
+                static fn (Task $task) => [
+                    'id' => $task->getId(),
+                    'TITLE' => $task->getTitle(),
+                    'description' => $task->getDescription(),
+                    'status' => $task->getStatus()->value,
+                    'dueAt' => $task->getDueAt()?->format(DATE_ATOM),
+                ],
+                $sprint->getTasks()->toArray()),
             'assignees' => array_map(
                 static fn ($assignee) => [
                     'id' => $assignee->getId(),

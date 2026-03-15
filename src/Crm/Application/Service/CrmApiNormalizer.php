@@ -95,7 +95,15 @@ final class CrmApiNormalizer
             'requestedAt' => $this->normalizeDate($taskRequest->getRequestedAt()),
             'resolvedAt' => $this->normalizeDate($taskRequest->getResolvedAt()),
             'attachments' => $taskRequest->getAttachments(),
-            'assignees' => $assignees,
+            'assignees' => array_map(
+                static fn ($assignee) => [
+                    'id' => $assignee->getId(),
+                    'email' => $assignee->getEmail(),
+                    'firstName' => $assignee->getFirstName(),
+                    'lastName' => $assignee->getLastName(),
+                    'photo' => $assignee->getPhoto(),
+                ],
+                $taskRequest->getAssignees()->toArray()),
             'blog' => $this->crmBlogNormalizer->normalizeBlog($taskRequest->getBlog()),
         ];
     }
