@@ -17,8 +17,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use OpenApi\Attributes as OA;
 
 #[AsController]
+#[OA\Tag(name: 'Crm')]
 #[IsGranted(Role::CRM_ADMIN->value)]
 final readonly class RemoveProjectAssigneeController
 {

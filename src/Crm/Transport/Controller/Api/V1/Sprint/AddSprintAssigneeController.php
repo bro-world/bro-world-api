@@ -13,10 +13,12 @@ use Doctrine\ORM\OptimisticLockException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
+use OpenApi\Attributes as OA;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]
+#[OA\Tag(name: 'Crm')]
 #[IsGranted(Role::CRM_MANAGER->value)]
 final readonly class AddSprintAssigneeController
 {
