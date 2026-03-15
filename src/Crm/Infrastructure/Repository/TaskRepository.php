@@ -31,8 +31,14 @@ class TaskRepository extends BaseRepository
     public function findOneScopedById(string $id, string $crmId): ?Entity
     {
         $entity = $this->createQueryBuilder('task')
+            ->addSelect('blog', 'post', 'postComment', 'postReaction', 'commentReaction')
             ->leftJoin('task.project', 'project')
             ->leftJoin('project.company', 'company')
+            ->leftJoin('task.blog', 'blog')
+            ->leftJoin('blog.posts', 'post')
+            ->leftJoin('post.comments', 'postComment')
+            ->leftJoin('post.reactions', 'postReaction')
+            ->leftJoin('postComment.reactions', 'commentReaction')
             ->andWhere('task.id = :id')
             ->andWhere('company.crm = :crmId')
             ->setParameter('id', $id, UuidBinaryOrderedTimeType::NAME)

@@ -11,6 +11,11 @@ use DateTimeInterface;
 
 final class CrmApiNormalizer
 {
+    public function __construct(
+        private readonly CrmBlogNormalizer $crmBlogNormalizer,
+    ) {
+    }
+
     /**
      * @return array<string,mixed>
      */
@@ -49,6 +54,7 @@ final class CrmApiNormalizer
             'attachments' => $task->getAttachments(),
             'assignees' => $assignees,
             'children' => $children,
+            'blog' => $this->crmBlogNormalizer->normalizeBlog($task->getBlog()),
         ];
     }
 
@@ -75,6 +81,7 @@ final class CrmApiNormalizer
             'resolvedAt' => $this->normalizeDate($taskRequest->getResolvedAt()),
             'attachments' => $taskRequest->getAttachments(),
             'assignees' => $assignees,
+            'blog' => $this->crmBlogNormalizer->normalizeBlog($taskRequest->getBlog()),
         ];
     }
 

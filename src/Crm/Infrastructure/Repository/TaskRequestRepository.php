@@ -36,7 +36,7 @@ class TaskRequestRepository extends BaseRepository
 
     public function findOneScopedById(string $id, string $crmId): ?Entity
     {
-        $qb = $this->createScopedBaseQb($crmId)
+        $qb = $this->createScopedBaseQb($crmId, true)
             ->andWhere('taskRequest.id = :id')
             ->setParameter('id', $id, UuidBinaryOrderedTimeType::NAME)
             ->setMaxResults(1);
@@ -181,14 +181,25 @@ class TaskRequestRepository extends BaseRepository
         return (int)$qb->getQuery()->getSingleScalarResult();
     }
 
-    private function createScopedBaseQb(string $crmId): QueryBuilder
+    private function createScopedBaseQb(string $crmId, bool $includeBlogDetails = false): QueryBuilder
     {
-        return $this->createQueryBuilder('taskRequest')
+        $qb = $this->createQueryBuilder('taskRequest')
             ->leftJoin('taskRequest.task', 'task')
             ->leftJoin('task.project', 'project')
             ->leftJoin('project.company', 'company')
             ->andWhere('IDENTITY(company.crm) = :crmId')
             ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME);
+
+        if ($includeBlogDetails) {
+            $qb->addSelect('blog', 'post', 'postComment', 'postReaction', 'commentReaction')
+                ->leftJoin('taskRequest.blog', 'blog')
+                ->leftJoin('blog.posts', 'post')
+                ->leftJoin('post.comments', 'postComment')
+                ->leftJoin('post.reactions', 'postReaction')
+                ->leftJoin('postComment.reactions', 'commentReaction');
+        }
+
+        return $qb;
     }
 
     private function createScopedCountQb(string $crmId): QueryBuilder
