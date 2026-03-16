@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Contact;
 
+use App\Crm\Application\Dto\Command\UpdateContactCommandDto;
+use App\Crm\Application\Dto\Response\EntityIdResponseDto;
 use App\Crm\Application\Exception\CrmReferenceNotFoundException;
 use App\Crm\Application\Message\PatchContactCommand;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
+use App\Crm\Transport\Request\CrmRequestHandler;
 use App\Role\Domain\Enum\Role;
-use JsonException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,6 +26,7 @@ final readonly class PatchContactController
 {
     public function __construct(
         private CrmApiErrorResponseFactory $errorResponseFactory,
+        private CrmRequestHandler $crmRequestHandler,
         private MessageBusInterface $messageBus,
     ) {
     }
@@ -31,26 +34,36 @@ final readonly class PatchContactController
     #[Route('/v1/crm/applications/{applicationSlug}/contacts/{id}', methods: [Request::METHOD_PATCH])]
     public function __invoke(string $applicationSlug, string $id, Request $request): JsonResponse
     {
-        try {
-            $payload = json_decode((string)$request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException) {
-            return $this->errorResponseFactory->invalidJson();
+        $payload = $this->crmRequestHandler->decodeJson($request);
+        if ($payload instanceof JsonResponse) {
+            return $payload;
         }
 
-        if (!is_array($payload)) {
-            return $this->errorResponseFactory->invalidJson();
+        $input = $this->crmRequestHandler->mapAndValidate($payload, UpdateContactCommandDto::class, mapperMethod: 'fromPatchArray');
+        if ($input instanceof JsonResponse) {
+            return $input;
         }
 
         try {
+            $mappedPayload = [];
+            if ($input->hasFirstName) { $mappedPayload['firstName'] = $input->firstName; }
+            if ($input->hasLastName) { $mappedPayload['lastName'] = $input->lastName; }
+            if ($input->hasEmail) { $mappedPayload['email'] = $input->email; }
+            if ($input->hasPhone) { $mappedPayload['phone'] = $input->phone; }
+            if ($input->hasJobTitle) { $mappedPayload['jobTitle'] = $input->jobTitle; }
+            if ($input->hasCity) { $mappedPayload['city'] = $input->city; }
+            if ($input->hasScore) { $mappedPayload['score'] = $input->score; }
+            if ($input->hasCompanyId) { $mappedPayload['companyId'] = $input->companyId; }
+
             $this->messageBus->dispatch(new PatchContactCommand(
                 applicationSlug: $applicationSlug,
                 contactId: $id,
-                payload: $payload,
+                payload: $mappedPayload,
             ));
         } catch (CrmReferenceNotFoundException $exception) {
             return $this->errorResponseFactory->notFoundReference($exception->field);
         }
 
-        return new JsonResponse(['id' => $id]);
+        return new JsonResponse((new EntityIdResponseDto($id))->toArray());
     }
 }

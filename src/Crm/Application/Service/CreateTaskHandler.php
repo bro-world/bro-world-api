@@ -11,7 +11,7 @@ use App\Crm\Domain\Enum\TaskPriority;
 use App\Crm\Domain\Enum\TaskStatus;
 use App\Crm\Infrastructure\Repository\ProjectRepository;
 use App\Crm\Infrastructure\Repository\SprintRepository;
-use App\Crm\Transport\Request\CreateTaskRequest;
+use App\Crm\Application\Dto\Command\CreateTaskCommandDto;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use App\User\Domain\Entity\User;
@@ -25,7 +25,7 @@ final readonly class CreateTaskHandler
     ) {
     }
 
-    public function handle(CreateTaskRequest $input, string $crmId, ?DateTimeImmutable $dueAt): Task
+    public function handle(CreateTaskCommandDto $input, string $crmId, ?DateTimeImmutable $dueAt): Task
     {
         $task = new Task();
         $task->setTitle((string) $input->title)

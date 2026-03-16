@@ -9,7 +9,8 @@ use App\Crm\Application\Service\CrmTaskBlogProvisioningService;
 use App\Crm\Application\Exception\CrmOutOfScopeException;
 use App\Crm\Application\Exception\CrmReferenceNotFoundException;
 use App\Crm\Application\Service\CreateTaskHandler;
-use App\Crm\Transport\Request\CreateTaskRequest;
+use App\Crm\Application\Dto\Command\CreateTaskCommandDto;
+use App\Crm\Application\Dto\Response\EntityIdResponseDto;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
 use App\General\Application\Message\EntityCreated;
 use App\Role\Domain\Enum\Role;
@@ -144,7 +145,7 @@ final readonly class CreateTaskController
             return $payload;
         }
 
-        $input = $this->crmRequestHandler->mapAndValidate($payload, CreateTaskRequest::class);
+        $input = $this->crmRequestHandler->mapAndValidate($payload, CreateTaskCommandDto::class, mapperMethod: "fromPostArray");
         if ($input instanceof JsonResponse) {
             return $input;
         }
@@ -169,9 +170,7 @@ final readonly class CreateTaskController
             'applicationSlug' => $applicationSlug,
         ]));
 
-        return new JsonResponse([
-            'id' => $task->getId(),
-        ], JsonResponse::HTTP_CREATED);
+        return new JsonResponse((new EntityIdResponseDto($task->getId()))->toArray(), JsonResponse::HTTP_CREATED);
     }
 
 }

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Billing;
 
+use App\Crm\Application\Dto\Command\UpdateBillingCommandDto;
+use App\Crm\Application\Dto\Response\EntityIdResponseDto;
 use App\Crm\Application\Message\PatchBillingCommand;
-use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
+use App\Crm\Transport\Request\CrmRequestHandler;
 use App\Role\Domain\Enum\Role;
-use JsonException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,7 +23,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final readonly class PatchBillingController
 {
     public function __construct(
-        private CrmApiErrorResponseFactory $errorResponseFactory,
+        private CrmRequestHandler $crmRequestHandler,
         private MessageBusInterface $messageBus,
     ) {
     }
@@ -30,22 +31,31 @@ final readonly class PatchBillingController
     #[Route('/v1/crm/applications/{applicationSlug}/billings/{billing}', methods: [Request::METHOD_PATCH])]
     public function __invoke(string $applicationSlug, string $billing, Request $request): JsonResponse
     {
-        try {
-            $payload = json_decode((string)$request->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException) {
-            return $this->errorResponseFactory->invalidJson();
+        $payload = $this->crmRequestHandler->decodeJson($request);
+        if ($payload instanceof JsonResponse) {
+            return $payload;
         }
 
-        if (!is_array($payload)) {
-            return $this->errorResponseFactory->invalidJson();
+        $input = $this->crmRequestHandler->mapAndValidate($payload, UpdateBillingCommandDto::class, mapperMethod: 'fromPatchArray');
+        if ($input instanceof JsonResponse) {
+            return $input;
         }
+
+        $mappedPayload = [];
+        if ($input->hasCompanyId) { $mappedPayload['companyId'] = $input->companyId; }
+        if ($input->hasLabel) { $mappedPayload['label'] = $input->label; }
+        if ($input->hasAmount) { $mappedPayload['amount'] = $input->amount; }
+        if ($input->hasCurrency) { $mappedPayload['currency'] = $input->currency; }
+        if ($input->hasStatus) { $mappedPayload['status'] = $input->status; }
+        if ($input->hasDueAt) { $mappedPayload['dueAt'] = $input->dueAt; }
+        if ($input->hasPaidAt) { $mappedPayload['paidAt'] = $input->paidAt; }
 
         $this->messageBus->dispatch(new PatchBillingCommand(
             applicationSlug: $applicationSlug,
             billingId: $billing,
-            payload: $payload,
+            payload: $mappedPayload,
         ));
 
-        return new JsonResponse(['id' => $billing]);
+        return new JsonResponse((new EntityIdResponseDto($billing))->toArray());
     }
 }

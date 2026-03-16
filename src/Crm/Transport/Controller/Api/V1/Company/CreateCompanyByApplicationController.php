@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Crm\Transport\Controller\Api\V1\Company;
 
 use App\Crm\Application\Message\CreateCompanyCommand;
-use App\Crm\Transport\Request\CreateCompanyRequest;
+use App\Crm\Application\Dto\Command\CreateCompanyCommandDto;
+use App\Crm\Application\Dto\Response\EntityIdResponseDto;
 use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -37,7 +38,7 @@ final readonly class CreateCompanyByApplicationController
             return $payload;
         }
 
-        $input = $this->crmRequestHandler->mapAndValidate($payload, CreateCompanyRequest::class);
+        $input = $this->crmRequestHandler->mapAndValidate($payload, CreateCompanyCommandDto::class, mapperMethod: "fromPostArray");
         if ($input instanceof JsonResponse) {
             return $input;
         }
@@ -54,9 +55,6 @@ final readonly class CreateCompanyByApplicationController
             phone: $input->phone,
         ));
 
-        return new JsonResponse([
-            'id' => $id,
-            'applicationSlug' => $applicationSlug,
-        ], JsonResponse::HTTP_CREATED);
+        return new JsonResponse((new EntityIdResponseDto($id, ['applicationSlug' => $applicationSlug]))->toArray(), JsonResponse::HTTP_CREATED);
     }
 }

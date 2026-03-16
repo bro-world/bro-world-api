@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Task;
 
+use App\Crm\Application\Dto\Command\UpdateTaskCommandDto;
+use App\Crm\Application\Dto\Response\EntityIdResponseDto;
 use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\Task;
 use App\Crm\Domain\Enum\TaskPriority;
 use App\Crm\Domain\Enum\TaskStatus;
 use App\Crm\Infrastructure\Repository\SprintRepository;
 use App\Crm\Infrastructure\Repository\TaskRepository;
-use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
-use App\Crm\Transport\Request\CrmDateParser;
 use App\Crm\Transport\Request\CrmRequestHandler;
 use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
@@ -30,9 +30,7 @@ final readonly class PatchTaskController
         private TaskRepository $taskRepository,
         private SprintRepository $sprintRepository,
         private CrmApplicationScopeResolver $scopeResolver,
-        private CrmApiErrorResponseFactory $errorResponseFactory,
         private CrmRequestHandler $crmRequestHandler,
-        private CrmDateParser $crmDateParser,
     ) {
     }
 
@@ -46,44 +44,45 @@ final readonly class PatchTaskController
             return $payload;
         }
 
-        if (isset($payload['title'])) {
-            $task->setTitle((string) $payload['title']);
+        $input = $this->crmRequestHandler->mapAndValidate($payload, UpdateTaskCommandDto::class, mapperMethod: 'fromPatchArray');
+        if ($input instanceof JsonResponse) {
+            return $input;
         }
-        if (array_key_exists('description', $payload)) {
-            $task->setDescription($payload['description'] !== null ? (string) $payload['description'] : null);
+
+        if ($input->hasTitle && $input->title !== null) {
+            $task->setTitle($input->title);
         }
-        if (isset($payload['status']) && is_string($payload['status'])) {
-            $status = TaskStatus::tryFrom($payload['status']);
-            if ($status) {
+        if ($input->hasDescription) {
+            $task->setDescription($input->description);
+        }
+        if ($input->hasStatus && $input->status !== null) {
+            $status = TaskStatus::tryFrom($input->status);
+            if ($status !== null) {
                 $task->setStatus($status);
             }
         }
-        if (isset($payload['priority']) && is_string($payload['priority'])) {
-            $priority = TaskPriority::tryFrom($payload['priority']);
-            if ($priority) {
+        if ($input->hasPriority && $input->priority !== null) {
+            $priority = TaskPriority::tryFrom($input->priority);
+            if ($priority !== null) {
                 $task->setPriority($priority);
             }
         }
-        if (array_key_exists('dueAt', $payload)) {
-            if (!is_string($payload['dueAt']) && $payload['dueAt'] !== null) {
-                return $this->errorResponseFactory->invalidDate('dueAt');
-            }
-
-            $dueAt = $this->crmDateParser->parseNullableIso8601($payload['dueAt'], 'dueAt');
+        if ($input->hasDueAt) {
+            $dueAt = $this->crmRequestHandler->parseNullableIso8601($input->dueAt, 'dueAt');
             if ($dueAt instanceof JsonResponse) {
                 return $dueAt;
             }
 
             $task->setDueAt($dueAt);
         }
-        if (array_key_exists('estimatedHours', $payload)) {
-            $task->setEstimatedHours(is_numeric($payload['estimatedHours']) ? (float) $payload['estimatedHours'] : null);
+        if ($input->hasEstimatedHours) {
+            $task->setEstimatedHours(is_numeric($input->estimatedHours) ? (float) $input->estimatedHours : null);
         }
-        if (array_key_exists('sprintId', $payload)) {
-            if ($payload['sprintId'] === null || $payload['sprintId'] === '') {
+        if ($input->hasSprintId) {
+            if ($input->sprintId === null || $input->sprintId === '') {
                 $task->setSprint(null);
-            } elseif (is_string($payload['sprintId'])) {
-                $sprint = $this->sprintRepository->findOneScopedById($payload['sprintId'], $crm->getId());
+            } else {
+                $sprint = $this->sprintRepository->findOneScopedById($input->sprintId, $crm->getId());
                 if ($sprint !== null) {
                     $task->setSprint($sprint);
                 }
@@ -92,8 +91,6 @@ final readonly class PatchTaskController
 
         $this->taskRepository->save($task);
 
-        return new JsonResponse([
-            'id' => $task->getId(),
-        ]);
+        return new JsonResponse((new EntityIdResponseDto($task->getId()))->toArray());
     }
 }
