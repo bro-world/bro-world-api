@@ -9,7 +9,10 @@ use App\Crm\Domain\Entity\Task;
 use App\Crm\Infrastructure\Repository\TaskRepository;
 use App\General\Application\Service\CacheKeyConventionService;
 use App\General\Domain\Service\Interfaces\ElasticsearchServiceInterface;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\ORM\QueryBuilder;
+use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -20,16 +23,20 @@ use Throwable;
 use function array_filter;
 use function array_map;
 use function array_merge;
+use function array_unique;
 use function array_values;
 use function ceil;
-use function implode;
+use function count;
 use function max;
 use function method_exists;
+use function microtime;
 use function min;
 use function trim;
 
 readonly class TaskListService
 {
+    private const int ELASTIC_PAGE_SIZE = 200;
+
     public function __construct(
         private TaskRepository $taskRepository,
         private CacheInterface $cache,
@@ -37,6 +44,7 @@ readonly class TaskListService
         private CacheKeyConventionService $cacheKeyConventionService,
         private CrmApplicationScopeResolver $applicationScopeResolver,
         private CrmApiNormalizer $crmApiNormalizer,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -69,6 +77,7 @@ readonly class TaskListService
 
         /** @var array<string,mixed> $result */
         $result = $this->cache->get($cacheKey, function (ItemInterface $item) use ($applicationSlug, $filters, $page, $limit, $crm): array {
+            $startAt = microtime(true);
             $item->expiresAfter(120);
 
             if (method_exists($item, 'tag') && $this->cache instanceof TagAwareCacheInterface) {
@@ -107,6 +116,17 @@ readonly class TaskListService
             );
 
             $totalItems = $this->countFilteredTasks($crm->getId(), $filters, $esIds);
+
+            $this->logger->info('CRM task list query completed', [
+                'applicationSlug' => $applicationSlug,
+                'page' => $page,
+                'limit' => $limit,
+                'filters' => array_keys(array_filter($filters, static fn (string $value): bool => $value !== '')),
+                'elasticIdsCount' => $esIds !== null ? count($esIds) : null,
+                'resultSetSize' => count($items),
+                'totalItems' => $totalItems,
+                'durationMs' => (int) ((microtime(true) - $startAt) * 1000),
+            ]);
 
             return [
                 'items' => $items,
@@ -245,15 +265,20 @@ readonly class TaskListService
             return;
         }
 
-        $parts = [];
+        $binaryIds = array_values(array_unique(array_filter(array_map(
+            static fn (string $id): ?string => Uuid::isValid($id) ? Uuid::fromString($id)->getBytes() : null,
+            $ids,
+        ))));
 
-        foreach (array_values($ids) as $index => $id) {
-            $parameterName = $parameterPrefix . $index;
-            $parts[] = $field . ' = :' . $parameterName;
-            $qb->setParameter($parameterName, $id, UuidBinaryOrderedTimeType::NAME);
+        if ($binaryIds === []) {
+            $qb->andWhere('1 = 0');
+
+            return;
         }
 
-        $qb->andWhere('(' . implode(' OR ', $parts) . ')');
+        $parameterName = $parameterPrefix . 'ids';
+        $qb->andWhere($field . ' IN (:' . $parameterName . ')')
+            ->setParameter($parameterName, $binaryIds, ArrayParameterType::BINARY);
     }
 
     /**
@@ -286,9 +311,11 @@ readonly class TaskListService
         }
 
         try {
-            $response = $this->elasticsearchService->search(
-                CrmTaskProjection::INDEX_NAME,
-                [
+            $ids = [];
+            $searchAfter = null;
+
+            do {
+                $body = [
                     'query' => [
                         'multi_match' => [
                             'query' => $filters['q'],
@@ -296,20 +323,39 @@ readonly class TaskListService
                             'fields' => ['title^3', 'projectName^2', 'sprintName', 'taskRequests'],
                         ],
                     ],
+                    'sort' => [
+                        ['_doc' => 'asc'],
+                    ],
+                    'track_total_hits' => true,
                     '_source' => ['id'],
-                ],
-                0,
-                200
-            );
+                ];
+
+                if ($searchAfter !== null) {
+                    $body['search_after'] = $searchAfter;
+                }
+
+                $response = $this->elasticsearchService->search(
+                    CrmTaskProjection::INDEX_NAME,
+                    $body,
+                    0,
+                    self::ELASTIC_PAGE_SIZE,
+                );
+
+                $hits = $response['hits']['hits'] ?? [];
+                foreach ($hits as $hit) {
+                    $id = $hit['_source']['id'] ?? $hit['_id'] ?? null;
+                    if (is_string($id) && $id !== '') {
+                        $ids[] = $id;
+                    }
+                }
+
+                $lastHit = $hits !== [] ? $hits[count($hits) - 1] : null;
+                $searchAfter = is_array($lastHit) ? ($lastHit['sort'] ?? null) : null;
+            } while ($hits !== [] && count($hits) === self::ELASTIC_PAGE_SIZE && is_array($searchAfter));
+
+            return array_values(array_unique($ids));
         } catch (Throwable) {
             return null;
         }
-
-        $hits = $response['hits']['hits'] ?? [];
-
-        return array_values(array_filter(array_map(
-            static fn (array $hit): ?string => $hit['_source']['id'] ?? $hit['_id'] ?? null,
-            $hits
-        )));
     }
 }
