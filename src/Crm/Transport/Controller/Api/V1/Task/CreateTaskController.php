@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Task;
 
-use App\Crm\Application\Service\CrmApplicationScopeResolver;
-use App\Crm\Application\Service\CrmTaskBlogProvisioningService;
+use App\Crm\Application\Dto\Command\CreateTaskCommandDto;
+use App\Crm\Application\Dto\Response\EntityIdResponseDto;
 use App\Crm\Application\Exception\CrmOutOfScopeException;
 use App\Crm\Application\Exception\CrmReferenceNotFoundException;
 use App\Crm\Application\Service\CreateTaskHandler;
-use App\Crm\Application\Dto\Command\CreateTaskCommandDto;
-use App\Crm\Application\Dto\Response\EntityIdResponseDto;
+use App\Crm\Application\Service\CrmApplicationScopeResolver;
+use App\Crm\Application\Service\CrmTaskBlogProvisioningService;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
+use App\Crm\Transport\Request\CrmDateParser;
+use App\Crm\Transport\Request\CrmRequestHandler;
 use App\General\Application\Message\EntityCreated;
 use App\Role\Domain\Enum\Role;
+use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,9 +25,6 @@ use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use App\Crm\Transport\Request\CrmDateParser;
-use App\Crm\Transport\Request\CrmRequestHandler;
-use Doctrine\ORM\EntityManagerInterface;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
@@ -145,7 +145,7 @@ final readonly class CreateTaskController
             return $payload;
         }
 
-        $input = $this->crmRequestHandler->mapAndValidate($payload, CreateTaskCommandDto::class, mapperMethod: "fromPostArray");
+        $input = $this->crmRequestHandler->mapAndValidate($payload, CreateTaskCommandDto::class, mapperMethod: 'fromPostArray');
         if ($input instanceof JsonResponse) {
             return $input;
         }
@@ -172,5 +172,4 @@ final readonly class CreateTaskController
 
         return new JsonResponse((new EntityIdResponseDto($task->getId()))->toArray(), JsonResponse::HTTP_CREATED);
     }
-
 }

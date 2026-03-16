@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Billing;
 
+use App\Crm\Application\Dto\Command\CreateBillingCommandDto;
+use App\Crm\Application\Dto\Response\EntityIdResponseDto;
 use App\Crm\Application\Message\CreateBillingCommand;
 use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\Billing;
 use App\Crm\Infrastructure\Repository\CompanyRepository;
-use App\Crm\Application\Dto\Command\CreateBillingCommandDto;
-use App\Crm\Application\Dto\Response\EntityIdResponseDto;
-use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
+use App\Crm\Transport\Request\CrmRequestHandler;
 use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use App\Crm\Transport\Request\CrmRequestHandler;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
@@ -30,12 +30,14 @@ final readonly class CreateBillingController
     public function __construct(
         private CrmApplicationScopeResolver $scopeResolver,
         private CompanyRepository $companyRepository,
-        private CrmApiErrorResponseFactory $errorResponseFactory,
         private CrmRequestHandler $crmRequestHandler,
         private MessageBusInterface $messageBus,
     ) {
     }
 
+    /**
+     * @throws ExceptionInterface
+     */
     #[Route('/v1/crm/applications/{applicationSlug}/billings', methods: [Request::METHOD_POST])]
     public function __invoke(string $applicationSlug, Request $request): JsonResponse
     {
@@ -46,7 +48,7 @@ final readonly class CreateBillingController
             return $payload;
         }
 
-        $input = $this->crmRequestHandler->mapAndValidate($payload, CreateBillingCommandDto::class, mapperMethod: "fromPostArray");
+        $input = $this->crmRequestHandler->mapAndValidate($payload, CreateBillingCommandDto::class, mapperMethod: 'fromPostArray');
         if ($input instanceof JsonResponse) {
             return $input;
         }
@@ -56,7 +58,7 @@ final readonly class CreateBillingController
             throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Company not found for this CRM scope.');
         }
 
-        $billing = (new Billing())
+        $billing = new Billing()
             ->setLabel((string)$input->label)
             ->setAmount((float)$input->amount)
             ->setCurrency($input->currency ?: 'EUR')
@@ -81,7 +83,8 @@ final readonly class CreateBillingController
             crmId: $crm->getId(),
         ));
 
-
-        return new JsonResponse((new EntityIdResponseDto($billing->getId(), ['companyId' => $company->getId()]))->toArray(), JsonResponse::HTTP_CREATED);
+        return new JsonResponse(new EntityIdResponseDto($billing->getId(), [
+            'companyId' => $company->getId(),
+        ])->toArray(), JsonResponse::HTTP_CREATED);
     }
 }

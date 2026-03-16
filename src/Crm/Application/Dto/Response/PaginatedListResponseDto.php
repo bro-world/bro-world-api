@@ -6,7 +6,9 @@ namespace App\Crm\Application\Dto\Response;
 
 final readonly class PaginatedListResponseDto
 {
-    /** @param list<array<string,mixed>> $items */
+    /**
+     * @param list<array<string,mixed>> $items
+     */
     public function __construct(
         public array $items,
         public ?int $total = null,
@@ -15,10 +17,14 @@ final readonly class PaginatedListResponseDto
     ) {
     }
 
-    /** @return array<string,mixed> */
+    /**
+     * @return array<string,mixed>
+     */
     public function toArray(): array
     {
-        $response = ['items' => $this->items];
+        $response = [
+            'items' => $this->items,
+        ];
         if ($this->total !== null) {
             $response['total'] = $this->total;
         }

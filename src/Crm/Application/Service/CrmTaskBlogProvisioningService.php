@@ -99,7 +99,9 @@ final readonly class CrmTaskBlogProvisioningService
         $slug = $baseSlug;
         $index = 1;
 
-        while ($this->entityManager->getRepository(Blog::class)->findOneBy(['slug' => $slug]) instanceof Blog) {
+        while ($this->entityManager->getRepository(Blog::class)->findOneBy([
+            'slug' => $slug,
+        ]) instanceof Blog) {
             $index++;
             $slug = sprintf('%s-%d', $baseSlug, $index);
         }
@@ -109,9 +111,8 @@ final readonly class CrmTaskBlogProvisioningService
 
     private function slugify(string $value): string
     {
-        $slug = strtolower(trim((string) preg_replace('/[^a-zA-Z0-9]+/', '-', $value), '-'));
+        $slug = strtolower(trim((string)preg_replace('/[^a-zA-Z0-9]+/', '-', $value), '-'));
 
         return $slug !== '' ? $slug : 'crm-task-blog';
     }
 }
-

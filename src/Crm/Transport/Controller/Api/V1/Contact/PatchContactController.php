@@ -46,14 +46,30 @@ final readonly class PatchContactController
 
         try {
             $mappedPayload = [];
-            if ($input->hasFirstName) { $mappedPayload['firstName'] = $input->firstName; }
-            if ($input->hasLastName) { $mappedPayload['lastName'] = $input->lastName; }
-            if ($input->hasEmail) { $mappedPayload['email'] = $input->email; }
-            if ($input->hasPhone) { $mappedPayload['phone'] = $input->phone; }
-            if ($input->hasJobTitle) { $mappedPayload['jobTitle'] = $input->jobTitle; }
-            if ($input->hasCity) { $mappedPayload['city'] = $input->city; }
-            if ($input->hasScore) { $mappedPayload['score'] = $input->score; }
-            if ($input->hasCompanyId) { $mappedPayload['companyId'] = $input->companyId; }
+            if ($input->hasFirstName) {
+                $mappedPayload['firstName'] = $input->firstName;
+            }
+            if ($input->hasLastName) {
+                $mappedPayload['lastName'] = $input->lastName;
+            }
+            if ($input->hasEmail) {
+                $mappedPayload['email'] = $input->email;
+            }
+            if ($input->hasPhone) {
+                $mappedPayload['phone'] = $input->phone;
+            }
+            if ($input->hasJobTitle) {
+                $mappedPayload['jobTitle'] = $input->jobTitle;
+            }
+            if ($input->hasCity) {
+                $mappedPayload['city'] = $input->city;
+            }
+            if ($input->hasScore) {
+                $mappedPayload['score'] = $input->score;
+            }
+            if ($input->hasCompanyId) {
+                $mappedPayload['companyId'] = $input->companyId;
+            }
 
             $this->messageBus->dispatch(new PatchContactCommand(
                 applicationSlug: $applicationSlug,

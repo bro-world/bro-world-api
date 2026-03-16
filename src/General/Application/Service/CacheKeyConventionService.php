@@ -172,7 +172,6 @@ class CacheKeyConventionService
         ], JSON_THROW_ON_ERROR));
     }
 
-
     public function buildCrmCompanyDetailKey(string $applicationSlug, string $companyId): string
     {
         return 'crm_company_detail_' . $this->sanitizeSegment($applicationSlug) . '_' . $this->sanitizeSegment($companyId);
@@ -401,7 +400,6 @@ class CacheKeyConventionService
         return 'cache_crm_company_list_' . $this->sanitizeSegment($applicationSlug);
     }
 
-
     public function crmCompanyDetailTag(string $applicationSlug, string $companyId): string
     {
         return 'cache_crm_company_detail_' . $this->sanitizeSegment($applicationSlug) . '_' . $this->sanitizeSegment($companyId);
@@ -456,7 +454,6 @@ class CacheKeyConventionService
     {
         return 'cache_crm_task_request_detail_' . $this->sanitizeSegment($applicationSlug) . '_' . $this->sanitizeSegment($taskRequestId);
     }
-
 
     public function crmTaskDetailTag(string $applicationSlug, string $taskId): string
     {

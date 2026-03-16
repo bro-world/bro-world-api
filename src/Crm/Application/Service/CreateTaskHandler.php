@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Crm\Application\Service;
 
+use App\Crm\Application\Dto\Command\CreateTaskCommandDto;
 use App\Crm\Application\Exception\CrmOutOfScopeException;
 use App\Crm\Application\Exception\CrmReferenceNotFoundException;
 use App\Crm\Domain\Entity\Task;
@@ -11,10 +12,9 @@ use App\Crm\Domain\Enum\TaskPriority;
 use App\Crm\Domain\Enum\TaskStatus;
 use App\Crm\Infrastructure\Repository\ProjectRepository;
 use App\Crm\Infrastructure\Repository\SprintRepository;
-use App\Crm\Application\Dto\Command\CreateTaskCommandDto;
+use App\User\Domain\Entity\User;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
-use App\User\Domain\Entity\User;
 
 final readonly class CreateTaskHandler
 {
@@ -28,12 +28,12 @@ final readonly class CreateTaskHandler
     public function handle(CreateTaskCommandDto $input, string $crmId, ?DateTimeImmutable $dueAt): Task
     {
         $task = new Task();
-        $task->setTitle((string) $input->title)
+        $task->setTitle((string)$input->title)
             ->setDescription($input->description)
-            ->setStatus(TaskStatus::tryFrom((string) $input->status) ?? TaskStatus::TODO)
-            ->setPriority(TaskPriority::tryFrom((string) $input->priority) ?? TaskPriority::MEDIUM)
+            ->setStatus(TaskStatus::tryFrom((string)$input->status) ?? TaskStatus::TODO)
+            ->setPriority(TaskPriority::tryFrom((string)$input->priority) ?? TaskPriority::MEDIUM)
             ->setDueAt($dueAt)
-            ->setEstimatedHours($input->estimatedHours !== null ? (float) $input->estimatedHours : null);
+            ->setEstimatedHours($input->estimatedHours !== null ? (float)$input->estimatedHours : null);
 
         $project = null;
         if (is_string($input->projectId)) {

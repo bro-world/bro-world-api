@@ -27,13 +27,19 @@ readonly class ApplicationViewController
     #[Route(path: '/v1/application/private/{applicationSlug}', methods: [Request::METHOD_GET])]
     public function __invoke(string $applicationSlug, ?User $loggedInUser = null): JsonResponse
     {
-        $application = $this->applicationRepository->findOneBy(['slug' => $applicationSlug]);
+        $application = $this->applicationRepository->findOneBy([
+            'slug' => $applicationSlug,
+        ]);
         if (!$application instanceof Application) {
-            return new JsonResponse(['message' => 'Application not found.'], JsonResponse::HTTP_NOT_FOUND);
+            return new JsonResponse([
+                'message' => 'Application not found.',
+            ], JsonResponse::HTTP_NOT_FOUND);
         }
 
         if ($application->isPrivate() && ($loggedInUser?->getId() !== $application->getUser()?->getId())) {
-            return new JsonResponse(['message' => 'Application not found.'], JsonResponse::HTTP_NOT_FOUND);
+            return new JsonResponse([
+                'message' => 'Application not found.',
+            ], JsonResponse::HTTP_NOT_FOUND);
         }
 
         $pluginKeys = [];
@@ -63,7 +69,7 @@ readonly class ApplicationViewController
                     'id' => $configuration->getId(),
                     'name' => $configuration->getConfigurationKey() ?? '',
                     'configuration' => $configuration->getConfigurationValue(),
-                ], $applicationPlugin->getConfigurations()->toArray())
+                ], $applicationPlugin->getConfigurations()->toArray()),
             ], $application->getApplicationPlugins()->toArray()),
             'author' => [
                 'id' => $application->getUser()?->getId(),

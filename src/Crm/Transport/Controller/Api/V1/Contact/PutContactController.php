@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Contact;
 
-use App\Crm\Application\Exception\CrmReferenceNotFoundException;
-use App\Crm\Application\Message\PutContactCommand;
 use App\Crm\Application\Dto\Command\CreateContactCommandDto;
 use App\Crm\Application\Dto\Response\EntityIdResponseDto;
+use App\Crm\Application\Exception\CrmReferenceNotFoundException;
+use App\Crm\Application\Message\PutContactCommand;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
+use App\Crm\Transport\Request\CrmRequestHandler;
 use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,7 +18,6 @@ use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use App\Crm\Transport\Request\CrmRequestHandler;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
@@ -39,7 +39,7 @@ final readonly class PutContactController
             return $payload;
         }
 
-        $input = $this->crmRequestHandler->mapAndValidate($payload, CreateContactCommandDto::class, mapperMethod: "fromPutArray");
+        $input = $this->crmRequestHandler->mapAndValidate($payload, CreateContactCommandDto::class, mapperMethod: 'fromPutArray');
         if ($input instanceof JsonResponse) {
             return $input;
         }

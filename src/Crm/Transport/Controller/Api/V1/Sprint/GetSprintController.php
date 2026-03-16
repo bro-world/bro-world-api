@@ -44,7 +44,8 @@ final readonly class GetSprintController
                     'status' => $task->getStatus()->value,
                     'dueAt' => $task->getDueAt()?->format(DATE_ATOM),
                 ],
-                $sprint->getTasks()->toArray()),
+                $sprint->getTasks()->toArray()
+            ),
             'assignees' => array_map(
                 static fn ($assignee) => [
                     'id' => $assignee->getId(),
@@ -53,7 +54,8 @@ final readonly class GetSprintController
                     'lastName' => $assignee->getLastName(),
                     'photo' => $assignee->getPhoto(),
                 ],
-                $sprint->getAssignees()->toArray())
+                $sprint->getAssignees()->toArray()
+            ),
         ]);
     }
 }

@@ -32,12 +32,12 @@ final class CreateBillingCommandDto
     public static function fromPostArray(array $payload): self
     {
         $dto = new self();
-        $dto->label = isset($payload['label']) ? (string) $payload['label'] : null;
+        $dto->label = isset($payload['label']) ? (string)$payload['label'] : null;
         $dto->amount = $payload['amount'] ?? null;
-        $dto->currency = isset($payload['currency']) ? (string) $payload['currency'] : null;
-        $dto->status = isset($payload['status']) ? (string) $payload['status'] : null;
-        $dto->dueAt = isset($payload['dueAt']) ? (string) $payload['dueAt'] : null;
-        $dto->companyId = isset($payload['companyId']) ? (string) $payload['companyId'] : null;
+        $dto->currency = isset($payload['currency']) ? (string)$payload['currency'] : null;
+        $dto->status = isset($payload['status']) ? (string)$payload['status'] : null;
+        $dto->dueAt = isset($payload['dueAt']) ? (string)$payload['dueAt'] : null;
+        $dto->companyId = isset($payload['companyId']) ? (string)$payload['companyId'] : null;
 
         return $dto;
     }

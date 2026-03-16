@@ -8,7 +8,9 @@ use Symfony\Component\HttpFoundation\Request;
 
 final readonly class CrmListRequestHelper
 {
-    /** @param array<int,string> $filterKeys */
+    /**
+     * @param array<int,string> $filterKeys
+     */
     public function fromRequest(Request $request, array $filterKeys = ['q']): CrmListQueryOptions
     {
         $filters = [];

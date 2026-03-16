@@ -38,14 +38,14 @@ final class CreateContactCommandDto
     public static function fromPostArray(array $payload): self
     {
         $dto = new self();
-        $dto->firstName = isset($payload['firstName']) ? (string) $payload['firstName'] : null;
-        $dto->lastName = isset($payload['lastName']) ? (string) $payload['lastName'] : null;
-        $dto->email = isset($payload['email']) ? (string) $payload['email'] : null;
-        $dto->phone = isset($payload['phone']) ? (string) $payload['phone'] : null;
-        $dto->jobTitle = isset($payload['jobTitle']) ? (string) $payload['jobTitle'] : null;
-        $dto->city = isset($payload['city']) ? (string) $payload['city'] : null;
-        $dto->score = isset($payload['score']) ? (int) $payload['score'] : null;
-        $dto->companyId = isset($payload['companyId']) ? (string) $payload['companyId'] : null;
+        $dto->firstName = isset($payload['firstName']) ? (string)$payload['firstName'] : null;
+        $dto->lastName = isset($payload['lastName']) ? (string)$payload['lastName'] : null;
+        $dto->email = isset($payload['email']) ? (string)$payload['email'] : null;
+        $dto->phone = isset($payload['phone']) ? (string)$payload['phone'] : null;
+        $dto->jobTitle = isset($payload['jobTitle']) ? (string)$payload['jobTitle'] : null;
+        $dto->city = isset($payload['city']) ? (string)$payload['city'] : null;
+        $dto->score = isset($payload['score']) ? (int)$payload['score'] : null;
+        $dto->companyId = isset($payload['companyId']) ? (string)$payload['companyId'] : null;
 
         return $dto;
     }

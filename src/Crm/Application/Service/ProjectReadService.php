@@ -75,7 +75,9 @@ readonly class ProjectReadService
                     'totalItems' => $totalItems,
                     'totalPages' => $totalItems > 0 ? (int)ceil($totalItems / $limit) : 0,
                 ],
-                'meta' => ['filters' => array_filter($filters, static fn (string $value): bool => $value !== '')],
+                'meta' => [
+                    'filters' => array_filter($filters, static fn (string $value): bool => $value !== ''),
+                ],
             ];
         });
     }
@@ -136,15 +138,18 @@ readonly class ProjectReadService
 
         try {
             $response = $this->elasticsearchService->search('crm_projects', [
-                'query' => ['multi_match' => [
-                    'query' => $query,
-                    'type' => 'phrase_prefix',
-                    'fields' => ['name^3', 'code^2', 'description', 'status'],
-                ]],
+                'query' => [
+                    'multi_match' => [
+                        'query' => $query,
+                        'type' => 'phrase_prefix',
+                        'fields' => ['name^3', 'code^2', 'description', 'status'],
+                    ],
+                ],
                 '_source' => ['id'],
             ], 0, 500);
 
             $hits = $response['hits']['hits'] ?? [];
+
             return array_values(array_filter(array_map(static fn (array $hit): ?string => $hit['_source']['id'] ?? $hit['_id'] ?? null, $hits)));
         } catch (Throwable) {
             return null;
@@ -155,8 +160,15 @@ readonly class ProjectReadService
     {
         return [
             'items' => [],
-            'pagination' => ['page' => $page, 'limit' => $limit, 'totalItems' => 0, 'totalPages' => 0],
-            'meta' => ['filters' => array_filter($filters, static fn (string $value): bool => $value !== '')],
+            'pagination' => [
+                'page' => $page,
+                'limit' => $limit,
+                'totalItems' => 0,
+                'totalPages' => 0,
+            ],
+            'meta' => [
+                'filters' => array_filter($filters, static fn (string $value): bool => $value !== ''),
+            ],
         ];
     }
 }

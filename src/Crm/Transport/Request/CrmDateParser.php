@@ -10,8 +10,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 final readonly class CrmDateParser
 {
-    public function __construct(private CrmApiErrorResponseFactory $errorResponseFactory)
-    {
+    public function __construct(
+        private CrmApiErrorResponseFactory $errorResponseFactory
+    ) {
     }
 
     public function parseNullableIso8601(?string $value, string $field): DateTimeImmutable|JsonResponse|null

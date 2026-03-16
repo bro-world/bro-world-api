@@ -66,7 +66,7 @@ final readonly class CrmReportService
                 }
                 $days = (int)$startedAt->diff($dueAt)->format('%a');
                 $totalCycleDays += $days;
-                ++$projectCount;
+                $projectCount++;
             }
 
             if ($projectCount > 0) {

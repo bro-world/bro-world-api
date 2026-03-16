@@ -36,7 +36,9 @@ final class ReportsControllerTest extends TestCase
         ));
 
         $controller = new ReportsController($scopeResolver, $reportService, $pdfExporter);
-        $response = $controller->__invoke('app', new Request(['format' => 'xml']));
+        $response = $controller->__invoke('app', new Request([
+            'format' => 'xml',
+        ]));
 
         self::assertSame(JsonResponse::HTTP_BAD_REQUEST, $response->getStatusCode());
     }

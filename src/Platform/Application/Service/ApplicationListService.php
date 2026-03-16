@@ -31,7 +31,6 @@ readonly class ApplicationListService
     }
 
     /**
-     * @param Request $request
      * @return array<string, mixed>
      * @throws InvalidArgumentException
      * @throws JsonException
@@ -42,8 +41,6 @@ readonly class ApplicationListService
     }
 
     /**
-     * @param Request $request
-     * @param User $loggedInUser
      * @return array<string, mixed>
      * @throws InvalidArgumentException
      * @throws JsonException
@@ -133,7 +130,7 @@ readonly class ApplicationListService
                             'id' => $configuration->getId(),
                             'name' => $configuration->getConfigurationKey() ?? '',
                             'configuration' => $configuration?->getConfigurationValue(),
-                        ], $applicationPlugin?->getConfigurations()?->toArray())
+                        ], $applicationPlugin?->getConfigurations()?->toArray()),
                     ], $application->getApplicationPlugins()->toArray()),
                     'author' => [
                         'id' => $application->getUser()?->getId(),

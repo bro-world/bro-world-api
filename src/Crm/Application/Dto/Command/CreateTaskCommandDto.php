@@ -43,14 +43,14 @@ final class CreateTaskCommandDto
     public static function fromPostArray(array $payload): self
     {
         $dto = new self();
-        $dto->title = isset($payload['title']) ? (string) $payload['title'] : null;
-        $dto->description = isset($payload['description']) ? (string) $payload['description'] : null;
-        $dto->status = isset($payload['status']) ? (string) $payload['status'] : null;
-        $dto->priority = isset($payload['priority']) ? (string) $payload['priority'] : null;
-        $dto->dueAt = isset($payload['dueAt']) ? (string) $payload['dueAt'] : null;
+        $dto->title = isset($payload['title']) ? (string)$payload['title'] : null;
+        $dto->description = isset($payload['description']) ? (string)$payload['description'] : null;
+        $dto->status = isset($payload['status']) ? (string)$payload['status'] : null;
+        $dto->priority = isset($payload['priority']) ? (string)$payload['priority'] : null;
+        $dto->dueAt = isset($payload['dueAt']) ? (string)$payload['dueAt'] : null;
         $dto->estimatedHours = $payload['estimatedHours'] ?? null;
-        $dto->projectId = isset($payload['projectId']) ? (string) $payload['projectId'] : null;
-        $dto->sprintId = isset($payload['sprintId']) ? (string) $payload['sprintId'] : null;
+        $dto->projectId = isset($payload['projectId']) ? (string)$payload['projectId'] : null;
+        $dto->sprintId = isset($payload['sprintId']) ? (string)$payload['sprintId'] : null;
         $dto->assigneeIds = isset($payload['assigneeIds']) && is_array($payload['assigneeIds']) ? $payload['assigneeIds'] : null;
 
         return $dto;

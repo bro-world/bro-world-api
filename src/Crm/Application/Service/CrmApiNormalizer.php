@@ -44,7 +44,8 @@ final class CrmApiNormalizer
                     'description' => $taskRequest->getDescription(),
                     'status' => $taskRequest->getStatus(),
                 ],
-                $task->getTaskRequests()->toArray()),
+                $task->getTaskRequests()->toArray()
+            ),
             'blog' => $this->crmBlogNormalizer->normalizeBlog($task->getBlog()),
         ];
     }

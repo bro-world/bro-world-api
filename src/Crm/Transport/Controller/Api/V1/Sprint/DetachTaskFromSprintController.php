@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Crm\Transport\Controller\Api\V1\Sprint;
 
 use App\Crm\Application\Service\CrmApplicationScopeResolver;
-use App\Crm\Infrastructure\Repository\TaskRepository;
 use App\Crm\Infrastructure\Repository\SprintRepository;
+use App\Crm\Infrastructure\Repository\TaskRepository;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
 use App\Role\Domain\Enum\Role;
 use Doctrine\ORM\Exception\ORMException;

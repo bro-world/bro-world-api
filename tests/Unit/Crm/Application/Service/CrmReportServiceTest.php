@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Crm\Application\Service;
 
+use App\Crm\Application\Dto\Report\CrmRecommendedActionDto;
 use App\Crm\Application\Dto\Report\CrmReportContactDto;
 use App\Crm\Application\Dto\Report\CrmReportCountsDto;
 use App\Crm\Application\Dto\Report\CrmReportDto;
 use App\Crm\Application\Dto\Report\CrmReportKpisDto;
 use App\Crm\Application\Dto\Report\CrmReportMetadataDto;
-use App\Crm\Application\Dto\Report\CrmRecommendedActionDto;
 use App\Crm\Application\Service\CrmReportService;
 use App\Crm\Application\Service\Report\CrmReportPdfExporter;
 use App\Crm\Domain\Entity\Billing;
@@ -132,7 +132,7 @@ final class CrmReportServiceTest extends TestCase
             . "counts,employees,3\n"
             . "counts,billings,4\n"
             . "counts,tasks,8\n"
-            . "contact," . '"Alice Doe"' . ",70\n",
+            . 'contact,' . '"Alice Doe"' . ",70\n",
             $csv,
         );
     }

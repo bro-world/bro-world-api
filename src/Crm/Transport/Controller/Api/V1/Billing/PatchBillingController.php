@@ -42,13 +42,27 @@ final readonly class PatchBillingController
         }
 
         $mappedPayload = [];
-        if ($input->hasCompanyId) { $mappedPayload['companyId'] = $input->companyId; }
-        if ($input->hasLabel) { $mappedPayload['label'] = $input->label; }
-        if ($input->hasAmount) { $mappedPayload['amount'] = $input->amount; }
-        if ($input->hasCurrency) { $mappedPayload['currency'] = $input->currency; }
-        if ($input->hasStatus) { $mappedPayload['status'] = $input->status; }
-        if ($input->hasDueAt) { $mappedPayload['dueAt'] = $input->dueAt; }
-        if ($input->hasPaidAt) { $mappedPayload['paidAt'] = $input->paidAt; }
+        if ($input->hasCompanyId) {
+            $mappedPayload['companyId'] = $input->companyId;
+        }
+        if ($input->hasLabel) {
+            $mappedPayload['label'] = $input->label;
+        }
+        if ($input->hasAmount) {
+            $mappedPayload['amount'] = $input->amount;
+        }
+        if ($input->hasCurrency) {
+            $mappedPayload['currency'] = $input->currency;
+        }
+        if ($input->hasStatus) {
+            $mappedPayload['status'] = $input->status;
+        }
+        if ($input->hasDueAt) {
+            $mappedPayload['dueAt'] = $input->dueAt;
+        }
+        if ($input->hasPaidAt) {
+            $mappedPayload['paidAt'] = $input->paidAt;
+        }
 
         $this->messageBus->dispatch(new PatchBillingCommand(
             applicationSlug: $applicationSlug,

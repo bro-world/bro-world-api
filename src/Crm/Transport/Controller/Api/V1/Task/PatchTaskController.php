@@ -76,7 +76,7 @@ final readonly class PatchTaskController
             $task->setDueAt($dueAt);
         }
         if ($input->hasEstimatedHours) {
-            $task->setEstimatedHours(is_numeric($input->estimatedHours) ? (float) $input->estimatedHours : null);
+            $task->setEstimatedHours(is_numeric($input->estimatedHours) ? (float)$input->estimatedHours : null);
         }
         if ($input->hasSprintId) {
             if ($input->sprintId === null || $input->sprintId === '') {

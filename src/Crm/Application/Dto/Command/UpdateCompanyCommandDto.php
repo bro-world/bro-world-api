@@ -35,15 +35,15 @@ final class UpdateCompanyCommandDto
     {
         $dto = new self();
         $dto->hasName = true;
-        $dto->name = isset($payload['name']) ? (string) $payload['name'] : null;
+        $dto->name = isset($payload['name']) ? (string)$payload['name'] : null;
         $dto->hasIndustry = true;
-        $dto->industry = isset($payload['industry']) ? (string) $payload['industry'] : null;
+        $dto->industry = isset($payload['industry']) ? (string)$payload['industry'] : null;
         $dto->hasWebsite = true;
-        $dto->website = isset($payload['website']) ? (string) $payload['website'] : null;
+        $dto->website = isset($payload['website']) ? (string)$payload['website'] : null;
         $dto->hasContactEmail = true;
-        $dto->contactEmail = isset($payload['contactEmail']) ? (string) $payload['contactEmail'] : null;
+        $dto->contactEmail = isset($payload['contactEmail']) ? (string)$payload['contactEmail'] : null;
         $dto->hasPhone = true;
-        $dto->phone = isset($payload['phone']) ? (string) $payload['phone'] : null;
+        $dto->phone = isset($payload['phone']) ? (string)$payload['phone'] : null;
 
         return $dto;
     }
@@ -53,23 +53,23 @@ final class UpdateCompanyCommandDto
         $dto = new self();
         if (array_key_exists('name', $payload)) {
             $dto->hasName = true;
-            $dto->name = $payload['name'] !== null ? (string) $payload['name'] : null;
+            $dto->name = $payload['name'] !== null ? (string)$payload['name'] : null;
         }
         if (array_key_exists('industry', $payload)) {
             $dto->hasIndustry = true;
-            $dto->industry = $payload['industry'] !== null ? (string) $payload['industry'] : null;
+            $dto->industry = $payload['industry'] !== null ? (string)$payload['industry'] : null;
         }
         if (array_key_exists('website', $payload)) {
             $dto->hasWebsite = true;
-            $dto->website = $payload['website'] !== null ? (string) $payload['website'] : null;
+            $dto->website = $payload['website'] !== null ? (string)$payload['website'] : null;
         }
         if (array_key_exists('contactEmail', $payload)) {
             $dto->hasContactEmail = true;
-            $dto->contactEmail = $payload['contactEmail'] !== null ? (string) $payload['contactEmail'] : null;
+            $dto->contactEmail = $payload['contactEmail'] !== null ? (string)$payload['contactEmail'] : null;
         }
         if (array_key_exists('phone', $payload)) {
             $dto->hasPhone = true;
-            $dto->phone = $payload['phone'] !== null ? (string) $payload['phone'] : null;
+            $dto->phone = $payload['phone'] !== null ? (string)$payload['phone'] : null;
         }
 
         return $dto;

@@ -12,8 +12,8 @@ use App\General\Domain\Service\Interfaces\ElasticsearchServiceInterface;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\ORM\QueryBuilder;
 use Psr\Log\LoggerInterface;
-use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
+use Ramsey\Uuid\Uuid;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -125,7 +125,7 @@ readonly class TaskListService
                 'elasticIdsCount' => $esIds !== null ? count($esIds) : null,
                 'resultSetSize' => count($items),
                 'totalItems' => $totalItems,
-                'durationMs' => (int) ((microtime(true) - $startAt) * 1000),
+                'durationMs' => (int)((microtime(true) - $startAt) * 1000),
             ]);
 
             return [
@@ -324,7 +324,9 @@ readonly class TaskListService
                         ],
                     ],
                     'sort' => [
-                        ['_doc' => 'asc'],
+                        [
+                            '_doc' => 'asc',
+                        ],
                     ],
                     'track_total_hits' => true,
                     '_source' => ['id'],

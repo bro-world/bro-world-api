@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Request;
 
-use JsonException;
 use DateTimeImmutable;
+use JsonException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -22,7 +22,7 @@ final readonly class CrmRequestHandler
     public function decodeJson(Request $request): array|JsonResponse
     {
         try {
-            $payload = json_decode((string) $request->getContent(), true, 512, JSON_THROW_ON_ERROR);
+            $payload = json_decode((string)$request->getContent(), true, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException) {
             return $this->errorResponseFactory->invalidJson();
         }
@@ -43,8 +43,7 @@ final readonly class CrmRequestHandler
         string $dtoClass,
         array|string|null $validationGroups = null,
         string $mapperMethod = 'fromArray',
-    ): mixed
-    {
+    ): mixed {
         if (!method_exists($dtoClass, $mapperMethod)) {
             throw new \InvalidArgumentException(sprintf(
                 'DTO class "%s" must implement static %s(array $payload): self.',

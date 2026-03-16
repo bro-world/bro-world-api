@@ -68,7 +68,8 @@ final readonly class GetCompanyController
                         'id' => $project->getId(),
                         'name' => $project->getName(),
                     ],
-                    $company->getProjects()->toArray())
+                    $company->getProjects()->toArray()
+                ),
             ];
         });
 

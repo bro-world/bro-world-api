@@ -28,11 +28,11 @@ final class CreateCompanyCommandDto
     public static function fromPostArray(array $payload): self
     {
         $dto = new self();
-        $dto->name = isset($payload['name']) ? (string) $payload['name'] : null;
-        $dto->industry = isset($payload['industry']) ? (string) $payload['industry'] : null;
-        $dto->website = isset($payload['website']) ? (string) $payload['website'] : null;
-        $dto->contactEmail = isset($payload['contactEmail']) ? (string) $payload['contactEmail'] : null;
-        $dto->phone = isset($payload['phone']) ? (string) $payload['phone'] : null;
+        $dto->name = isset($payload['name']) ? (string)$payload['name'] : null;
+        $dto->industry = isset($payload['industry']) ? (string)$payload['industry'] : null;
+        $dto->website = isset($payload['website']) ? (string)$payload['website'] : null;
+        $dto->contactEmail = isset($payload['contactEmail']) ? (string)$payload['contactEmail'] : null;
+        $dto->phone = isset($payload['phone']) ? (string)$payload['phone'] : null;
 
         return $dto;
     }

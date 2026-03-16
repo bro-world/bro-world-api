@@ -31,7 +31,9 @@ final class CrmRequestHandlerTest extends TestCase
         $handler = $this->buildHandler($this->createMock(ValidatorInterface::class));
 
         $this->expectException(\InvalidArgumentException::class);
-        $handler->mapAndValidate(['name' => 'x'], DummyDto::class, mapperMethod: 'missing');
+        $handler->mapAndValidate([
+            'name' => 'x',
+        ], DummyDto::class, mapperMethod: 'missing');
     }
 
     public function testMapAndValidateReturnsValidationErrorResponseWhenViolationsExist(): void
@@ -42,7 +44,9 @@ final class CrmRequestHandlerTest extends TestCase
         ]));
 
         $handler = $this->buildHandler($validator);
-        $result = $handler->mapAndValidate(['name' => ''], DummyDto::class);
+        $result = $handler->mapAndValidate([
+            'name' => '',
+        ], DummyDto::class);
 
         self::assertInstanceOf(JsonResponse::class, $result);
         self::assertSame(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, $result->getStatusCode());
@@ -54,7 +58,9 @@ final class CrmRequestHandlerTest extends TestCase
         $validator->method('validate')->willReturn(new ConstraintViolationList());
 
         $handler = $this->buildHandler($validator);
-        $result = $handler->mapAndValidate(['name' => 'ok'], DummyDto::class);
+        $result = $handler->mapAndValidate([
+            'name' => 'ok',
+        ], DummyDto::class);
 
         self::assertInstanceOf(DummyDto::class, $result);
         self::assertSame('ok', $result->name);
@@ -75,7 +81,7 @@ final class DummyDto
     public static function fromArray(array $payload): self
     {
         $dto = new self();
-        $dto->name = (string) ($payload['name'] ?? '');
+        $dto->name = (string)($payload['name'] ?? '');
 
         return $dto;
     }

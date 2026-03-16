@@ -25,7 +25,10 @@ final class CreateTaskHandlerTest extends TestCase
         $projectRepository->method('findOneScopedById')->willReturn(null);
 
         $handler = new CreateTaskHandler($projectRepository, $this->createMock(SprintRepository::class), $this->createMock(EntityManagerInterface::class));
-        $request = CreateTaskRequest::fromArray(['title' => 'task', 'projectId' => 'p-1']);
+        $request = CreateTaskRequest::fromArray([
+            'title' => 'task',
+            'projectId' => 'p-1',
+        ]);
 
         $this->expectException(CrmReferenceNotFoundException::class);
         $handler->handle($request, 'crm-1', null);
@@ -41,7 +44,11 @@ final class CreateTaskHandlerTest extends TestCase
         $sprintRepository->method('findOneScopedById')->willReturn(null);
 
         $handler = new CreateTaskHandler($projectRepository, $sprintRepository, $this->createMock(EntityManagerInterface::class));
-        $request = CreateTaskRequest::fromArray(['title' => 'task', 'projectId' => 'p-1', 'sprintId' => 's-1']);
+        $request = CreateTaskRequest::fromArray([
+            'title' => 'task',
+            'projectId' => 'p-1',
+            'sprintId' => 's-1',
+        ]);
 
         $this->expectException(CrmReferenceNotFoundException::class);
         $handler->handle($request, 'crm-1', null);
@@ -65,7 +72,11 @@ final class CreateTaskHandlerTest extends TestCase
         $sprintRepository->method('findOneScopedById')->willReturn($sprint);
 
         $handler = new CreateTaskHandler($projectRepository, $sprintRepository, $this->createMock(EntityManagerInterface::class));
-        $request = CreateTaskRequest::fromArray(['title' => 'task', 'projectId' => 'p-1', 'sprintId' => 's-1']);
+        $request = CreateTaskRequest::fromArray([
+            'title' => 'task',
+            'projectId' => 'p-1',
+            'sprintId' => 's-1',
+        ]);
 
         $this->expectException(CrmOutOfScopeException::class);
         $handler->handle($request, 'crm-1', null);
@@ -85,7 +96,11 @@ final class CreateTaskHandlerTest extends TestCase
         $entityManager->method('getRepository')->with(User::class)->willReturn($userRepository);
 
         $handler = new CreateTaskHandler($projectRepository, $this->createMock(SprintRepository::class), $entityManager);
-        $request = CreateTaskRequest::fromArray(['title' => 'task', 'projectId' => 'p-1', 'assigneeIds' => ['u-1']]);
+        $request = CreateTaskRequest::fromArray([
+            'title' => 'task',
+            'projectId' => 'p-1',
+            'assigneeIds' => ['u-1'],
+        ]);
 
         $this->expectException(CrmReferenceNotFoundException::class);
         $handler->handle($request, 'crm-1', null);

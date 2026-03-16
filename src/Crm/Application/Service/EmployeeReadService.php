@@ -38,7 +38,9 @@ readonly class EmployeeReadService
         $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
         $page = max(1, $request->query->getInt('page', 1));
         $limit = max(1, min(100, $request->query->getInt('limit', 20)));
-        $filters = ['q' => trim((string)$request->query->get('q', ''))];
+        $filters = [
+            'q' => trim((string)$request->query->get('q', '')),
+        ];
 
         $cacheKey = $this->cacheKeyConventionService->buildCrmEmployeeListKey($applicationSlug, $page, $limit, $filters);
 
@@ -53,7 +55,10 @@ readonly class EmployeeReadService
                 return $this->emptyList($page, $limit, $filters);
             }
 
-            $effectiveFilters = ['q' => $esIds === null ? $filters['q'] : '', 'ids' => $esIds];
+            $effectiveFilters = [
+                'q' => $esIds === null ? $filters['q'] : '',
+                'ids' => $esIds,
+            ];
             $items = $this->employeeRepository->findScopedProjection($crm->getId(), $limit, ($page - 1) * $limit, $effectiveFilters);
             $totalItems = $this->employeeRepository->countScopedByCrm($crm->getId(), $effectiveFilters);
 
@@ -65,7 +70,9 @@ readonly class EmployeeReadService
                     'totalItems' => $totalItems,
                     'totalPages' => $totalItems > 0 ? (int)ceil($totalItems / $limit) : 0,
                 ],
-                'meta' => ['filters' => array_filter($filters, static fn (string $value): bool => $value !== '')],
+                'meta' => [
+                    'filters' => array_filter($filters, static fn (string $value): bool => $value !== ''),
+                ],
             ];
         });
     }
@@ -112,15 +119,18 @@ readonly class EmployeeReadService
 
         try {
             $response = $this->elasticsearchService->search('crm_employees', [
-                'query' => ['multi_match' => [
-                    'query' => $query,
-                    'type' => 'phrase_prefix',
-                    'fields' => ['firstName^3', 'lastName^3', 'email^2', 'positionName', 'roleName'],
-                ]],
+                'query' => [
+                    'multi_match' => [
+                        'query' => $query,
+                        'type' => 'phrase_prefix',
+                        'fields' => ['firstName^3', 'lastName^3', 'email^2', 'positionName', 'roleName'],
+                    ],
+                ],
                 '_source' => ['id'],
             ], 0, 500);
 
             $hits = $response['hits']['hits'] ?? [];
+
             return array_values(array_filter(array_map(static fn (array $hit): ?string => $hit['_source']['id'] ?? $hit['_id'] ?? null, $hits)));
         } catch (Throwable) {
             return null;
@@ -131,8 +141,15 @@ readonly class EmployeeReadService
     {
         return [
             'items' => [],
-            'pagination' => ['page' => $page, 'limit' => $limit, 'totalItems' => 0, 'totalPages' => 0],
-            'meta' => ['filters' => array_filter($filters, static fn (string $value): bool => $value !== '')],
+            'pagination' => [
+                'page' => $page,
+                'limit' => $limit,
+                'totalItems' => 0,
+                'totalPages' => 0,
+            ],
+            'meta' => [
+                'filters' => array_filter($filters, static fn (string $value): bool => $value !== ''),
+            ],
         ];
     }
 }

@@ -4,18 +4,20 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Company;
 
-use App\Crm\Application\Message\CreateCompanyCommand;
 use App\Crm\Application\Dto\Command\CreateCompanyCommandDto;
 use App\Crm\Application\Dto\Response\EntityIdResponseDto;
+use App\Crm\Application\Message\CreateCompanyCommand;
+use App\Crm\Transport\Request\CrmRequestHandler;
 use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
+use Ramsey\Uuid\Uuid;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use App\Crm\Transport\Request\CrmRequestHandler;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
@@ -28,6 +30,9 @@ final readonly class CreateCompanyByApplicationController
     ) {
     }
 
+    /**
+     * @throws ExceptionInterface
+     */
     #[Route('/v1/crm/applications/{applicationSlug}/companies', methods: [Request::METHOD_POST])]
     public function __invoke(string $applicationSlug, Request $request): JsonResponse
     {
@@ -38,12 +43,12 @@ final readonly class CreateCompanyByApplicationController
             return $payload;
         }
 
-        $input = $this->crmRequestHandler->mapAndValidate($payload, CreateCompanyCommandDto::class, mapperMethod: "fromPostArray");
+        $input = $this->crmRequestHandler->mapAndValidate($payload, CreateCompanyCommandDto::class, mapperMethod: 'fromPostArray');
         if ($input instanceof JsonResponse) {
             return $input;
         }
 
-        $id = \Ramsey\Uuid\Uuid::uuid4()->toString();
+        $id = Uuid::uuid4()->toString();
 
         $this->messageBus->dispatch(new CreateCompanyCommand(
             id: $id,
@@ -55,6 +60,8 @@ final readonly class CreateCompanyByApplicationController
             phone: $input->phone,
         ));
 
-        return new JsonResponse((new EntityIdResponseDto($id, ['applicationSlug' => $applicationSlug]))->toArray(), JsonResponse::HTTP_CREATED);
+        return new JsonResponse(new EntityIdResponseDto($id, [
+            'applicationSlug' => $applicationSlug,
+        ])->toArray(), JsonResponse::HTTP_CREATED);
     }
 }

@@ -26,7 +26,10 @@ final class CrmPrioritizedMatrixTest extends WebTestCase
         $client->request(
             'POST',
             sprintf('%s/v1/crm/applications/%s/projects', self::API_URL_PREFIX, self::PRIMARY_APPLICATION_SLUG),
-            content: JSON::encode(['name' => 'Cross tenant matrix', 'companyId' => $foreign['companyId']])
+            content: JSON::encode([
+                'name' => 'Cross tenant matrix',
+                'companyId' => $foreign['companyId'],
+            ])
         );
         self::assertSame(Response::HTTP_NOT_FOUND, $client->getResponse()->getStatusCode());
 
@@ -47,7 +50,10 @@ final class CrmPrioritizedMatrixTest extends WebTestCase
         $writeClient->request(
             'POST',
             sprintf('%s/v1/crm/applications/%s/tasks', self::API_URL_PREFIX, self::PRIMARY_APPLICATION_SLUG),
-            content: JSON::encode(['title' => 'ACL matrix task', 'projectId' => '00000000-0000-0000-0000-000000000000'])
+            content: JSON::encode([
+                'title' => 'ACL matrix task',
+                'projectId' => '00000000-0000-0000-0000-000000000000',
+            ])
         );
         self::assertSame(Response::HTTP_FORBIDDEN, $writeClient->getResponse()->getStatusCode());
 
@@ -55,7 +61,10 @@ final class CrmPrioritizedMatrixTest extends WebTestCase
         $managerClient->request(
             'POST',
             sprintf('%s/v1/crm/applications/%s/tasks', self::API_URL_PREFIX, self::PRIMARY_APPLICATION_SLUG),
-            content: JSON::encode(['title' => 'ACL matrix task', 'projectId' => '00000000-0000-0000-0000-000000000000'])
+            content: JSON::encode([
+                'title' => 'ACL matrix task',
+                'projectId' => '00000000-0000-0000-0000-000000000000',
+            ])
         );
         self::assertSame(Response::HTTP_NOT_FOUND, $managerClient->getResponse()->getStatusCode());
     }
@@ -74,14 +83,18 @@ final class CrmPrioritizedMatrixTest extends WebTestCase
         $client->request(
             'POST',
             sprintf('%s/v1/crm/applications/%s/companies', self::API_URL_PREFIX, self::PRIMARY_APPLICATION_SLUG),
-            content: JSON::encode(['name' => ''])
+            content: JSON::encode([
+                'name' => '',
+            ])
         );
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $client->getResponse()->getStatusCode());
 
         $client->request(
             'PATCH',
             sprintf('%s/v1/crm/applications/%s/companies/%s', self::API_URL_PREFIX, self::PRIMARY_APPLICATION_SLUG, '00000000-0000-0000-0000-000000000000'),
-            content: JSON::encode(['name' => 'Updated'])
+            content: JSON::encode([
+                'name' => 'Updated',
+            ])
         );
         self::assertSame(Response::HTTP_NOT_FOUND, $client->getResponse()->getStatusCode());
     }
@@ -163,7 +176,7 @@ final class CrmPrioritizedMatrixTest extends WebTestCase
         self::assertSame(Response::HTTP_CREATED, $client->getResponse()->getStatusCode());
         $payload = $this->decodeJsonResponse($client->getResponse()->getContent());
 
-        return (string) $payload['id'];
+        return (string)$payload['id'];
     }
 
     private function createProject(string $companyId): string
@@ -181,7 +194,7 @@ final class CrmPrioritizedMatrixTest extends WebTestCase
         self::assertSame(Response::HTTP_CREATED, $client->getResponse()->getStatusCode());
         $payload = $this->decodeJsonResponse($client->getResponse()->getContent());
 
-        return (string) $payload['id'];
+        return (string)$payload['id'];
     }
 
     private function createTask(string $projectId, string $title): string
@@ -199,10 +212,12 @@ final class CrmPrioritizedMatrixTest extends WebTestCase
         self::assertSame(Response::HTTP_CREATED, $client->getResponse()->getStatusCode());
         $payload = $this->decodeJsonResponse($client->getResponse()->getContent());
 
-        return (string) $payload['id'];
+        return (string)$payload['id'];
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @return array<string, mixed>
+     */
     private function decodeJsonResponse(string|false $content): array
     {
         self::assertNotFalse($content);

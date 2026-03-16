@@ -51,9 +51,10 @@ final class UpdateBillingCommandDto
             $value = $payload[$field];
             if ($field === 'amount') {
                 $dto->amount = $value;
+
                 continue;
             }
-            $dto->{$field} = $value !== null ? (string) $value : null;
+            $dto->{$field} = $value !== null ? (string)$value : null;
         }
 
         return $dto;

@@ -54,11 +54,11 @@ final class UpdateContactCommandDto
 
             $dto->{$flag} = true;
             $value = $payload[$field];
-            $dto->{$field} = $value !== null ? (is_int($value) ? $value : (string) $value) : null;
+            $dto->{$field} = $value !== null ? (is_int($value) ? $value : (string)$value) : null;
         }
 
         if ($dto->hasScore && $payload['score'] !== null) {
-            $dto->score = (int) $payload['score'];
+            $dto->score = (int)$payload['score'];
         }
 
         return $dto;

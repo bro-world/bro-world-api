@@ -519,10 +519,10 @@ final class LoadCrmData extends Fixture implements OrderedFixtureInterface
             return false;
         }
 
-        return null !== $manager->getRepository(ApplicationPlugin::class)->findOneBy([
+        return $manager->getRepository(ApplicationPlugin::class)->findOneBy([
             'application' => $application,
             'plugin' => $blogPlugin,
-        ]);
+        ]) !== null;
     }
 
     private function createBlogThreadForEntity(

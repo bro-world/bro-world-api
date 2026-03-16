@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Company;
 
+use App\Crm\Application\Dto\Command\UpdateCompanyCommandDto;
+use App\Crm\Application\Dto\Response\EntityIdResponseDto;
 use App\Crm\Application\Exception\CrmReferenceNotFoundException;
 use App\Crm\Application\Message\PatchCompanyCommand;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
-use App\Crm\Application\Dto\Command\UpdateCompanyCommandDto;
-use App\Crm\Application\Dto\Response\EntityIdResponseDto;
+use App\Crm\Transport\Request\CrmRequestHandler;
 use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,7 +17,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Crm\Transport\Request\CrmRequestHandler;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AsController]

@@ -51,11 +51,12 @@ final class UpdateTaskCommandDto
             $dto->{$flag} = true;
             if ($field === 'estimatedHours') {
                 $dto->estimatedHours = $payload[$field];
+
                 continue;
             }
 
             $value = $payload[$field];
-            $dto->{$field} = $value !== null ? (string) $value : null;
+            $dto->{$field} = $value !== null ? (string)$value : null;
         }
 
         return $dto;

@@ -36,8 +36,6 @@ readonly class BillingReadService
     }
 
     /**
-     * @param string $applicationSlug
-     * @param Request $request
      * @return array<string,mixed>
      * @throws JsonException
      * @throws InvalidArgumentException

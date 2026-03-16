@@ -424,7 +424,6 @@ final class CrmControllerTest extends WebTestCase
         }
     }
 
-
     #[TestDox('CreateTaskController returns standardized date parsing error payload.')]
     public function testCreateTaskInvalidDateUsesStandardizedError(): void
     {

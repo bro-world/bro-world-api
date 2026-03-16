@@ -31,7 +31,9 @@ readonly class ContactReadService
     ) {
     }
 
-    /** @return array<string,mixed> */
+    /**
+     * @return array<string,mixed>
+     */
     public function list(string $applicationSlug, Request $request): array
     {
         $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
@@ -68,7 +70,9 @@ readonly class ContactReadService
         });
     }
 
-    /** @return array<string,mixed>|null */
+    /**
+     * @return array<string,mixed>|null
+     */
     public function getDetail(string $applicationSlug, string $contactId): ?array
     {
         $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
@@ -128,7 +132,9 @@ readonly class ContactReadService
         }
     }
 
-    /** @param array<string,mixed> $item */
+    /**
+     * @param array<string,mixed> $item
+     */
     private function normalizeProjection(array $item): array
     {
         return [

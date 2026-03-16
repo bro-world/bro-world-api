@@ -6,7 +6,9 @@ namespace App\Crm\Application\Service;
 
 final readonly class CrmListQueryOptions
 {
-    /** @param array<string,string> $filters */
+    /**
+     * @param array<string,string> $filters
+     */
     public function __construct(
         public int $page,
         public int $limit,
@@ -19,7 +21,9 @@ final readonly class CrmListQueryOptions
         return ($this->page - 1) * $this->limit;
     }
 
-    /** @return array{page:int,limit:int,totalItems:int,totalPages:int} */
+    /**
+     * @return array{page:int,limit:int,totalItems:int,totalPages:int}
+     */
     public function toPaginationMeta(int $totalItems): array
     {
         return [
