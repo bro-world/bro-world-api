@@ -79,7 +79,7 @@ class TaskRequestRepository extends BaseRepository
     }
 
     /**
-     * @param array{q?:string,status?:string} $filters
+     * @param array{q?:string,status?:string,ids?:list<string>|null} $filters
      *
      * @return list<array<string,mixed>>
      */
@@ -170,7 +170,7 @@ class TaskRequestRepository extends BaseRepository
     }
 
     /**
-     * @param array{q?:string,status?:string} $filters
+     * @param array{q?:string,status?:string,ids?:list<string>|null} $filters
      */
     public function countScopedByCrm(string $crmId, array $filters = []): int
     {
@@ -214,7 +214,7 @@ class TaskRequestRepository extends BaseRepository
     }
 
     /**
-     * @param array{q?:string,status?:string} $filters
+     * @param array{q?:string,status?:string,ids?:list<string>|null} $filters
      */
     private function applyProjectionFilters(QueryBuilder $qb, array $filters): void
     {
@@ -229,6 +229,8 @@ class TaskRequestRepository extends BaseRepository
             $qb->andWhere('taskRequest.status = :status')
                 ->setParameter('status', $status);
         }
+
+        $this->applyBinaryUuidIdsFilter($qb, 'taskRequest.id', $filters['ids'] ?? null, 'projection_task_request_id_');
     }
 
     /**

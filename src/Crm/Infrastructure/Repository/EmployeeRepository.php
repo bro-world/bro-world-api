@@ -9,6 +9,9 @@ use App\General\Infrastructure\Repository\BaseRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 
+use function array_values;
+use function trim;
+
 class EmployeeRepository extends BaseRepository
 {
     protected static string $entityName = Entity::class;
@@ -52,5 +55,70 @@ class EmployeeRepository extends BaseRepository
             ->andWhere('employee.crm = :crmId')
             ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
             ->getQuery()->getSingleScalarResult();
+    }
+
+    /**
+     * @param array{q?:string,ids?:list<string>|null} $filters
+     * @return list<array<string,mixed>>
+     */
+    public function findScopedProjection(string $crmId, int $limit, int $offset, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('employee')
+            ->select('employee.id, employee.firstName, employee.lastName, employee.email, employee.userId, employee.positionName, employee.roleName, employee.createdAt, employee.updatedAt, user.photo AS photo')
+            ->leftJoin('employee.user', 'user')
+            ->andWhere('employee.crm = :crmId')
+            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME)
+            ->orderBy('employee.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset);
+
+        $query = trim((string)($filters['q'] ?? ''));
+        if ($query !== '') {
+            $qb->andWhere('LOWER(CONCAT(employee.firstName, :space, employee.lastName)) LIKE LOWER(:q) OR LOWER(employee.email) LIKE LOWER(:q)')
+                ->setParameter('q', '%' . $query . '%')
+                ->setParameter('space', ' ');
+        }
+
+        $ids = $filters['ids'] ?? null;
+        if (is_array($ids)) {
+            if ($ids === []) {
+                return [];
+            }
+
+            $qb->andWhere('employee.id IN (:ids)')
+                ->setParameter('ids', array_values($ids), UuidBinaryOrderedTimeType::NAME);
+        }
+
+        return $qb->getQuery()->getArrayResult();
+    }
+
+    /**
+     * @param array{q?:string,ids?:list<string>|null} $filters
+     */
+    public function countScopedByCrm(string $crmId, array $filters = []): int
+    {
+        $qb = $this->createQueryBuilder('employee')
+            ->select('COUNT(employee.id)')
+            ->andWhere('employee.crm = :crmId')
+            ->setParameter('crmId', $crmId, UuidBinaryOrderedTimeType::NAME);
+
+        $query = trim((string)($filters['q'] ?? ''));
+        if ($query !== '') {
+            $qb->andWhere('LOWER(CONCAT(employee.firstName, :space, employee.lastName)) LIKE LOWER(:q) OR LOWER(employee.email) LIKE LOWER(:q)')
+                ->setParameter('q', '%' . $query . '%')
+                ->setParameter('space', ' ');
+        }
+
+        $ids = $filters['ids'] ?? null;
+        if (is_array($ids)) {
+            if ($ids === []) {
+                return 0;
+            }
+
+            $qb->andWhere('employee.id IN (:ids)')
+                ->setParameter('ids', array_values($ids), UuidBinaryOrderedTimeType::NAME);
+        }
+
+        return (int)$qb->getQuery()->getSingleScalarResult();
     }
 }

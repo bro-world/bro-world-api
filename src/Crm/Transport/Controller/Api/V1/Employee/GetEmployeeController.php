@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Employee;
 
+use App\Crm\Application\Service\EmployeeReadService;
 use App\Crm\Domain\Entity\Employee;
 use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -18,20 +20,19 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(Role::CRM_VIEWER->value)]
 final readonly class GetEmployeeController
 {
+    public function __construct(
+        private EmployeeReadService $employeeReadService,
+    ) {
+    }
+
     #[Route('/v1/crm/applications/{applicationSlug}/employees/{employee}', methods: [Request::METHOD_GET])]
     public function __invoke(string $applicationSlug, Employee $employee): JsonResponse
     {
-        return new JsonResponse([
-            'id' => $employee->getId(),
-            'firstName' => $employee->getFirstName(),
-            'lastName' => $employee->getLastName(),
-            'email' => $employee->getEmail(),
-            'userId' => $employee->getUserId(),
-            'positionName' => $employee->getPositionName(),
-            'photo' => $employee->getUser()->getPhoto(),
-            'roleName' => $employee->getRoleName(),
-            'createdAt' => $employee->getCreatedAt()->format(DATE_ATOM),
-            'updatedAt' => $employee->getUpdatedAt()->format(DATE_ATOM),
-        ]);
+        $payload = $this->employeeReadService->getDetail($applicationSlug, $employee->getId());
+        if ($payload === null) {
+            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Employee not found for this CRM scope.');
+        }
+
+        return new JsonResponse($payload);
     }
 }

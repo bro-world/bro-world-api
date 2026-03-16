@@ -195,6 +195,82 @@ class CacheKeyConventionService
      * @param array<string, mixed> $filters
      * @throws JsonException
      */
+    public function buildCrmContactListKey(string $applicationSlug, int $page, int $limit, array $filters): string
+    {
+        return 'crm_contact_list_' . md5((string)json_encode([
+            'applicationSlug' => $applicationSlug,
+            'page' => $page,
+            'limit' => $limit,
+            'filters' => $filters,
+        ], JSON_THROW_ON_ERROR));
+    }
+
+    public function buildCrmContactDetailKey(string $applicationSlug, string $contactId): string
+    {
+        return 'crm_contact_detail_' . $this->sanitizeSegment($applicationSlug) . '_' . $this->sanitizeSegment($contactId);
+    }
+
+    /**
+     * @param array<string, mixed> $filters
+     * @throws JsonException
+     */
+    public function buildCrmProjectListKey(string $applicationSlug, int $page, int $limit, array $filters): string
+    {
+        return 'crm_project_list_' . md5((string)json_encode([
+            'applicationSlug' => $applicationSlug,
+            'page' => $page,
+            'limit' => $limit,
+            'filters' => $filters,
+        ], JSON_THROW_ON_ERROR));
+    }
+
+    public function buildCrmProjectDetailKey(string $applicationSlug, string $projectId): string
+    {
+        return 'crm_project_detail_' . $this->sanitizeSegment($applicationSlug) . '_' . $this->sanitizeSegment($projectId);
+    }
+
+    /**
+     * @param array<string, mixed> $filters
+     * @throws JsonException
+     */
+    public function buildCrmEmployeeListKey(string $applicationSlug, int $page, int $limit, array $filters): string
+    {
+        return 'crm_employee_list_' . md5((string)json_encode([
+            'applicationSlug' => $applicationSlug,
+            'page' => $page,
+            'limit' => $limit,
+            'filters' => $filters,
+        ], JSON_THROW_ON_ERROR));
+    }
+
+    public function buildCrmEmployeeDetailKey(string $applicationSlug, string $employeeId): string
+    {
+        return 'crm_employee_detail_' . $this->sanitizeSegment($applicationSlug) . '_' . $this->sanitizeSegment($employeeId);
+    }
+
+    /**
+     * @param array<string, mixed> $filters
+     * @throws JsonException
+     */
+    public function buildCrmTaskRequestListKey(string $applicationSlug, int $page, int $limit, array $filters): string
+    {
+        return 'crm_task_request_list_' . md5((string)json_encode([
+            'applicationSlug' => $applicationSlug,
+            'page' => $page,
+            'limit' => $limit,
+            'filters' => $filters,
+        ], JSON_THROW_ON_ERROR));
+    }
+
+    public function buildCrmTaskRequestDetailKey(string $applicationSlug, string $taskRequestId): string
+    {
+        return 'crm_task_request_detail_' . $this->sanitizeSegment($applicationSlug) . '_' . $this->sanitizeSegment($taskRequestId);
+    }
+
+    /**
+     * @param array<string, mixed> $filters
+     * @throws JsonException
+     */
     public function buildSchoolExamListKey(string $applicationSlug, int $page, int $limit, array $filters): string
     {
         return 'school_exam_list_' . md5((string)json_encode([
@@ -327,6 +403,46 @@ class CacheKeyConventionService
     public function crmBillingDetailTag(string $applicationSlug, string $billingId): string
     {
         return 'cache_crm_billing_detail_' . $this->sanitizeSegment($applicationSlug) . '_' . $this->sanitizeSegment($billingId);
+    }
+
+    public function crmContactListTag(string $applicationSlug): string
+    {
+        return 'cache_crm_contact_list_' . $this->sanitizeSegment($applicationSlug);
+    }
+
+    public function crmContactDetailTag(string $applicationSlug, string $contactId): string
+    {
+        return 'cache_crm_contact_detail_' . $this->sanitizeSegment($applicationSlug) . '_' . $this->sanitizeSegment($contactId);
+    }
+
+    public function crmProjectListTag(string $applicationSlug): string
+    {
+        return 'cache_crm_project_list_' . $this->sanitizeSegment($applicationSlug);
+    }
+
+    public function crmProjectDetailTag(string $applicationSlug, string $projectId): string
+    {
+        return 'cache_crm_project_detail_' . $this->sanitizeSegment($applicationSlug) . '_' . $this->sanitizeSegment($projectId);
+    }
+
+    public function crmEmployeeListTag(string $applicationSlug): string
+    {
+        return 'cache_crm_employee_list_' . $this->sanitizeSegment($applicationSlug);
+    }
+
+    public function crmEmployeeDetailTag(string $applicationSlug, string $employeeId): string
+    {
+        return 'cache_crm_employee_detail_' . $this->sanitizeSegment($applicationSlug) . '_' . $this->sanitizeSegment($employeeId);
+    }
+
+    public function crmTaskRequestListTag(string $applicationSlug): string
+    {
+        return 'cache_crm_task_request_list_' . $this->sanitizeSegment($applicationSlug);
+    }
+
+    public function crmTaskRequestDetailTag(string $applicationSlug, string $taskRequestId): string
+    {
+        return 'cache_crm_task_request_detail_' . $this->sanitizeSegment($applicationSlug) . '_' . $this->sanitizeSegment($taskRequestId);
     }
 
     public function schoolExamListTag(): string
