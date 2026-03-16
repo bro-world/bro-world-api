@@ -4,38 +4,78 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Company;
 
-use App\Crm\Domain\Entity\Company;
+use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\Project;
+use App\Crm\Infrastructure\Repository\CompanyRepository;
+use App\General\Application\Service\CacheKeyConventionService;
 use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
+
+use function method_exists;
 
 #[AsController]
 #[OA\Tag(name: 'Crm')]
 #[IsGranted(Role::CRM_VIEWER->value)]
 final readonly class GetCompanyController
 {
+    public function __construct(
+        private CompanyRepository $companyRepository,
+        private CrmApplicationScopeResolver $scopeResolver,
+        private CacheInterface $cache,
+        private CacheKeyConventionService $cacheKeyConventionService,
+    ) {
+    }
+
     #[Route('/v1/crm/applications/{applicationSlug}/companies/{id}', methods: [Request::METHOD_GET])]
-    public function __invoke(string $applicationSlug, Company $company): JsonResponse
+    public function __invoke(string $applicationSlug, string $id): JsonResponse
     {
-        return new JsonResponse([
-            'id' => $company->getId(),
-            'name' => $company->getName(),
-            'industry' => $company->getIndustry(),
-            'website' => $company->getWebsite(),
-            'contactEmail' => $company->getContactEmail(),
-            'phone' => $company->getPhone(),
-            'projects' => array_map(
-                static fn (Project $project) =>
-                [
-                    'id' => $project->getId(),
-                    'name' => $project->getName(),
-                ],
-                $company->getProjects()->toArray())
-        ]);
+        $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
+        $cacheKey = $this->cacheKeyConventionService->buildCrmCompanyDetailKey($applicationSlug, $id);
+
+        $payload = $this->cache->get($cacheKey, function (ItemInterface $item) use ($applicationSlug, $crm, $id): ?array {
+            $item->expiresAfter(120);
+            if (method_exists($item, 'tag') && $this->cache instanceof TagAwareCacheInterface) {
+                $item->tag([
+                    $this->cacheKeyConventionService->crmCompanyListByApplicationTag($applicationSlug),
+                    $this->cacheKeyConventionService->crmCompanyDetailTag($applicationSlug, $id),
+                ]);
+            }
+
+            $company = $this->companyRepository->findOneScopedById($id, $crm->getId());
+            if ($company === null) {
+                return null;
+            }
+
+            return [
+                'id' => $company->getId(),
+                'name' => $company->getName(),
+                'industry' => $company->getIndustry(),
+                'website' => $company->getWebsite(),
+                'contactEmail' => $company->getContactEmail(),
+                'phone' => $company->getPhone(),
+                'projects' => array_map(
+                    static fn (Project $project) =>
+                    [
+                        'id' => $project->getId(),
+                        'name' => $project->getName(),
+                    ],
+                    $company->getProjects()->toArray())
+            ];
+        });
+
+        if ($payload === null) {
+            throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Company not found for this CRM scope.');
+        }
+
+        return new JsonResponse($payload);
     }
 }

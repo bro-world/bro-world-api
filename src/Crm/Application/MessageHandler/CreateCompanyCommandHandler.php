@@ -6,6 +6,7 @@ namespace App\Crm\Application\MessageHandler;
 
 use App\Crm\Application\Message\CreateCompanyCommand;
 use App\Crm\Application\Service\CrmApplicationScopeResolver;
+use App\Crm\Application\Service\CrmReadCacheInvalidator;
 use App\Crm\Domain\Entity\Company;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
@@ -16,6 +17,7 @@ final readonly class CreateCompanyCommandHandler
     public function __construct(
         private CrmApplicationScopeResolver $scopeResolver,
         private EntityManagerInterface $entityManager,
+        private CrmReadCacheInvalidator $cacheInvalidator,
     ) {
     }
 
@@ -34,5 +36,7 @@ final readonly class CreateCompanyCommandHandler
 
         $this->entityManager->persist($company);
         $this->entityManager->flush();
+
+        $this->cacheInvalidator->invalidateCompany($command->applicationSlug, $company->getId());
     }
 }

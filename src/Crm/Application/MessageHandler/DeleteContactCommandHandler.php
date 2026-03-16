@@ -7,6 +7,7 @@ namespace App\Crm\Application\MessageHandler;
 use App\Crm\Application\Exception\CrmReferenceNotFoundException;
 use App\Crm\Application\Message\DeleteContactCommand;
 use App\Crm\Application\Service\CrmApplicationScopeResolver;
+use App\Crm\Application\Service\CrmReadCacheInvalidator;
 use App\Crm\Infrastructure\Repository\ContactRepository;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -16,6 +17,7 @@ final readonly class DeleteContactCommandHandler
     public function __construct(
         private CrmApplicationScopeResolver $scopeResolver,
         private ContactRepository $contactRepository,
+        private CrmReadCacheInvalidator $cacheInvalidator,
     ) {
     }
 
@@ -28,5 +30,7 @@ final readonly class DeleteContactCommandHandler
         }
 
         $this->contactRepository->remove($contact);
+
+        $this->cacheInvalidator->invalidateContact($command->applicationSlug, $command->contactId);
     }
 }

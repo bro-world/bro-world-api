@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Crm\Application\MessageHandler;
 
 use App\Crm\Application\Message\CreateEmployeeCommand;
+use App\Crm\Application\Service\CrmReadCacheInvalidator;
 use App\Crm\Domain\Entity\Employee;
 use App\Crm\Infrastructure\Repository\CrmRepository;
 use App\Crm\Infrastructure\Repository\EmployeeRepository;
@@ -21,6 +22,7 @@ final readonly class CreateEmployeeCommandHandler
         private EmployeeRepository $employeeRepository,
         private UserRepositoryInterface $userRepository,
         private MessageBusInterface $messageBus,
+        private CrmReadCacheInvalidator $cacheInvalidator,
     ) {
     }
 
@@ -49,5 +51,7 @@ final readonly class CreateEmployeeCommandHandler
             'applicationSlug' => $command->applicationSlug,
             'crmId' => $command->crmId,
         ]));
+
+        $this->cacheInvalidator->invalidateEmployee($command->applicationSlug, $employee->getId());
     }
 }

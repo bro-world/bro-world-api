@@ -172,6 +172,12 @@ class CacheKeyConventionService
         ], JSON_THROW_ON_ERROR));
     }
 
+
+    public function buildCrmCompanyDetailKey(string $applicationSlug, string $companyId): string
+    {
+        return 'crm_company_detail_' . $this->sanitizeSegment($applicationSlug) . '_' . $this->sanitizeSegment($companyId);
+    }
+
     /**
      * @param array<string, mixed> $filters
      * @throws JsonException
@@ -395,6 +401,12 @@ class CacheKeyConventionService
         return 'cache_crm_company_list_' . $this->sanitizeSegment($applicationSlug);
     }
 
+
+    public function crmCompanyDetailTag(string $applicationSlug, string $companyId): string
+    {
+        return 'cache_crm_company_detail_' . $this->sanitizeSegment($applicationSlug) . '_' . $this->sanitizeSegment($companyId);
+    }
+
     public function crmBillingListTag(string $applicationSlug): string
     {
         return 'cache_crm_billing_list_' . $this->sanitizeSegment($applicationSlug);
@@ -443,6 +455,22 @@ class CacheKeyConventionService
     public function crmTaskRequestDetailTag(string $applicationSlug, string $taskRequestId): string
     {
         return 'cache_crm_task_request_detail_' . $this->sanitizeSegment($applicationSlug) . '_' . $this->sanitizeSegment($taskRequestId);
+    }
+
+
+    public function crmTaskDetailTag(string $applicationSlug, string $taskId): string
+    {
+        return 'cache_crm_task_detail_' . $this->sanitizeSegment($applicationSlug) . '_' . $this->sanitizeSegment($taskId);
+    }
+
+    public function crmSprintListTag(string $applicationSlug): string
+    {
+        return 'cache_crm_sprint_list_' . $this->sanitizeSegment($applicationSlug);
+    }
+
+    public function crmSprintDetailTag(string $applicationSlug, string $sprintId): string
+    {
+        return 'cache_crm_sprint_detail_' . $this->sanitizeSegment($applicationSlug) . '_' . $this->sanitizeSegment($sprintId);
     }
 
     public function schoolExamListTag(): string
