@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\TaskRequest;
 
-use App\Crm\Application\Service\CrmApiNormalizer;
-use App\Crm\Application\Service\CrmApplicationScopeResolver;
-use App\Crm\Infrastructure\Repository\TaskRequestRepository;
+use App\Crm\Application\Service\TaskRequestReadService;
 use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,38 +19,13 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final readonly class ListTaskRequestsController
 {
     public function __construct(
-        private TaskRequestRepository $taskRequestRepository,
-        private CrmApplicationScopeResolver $scopeResolver,
-        private CrmApiNormalizer $crmApiNormalizer,
+        private TaskRequestReadService $taskRequestReadService,
     ) {
     }
 
     #[Route('/v1/crm/applications/{applicationSlug}/task-requests', methods: [Request::METHOD_GET])]
-    #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
     public function __invoke(string $applicationSlug, Request $request): JsonResponse
     {
-        $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
-        $page = max(1, $request->query->getInt('page', 1));
-        $limit = max(1, min(100, $request->query->getInt('limit', 20)));
-        $filters = [
-            'q' => trim((string)$request->query->get('q', '')),
-            'status' => trim((string)$request->query->get('status', '')),
-        ];
-
-        $items = array_map(fn (array $item): array => $this->crmApiNormalizer->normalizeTaskRequestProjection($item), $this->taskRequestRepository->findScopedProjection($crm->getId(), $limit, ($page - 1) * $limit, $filters));
-        $totalItems = $this->taskRequestRepository->countScopedByCrm($crm->getId(), $filters);
-
-        return new JsonResponse([
-            'items' => $items,
-            'pagination' => [
-                'page' => $page,
-                'limit' => $limit,
-                'totalItems' => $totalItems,
-                'totalPages' => $totalItems > 0 ? (int)ceil($totalItems / $limit) : 0,
-            ],
-            'meta' => [
-                'filters' => array_filter($filters),
-            ],
-        ]);
+        return new JsonResponse($this->taskRequestReadService->getList($applicationSlug, $request));
     }
 }

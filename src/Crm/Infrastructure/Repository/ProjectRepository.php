@@ -10,6 +10,9 @@ use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 
+use function array_values;
+use function trim;
+
 /**
  * @method Entity|null find(string $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null, ?string $entityManagerName = null)
  * @method Entity[] findBy(array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null, ?string $entityManagerName = null)
@@ -70,7 +73,7 @@ class ProjectRepository extends BaseRepository
     }
 
     /**
-     * @param array{q?:string,status?:string} $filters
+     * @param array{q?:string,status?:string,ids?:list<string>|null} $filters
      * @return list<array<string,mixed>>
      */
     public function findScopedProjection(string $crmId, int $limit, int $offset, array $filters = []): array
@@ -94,11 +97,21 @@ class ProjectRepository extends BaseRepository
             $qb->andWhere('project.status = :status')->setParameter('status', $status);
         }
 
+        $ids = $filters['ids'] ?? null;
+        if (is_array($ids)) {
+            if ($ids === []) {
+                return [];
+            }
+
+            $qb->andWhere('project.id IN (:ids)')
+                ->setParameter('ids', array_values($ids), UuidBinaryOrderedTimeType::NAME);
+        }
+
         return $qb->getQuery()->getArrayResult();
     }
 
     /**
-     * @param array{q?:string,status?:string} $filters
+     * @param array{q?:string,status?:string,ids?:list<string>|null} $filters
      */
     public function countScopedByCrm(string $crmId, array $filters = []): int
     {
@@ -116,6 +129,16 @@ class ProjectRepository extends BaseRepository
         $status = trim((string)($filters['status'] ?? ''));
         if ($status !== '') {
             $qb->andWhere('project.status = :status')->setParameter('status', $status);
+        }
+
+        $ids = $filters['ids'] ?? null;
+        if (is_array($ids)) {
+            if ($ids === []) {
+                return 0;
+            }
+
+            $qb->andWhere('project.id IN (:ids)')
+                ->setParameter('ids', array_values($ids), UuidBinaryOrderedTimeType::NAME);
         }
 
         return (int)$qb->getQuery()->getSingleScalarResult();

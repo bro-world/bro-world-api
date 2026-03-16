@@ -9,6 +9,9 @@ use App\General\Infrastructure\Repository\BaseRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Ramsey\Uuid\Doctrine\UuidBinaryOrderedTimeType;
 
+use function array_values;
+use function trim;
+
 class ContactRepository extends BaseRepository
 {
     protected static string $entityName = Entity::class;
@@ -56,7 +59,7 @@ class ContactRepository extends BaseRepository
     }
 
     /**
-     * @param array{q?:string} $filters
+     * @param array{q?:string,ids?:list<string>|null} $filters
      * @return list<array<string,mixed>>
      */
     public function findScopedProjection(string $crmId, int $limit, int $offset, array $filters = []): array
@@ -77,11 +80,21 @@ class ContactRepository extends BaseRepository
                 ->setParameter('space', ' ');
         }
 
+        $ids = $filters['ids'] ?? null;
+        if (is_array($ids)) {
+            if ($ids === []) {
+                return [];
+            }
+
+            $qb->andWhere('contact.id IN (:ids)')
+                ->setParameter('ids', array_values($ids), UuidBinaryOrderedTimeType::NAME);
+        }
+
         return $qb->getQuery()->getArrayResult();
     }
 
     /**
-     * @param array{q?:string} $filters
+     * @param array{q?:string,ids?:list<string>|null} $filters
      */
     public function countScopedByCrm(string $crmId, array $filters = []): int
     {
@@ -96,6 +109,16 @@ class ContactRepository extends BaseRepository
                 ->andWhere('LOWER(CONCAT(contact.firstName, :space, contact.lastName)) LIKE LOWER(:q) OR LOWER(contact.email) LIKE LOWER(:q)')
                 ->setParameter('q', '%' . $query . '%')
                 ->setParameter('space', ' ');
+        }
+
+        $ids = $filters['ids'] ?? null;
+        if (is_array($ids)) {
+            if ($ids === []) {
+                return 0;
+            }
+
+            $qb->andWhere('contact.id IN (:ids)')
+                ->setParameter('ids', array_values($ids), UuidBinaryOrderedTimeType::NAME);
         }
 
         return (int)$qb->getQuery()->getSingleScalarResult();
