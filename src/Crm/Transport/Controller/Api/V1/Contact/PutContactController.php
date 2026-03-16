@@ -6,7 +6,8 @@ namespace App\Crm\Transport\Controller\Api\V1\Contact;
 
 use App\Crm\Application\Exception\CrmReferenceNotFoundException;
 use App\Crm\Application\Message\PutContactCommand;
-use App\Crm\Transport\Request\CreateContactRequest;
+use App\Crm\Application\Dto\Command\CreateContactCommandDto;
+use App\Crm\Application\Dto\Response\EntityIdResponseDto;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
 use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
@@ -38,7 +39,7 @@ final readonly class PutContactController
             return $payload;
         }
 
-        $input = $this->crmRequestHandler->mapAndValidate($payload, CreateContactRequest::class);
+        $input = $this->crmRequestHandler->mapAndValidate($payload, CreateContactCommandDto::class, mapperMethod: "fromPutArray");
         if ($input instanceof JsonResponse) {
             return $input;
         }
@@ -60,6 +61,6 @@ final readonly class PutContactController
             return $this->errorResponseFactory->notFoundReference($exception->field);
         }
 
-        return new JsonResponse(['id' => $id]);
+        return new JsonResponse((new EntityIdResponseDto($id))->toArray());
     }
 }

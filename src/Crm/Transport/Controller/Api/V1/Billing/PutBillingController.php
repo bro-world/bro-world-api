@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Crm\Transport\Controller\Api\V1\Billing;
 
 use App\Crm\Application\Message\PutBillingCommand;
-use App\Crm\Transport\Request\CreateBillingRequest;
+use App\Crm\Application\Dto\Command\CreateBillingCommandDto;
+use App\Crm\Application\Dto\Response\EntityIdResponseDto;
 use App\Crm\Transport\Request\CrmRequestHandler;
 use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
@@ -36,7 +37,7 @@ final readonly class PutBillingController
             return $payload;
         }
 
-        $input = $this->crmRequestHandler->mapAndValidate($payload, CreateBillingRequest::class);
+        $input = $this->crmRequestHandler->mapAndValidate($payload, CreateBillingCommandDto::class, ['Default', 'put'], "fromPutArray");
         if ($input instanceof JsonResponse) {
             return $input;
         }
@@ -62,9 +63,6 @@ final readonly class PutBillingController
             dueAt: $dueAt?->format(DATE_ATOM),
         ));
 
-        return new JsonResponse([
-            'id' => $billing,
-            'companyId' => $companyId,
-        ]);
+        return new JsonResponse((new EntityIdResponseDto($billing, ['companyId' => $companyId]))->toArray());
     }
 }

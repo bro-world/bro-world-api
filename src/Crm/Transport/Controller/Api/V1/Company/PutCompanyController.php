@@ -7,7 +7,8 @@ namespace App\Crm\Transport\Controller\Api\V1\Company;
 use App\Crm\Application\Exception\CrmReferenceNotFoundException;
 use App\Crm\Application\Message\PutCompanyCommand;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
-use App\Crm\Transport\Request\UpdateCompanyRequest;
+use App\Crm\Application\Dto\Command\UpdateCompanyCommandDto;
+use App\Crm\Application\Dto\Response\EntityIdResponseDto;
 use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -38,7 +39,7 @@ final readonly class PutCompanyController
             return $payload;
         }
 
-        $input = $this->crmRequestHandler->mapAndValidate($payload, UpdateCompanyRequest::class, ['Default', 'put'], 'fromPutArray');
+        $input = $this->crmRequestHandler->mapAndValidate($payload, UpdateCompanyCommandDto::class, ['Default', 'put'], 'fromPutArray');
         if ($input instanceof JsonResponse) {
             return $input;
         }
@@ -57,6 +58,6 @@ final readonly class PutCompanyController
             return $this->errorResponseFactory->notFoundReference($exception->field);
         }
 
-        return new JsonResponse(['id' => $companyId]);
+        return new JsonResponse((new EntityIdResponseDto($companyId))->toArray());
     }
 }

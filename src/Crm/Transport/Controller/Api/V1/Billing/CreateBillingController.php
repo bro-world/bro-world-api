@@ -9,7 +9,8 @@ use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Application\Service\CrmReadCacheInvalidator;
 use App\Crm\Domain\Entity\Billing;
 use App\Crm\Infrastructure\Repository\CompanyRepository;
-use App\Crm\Transport\Request\CreateBillingRequest;
+use App\Crm\Application\Dto\Command\CreateBillingCommandDto;
+use App\Crm\Application\Dto\Response\EntityIdResponseDto;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
 use App\Role\Domain\Enum\Role;
 use OpenApi\Attributes as OA;
@@ -47,7 +48,7 @@ final readonly class CreateBillingController
             return $payload;
         }
 
-        $input = $this->crmRequestHandler->mapAndValidate($payload, CreateBillingRequest::class);
+        $input = $this->crmRequestHandler->mapAndValidate($payload, CreateBillingCommandDto::class, mapperMethod: "fromPostArray");
         if ($input instanceof JsonResponse) {
             return $input;
         }
@@ -84,9 +85,6 @@ final readonly class CreateBillingController
 
         $this->cacheInvalidator->invalidateBilling($applicationSlug, $billing->getId());
 
-        return new JsonResponse([
-            'id' => $billing->getId(),
-            'companyId' => $company->getId(),
-        ], JsonResponse::HTTP_CREATED);
+        return new JsonResponse((new EntityIdResponseDto($billing->getId(), ['companyId' => $company->getId()]))->toArray(), JsonResponse::HTTP_CREATED);
     }
 }

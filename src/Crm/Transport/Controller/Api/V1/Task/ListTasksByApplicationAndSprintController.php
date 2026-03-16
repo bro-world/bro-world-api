@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\Task;
 
+use App\Crm\Application\Dto\Response\PaginatedListResponseDto;
 use App\Crm\Application\Service\CrmApiNormalizer;
 use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\Sprint;
@@ -34,8 +35,8 @@ final readonly class ListTasksByApplicationAndSprintController
         $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
         $tasks = $this->taskRepository->findScopedBySprint($crm->getId(), $sprint->getId());
 
-        return new JsonResponse([
-            'items' => array_map(fn ($task): array => $this->crmApiNormalizer->normalizeTask($task), $tasks),
-        ]);
+        return new JsonResponse((new PaginatedListResponseDto(
+            items: array_map(fn ($task): array => $this->crmApiNormalizer->normalizeTask($task), $tasks),
+        ))->toArray());
     }
 }
