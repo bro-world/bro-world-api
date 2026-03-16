@@ -7,6 +7,7 @@ namespace App\Crm\Application\MessageHandler;
 use App\Crm\Application\Exception\CrmReferenceNotFoundException;
 use App\Crm\Application\Message\PutContactCommand;
 use App\Crm\Application\Service\CrmApplicationScopeResolver;
+use App\Crm\Application\Service\CrmReadCacheInvalidator;
 use App\Crm\Infrastructure\Repository\CompanyRepository;
 use App\Crm\Infrastructure\Repository\ContactRepository;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
@@ -18,6 +19,7 @@ final readonly class PutContactCommandHandler
         private CrmApplicationScopeResolver $scopeResolver,
         private ContactRepository $contactRepository,
         private CompanyRepository $companyRepository,
+        private CrmReadCacheInvalidator $cacheInvalidator,
     ) {
     }
 
@@ -49,5 +51,7 @@ final readonly class PutContactCommandHandler
         }
 
         $this->contactRepository->save($contact);
+
+        $this->cacheInvalidator->invalidateContact($command->applicationSlug, $contact->getId());
     }
 }

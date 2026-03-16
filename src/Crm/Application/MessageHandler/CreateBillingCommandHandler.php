@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Crm\Application\MessageHandler;
 
 use App\Crm\Application\Message\CreateBillingCommand;
+use App\Crm\Application\Service\CrmReadCacheInvalidator;
 use App\Crm\Domain\Entity\Billing;
 use App\Crm\Infrastructure\Repository\BillingRepository;
 use App\Crm\Infrastructure\Repository\CompanyRepository;
@@ -19,6 +20,7 @@ final readonly class CreateBillingCommandHandler
         private CompanyRepository $companyRepository,
         private BillingRepository $billingRepository,
         private MessageBusInterface $messageBus,
+        private CrmReadCacheInvalidator $cacheInvalidator,
     ) {
     }
 
@@ -48,5 +50,7 @@ final readonly class CreateBillingCommandHandler
             'crmId' => $command->crmId,
             'companyId' => $command->companyId,
         ]));
+
+        $this->cacheInvalidator->invalidateBilling($command->applicationSlug, $billing->getId());
     }
 }

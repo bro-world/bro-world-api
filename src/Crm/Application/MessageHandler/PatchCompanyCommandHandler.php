@@ -7,6 +7,7 @@ namespace App\Crm\Application\MessageHandler;
 use App\Crm\Application\Exception\CrmReferenceNotFoundException;
 use App\Crm\Application\Message\PatchCompanyCommand;
 use App\Crm\Application\Service\CrmApplicationScopeResolver;
+use App\Crm\Application\Service\CrmReadCacheInvalidator;
 use App\Crm\Infrastructure\Repository\CompanyRepository;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -16,6 +17,7 @@ final readonly class PatchCompanyCommandHandler
     public function __construct(
         private CrmApplicationScopeResolver $scopeResolver,
         private CompanyRepository $companyRepository,
+        private CrmReadCacheInvalidator $cacheInvalidator,
     ) {
     }
 
@@ -44,5 +46,7 @@ final readonly class PatchCompanyCommandHandler
         }
 
         $this->companyRepository->save($company);
+
+        $this->cacheInvalidator->invalidateCompany($command->applicationSlug, $company->getId());
     }
 }

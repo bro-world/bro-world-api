@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Crm\Application\MessageHandler;
 
 use App\Crm\Application\Message\CreateContactCommand;
+use App\Crm\Application\Service\CrmReadCacheInvalidator;
 use App\Crm\Domain\Entity\Contact;
 use App\Crm\Infrastructure\Repository\CompanyRepository;
 use App\Crm\Infrastructure\Repository\ContactRepository;
@@ -21,6 +22,7 @@ final readonly class CreateContactCommandHandler
         private CompanyRepository $companyRepository,
         private ContactRepository $contactRepository,
         private MessageBusInterface $messageBus,
+        private CrmReadCacheInvalidator $cacheInvalidator,
     ) {
     }
 
@@ -55,5 +57,7 @@ final readonly class CreateContactCommandHandler
             'applicationSlug' => $command->applicationSlug,
             'crmId' => $command->crmId,
         ]));
+
+        $this->cacheInvalidator->invalidateContact($command->applicationSlug, $contact->getId());
     }
 }

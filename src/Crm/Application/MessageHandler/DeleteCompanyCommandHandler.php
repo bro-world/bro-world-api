@@ -7,6 +7,7 @@ namespace App\Crm\Application\MessageHandler;
 use App\Crm\Application\Exception\CrmReferenceNotFoundException;
 use App\Crm\Application\Message\DeleteCompanyCommand;
 use App\Crm\Application\Service\CrmApplicationScopeResolver;
+use App\Crm\Application\Service\CrmReadCacheInvalidator;
 use App\Crm\Infrastructure\Repository\CompanyRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
@@ -18,6 +19,7 @@ final readonly class DeleteCompanyCommandHandler
         private CrmApplicationScopeResolver $scopeResolver,
         private CompanyRepository $companyRepository,
         private EntityManagerInterface $entityManager,
+        private CrmReadCacheInvalidator $cacheInvalidator,
     ) {
     }
 
@@ -31,5 +33,7 @@ final readonly class DeleteCompanyCommandHandler
 
         $this->entityManager->remove($company);
         $this->entityManager->flush();
+
+        $this->cacheInvalidator->invalidateCompany($command->applicationSlug, $command->companyId);
     }
 }
