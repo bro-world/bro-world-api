@@ -99,46 +99,83 @@ final class LoadQuizData extends Fixture implements OrderedFixtureInterface
             $manager->persist($quiz);
             $this->addReference('Quiz-' . $application->getSlug(), $quiz);
 
-            for ($questionIndex = 1; $questionIndex <= 20; $questionIndex++) {
-                $level = match ($questionIndex % 3) {
-                    0 => QuizLevel::HARD,
-                    1 => QuizLevel::EASY,
-                    default => QuizLevel::MEDIUM,
-                };
-                $categorySlug = $isGeneralApplication
-                    ? $categoryFixtures[($questionIndex - 1) % count($categoryFixtures)][0]
-                    : ($questionIndex % 2 === 0 ? 'backend' : 'frontend');
-                $category = $this->getReference('QuizCategory-' . $categorySlug, QuizCategory::class);
+            $questionIndex = 0;
+            if ($isGeneralApplication) {
+                foreach ($categoryFixtures as [$categorySlug]) {
+                    foreach (QuizLevel::cases() as $level) {
+                        for ($variant = 1; $variant <= 10; $variant++) {
+                            $questionIndex++;
+                            $category = $this->getReference('QuizCategory-' . $categorySlug, QuizCategory::class);
 
-                $question = (new QuizQuestion())
-                    ->setQuiz($quiz)
-                    ->setTitle($isGeneralApplication
-                        ? 'General question fixture #' . $questionIndex
-                        : 'Question fixture #' . $questionIndex . ' app #' . ($applicationIndex + 1))
-                    ->setLevel($level)
-                    ->setCategory($category)
-                    ->setPosition($questionIndex)
-                    ->setPoints($questionIndex % 3 === 0 ? 3 : 1)
-                    ->setExplanation('This explanation helps users understand the expected reasoning.');
-                $manager->persist($question);
-                $this->addReference(sprintf('QuizQuestion-%s-%d', $application->getSlug(), $questionIndex), $question);
+                            $question = (new QuizQuestion())
+                                ->setQuiz($quiz)
+                                ->setTitle(sprintf('General %s %s question #%d', $categorySlug, $level->value, $variant))
+                                ->setLevel($level)
+                                ->setCategory($category)
+                                ->setPosition($questionIndex)
+                                ->setPoints($level === QuizLevel::HARD ? 3 : ($level === QuizLevel::MEDIUM ? 2 : 1))
+                                ->setExplanation('General quiz explanation for level/category combination.');
+                            $manager->persist($question);
+                            $this->addReference(sprintf('QuizQuestion-%s-%d', $application->getSlug(), $questionIndex), $question);
 
-                $correctAnswer = new QuizAnswer()
-                    ->setQuestion($question)
-                    ->setLabel('Right answer ' . $questionIndex)
-                    ->setCorrect(true)
-                    ->setPosition(1);
-                $manager->persist($correctAnswer);
-                $this->addReference(sprintf('QuizAnswer-%s-%d-correct', $application->getSlug(), $questionIndex), $correctAnswer);
+                            $correctAnswer = (new QuizAnswer())
+                                ->setQuestion($question)
+                                ->setLabel(sprintf('Right answer %d', $questionIndex))
+                                ->setCorrect(true)
+                                ->setPosition(1);
+                            $manager->persist($correctAnswer);
+                            $this->addReference(sprintf('QuizAnswer-%s-%d-correct', $application->getSlug(), $questionIndex), $correctAnswer);
 
-                foreach (['A', 'B', 'C'] as $idx => $label) {
-                    $wrongAnswer = (new QuizAnswer())
+                            foreach (['A', 'B', 'C'] as $idx => $label) {
+                                $wrongAnswer = (new QuizAnswer())
+                                    ->setQuestion($question)
+                                    ->setLabel(sprintf('Wrong answer %s %d', $label, $questionIndex))
+                                    ->setCorrect(false)
+                                    ->setPosition($idx + 2);
+                                $manager->persist($wrongAnswer);
+                                $this->addReference(sprintf('QuizAnswer-%s-%d-wrong-%s', $application->getSlug(), $questionIndex, strtolower($label)), $wrongAnswer);
+                            }
+                        }
+                    }
+                }
+            } else {
+                for ($questionIndex = 1; $questionIndex <= 20; $questionIndex++) {
+                    $level = match ($questionIndex % 3) {
+                        0 => QuizLevel::HARD,
+                        1 => QuizLevel::EASY,
+                        default => QuizLevel::MEDIUM,
+                    };
+                    $categorySlug = $questionIndex % 2 === 0 ? 'backend' : 'frontend';
+                    $category = $this->getReference('QuizCategory-' . $categorySlug, QuizCategory::class);
+
+                    $question = (new QuizQuestion())
+                        ->setQuiz($quiz)
+                        ->setTitle('Question fixture #' . $questionIndex . ' app #' . ($applicationIndex + 1))
+                        ->setLevel($level)
+                        ->setCategory($category)
+                        ->setPosition($questionIndex)
+                        ->setPoints($questionIndex % 3 === 0 ? 3 : 1)
+                        ->setExplanation('This explanation helps users understand the expected reasoning.');
+                    $manager->persist($question);
+                    $this->addReference(sprintf('QuizQuestion-%s-%d', $application->getSlug(), $questionIndex), $question);
+
+                    $correctAnswer = new QuizAnswer()
                         ->setQuestion($question)
-                        ->setLabel('Wrong answer ' . $label . ' ' . $questionIndex)
-                        ->setCorrect(false)
-                        ->setPosition($idx + 2);
-                    $manager->persist($wrongAnswer);
-                    $this->addReference(sprintf('QuizAnswer-%s-%d-wrong-%s', $application->getSlug(), $questionIndex, strtolower($label)), $wrongAnswer);
+                        ->setLabel('Right answer ' . $questionIndex)
+                        ->setCorrect(true)
+                        ->setPosition(1);
+                    $manager->persist($correctAnswer);
+                    $this->addReference(sprintf('QuizAnswer-%s-%d-correct', $application->getSlug(), $questionIndex), $correctAnswer);
+
+                    foreach (['A', 'B', 'C'] as $idx => $label) {
+                        $wrongAnswer = (new QuizAnswer())
+                            ->setQuestion($question)
+                            ->setLabel('Wrong answer ' . $label . ' ' . $questionIndex)
+                            ->setCorrect(false)
+                            ->setPosition($idx + 2);
+                        $manager->persist($wrongAnswer);
+                        $this->addReference(sprintf('QuizAnswer-%s-%d-wrong-%s', $application->getSlug(), $questionIndex, strtolower($label)), $wrongAnswer);
+                    }
                 }
             }
 

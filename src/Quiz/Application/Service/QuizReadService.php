@@ -17,6 +17,9 @@ use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
 use function array_map;
+use function array_rand;
+use function count;
+use function is_array;
 use function is_string;
 use function round;
 use function strtolower;
@@ -39,12 +42,47 @@ final readonly class QuizReadService
 
     public function getByApplicationSlug(string $slug, ?string $level = null, ?string $category = null): array
     {
-        return $this->getQuizProjectionByApplicationSlug($slug, $level, $category, false);
+        return $this->getQuizProjectionByApplicationSlug($slug, $level, $category, false, true);
     }
 
-    public function getCorrectionByApplicationSlug(string $slug, ?string $level = null, ?string $category = null): array
+    public function getCorrectionByApplicationSlug(string $slug, ?string $level = null, ?string $category = null, bool $randomizeQuestions = true): array
     {
-        return $this->getQuizProjectionByApplicationSlug($slug, $level, $category, true);
+        return $this->getQuizProjectionByApplicationSlug($slug, $level, $category, true, $randomizeQuestions);
+    }
+
+    /**
+     * @return list<array{slug:string,name:string,position:int}>
+     */
+    public function getGeneralCategories(): array
+    {
+        return array_map(static fn (QuizCategory $category): array => [
+            'slug' => $category->getSlug(),
+            'name' => $category->getName(),
+            'position' => $category->getPosition(),
+            'color' => $category->getColor(),
+        ], $this->quizCategoryRepository->findActiveOrdered());
+    }
+
+    /**
+     * @return list<array{value:string,color:string}>
+     */
+    public function getLevels(): array
+    {
+        return array_map(static fn (QuizLevel $level): array => ['value' => $level->value, 'color' => $level->getColor()], QuizLevel::cases());
+    }
+
+
+    /**
+     * @return list<array{userId:string,username:string,firstName:string,lastName:string,attemptCount:int,averageWeightedScore:float}>
+     */
+    public function getGeneralTopScores(int $limit = 3): array
+    {
+        $quiz = $this->quizRepository->findPublishedByApplicationSlugWithConfiguration('general');
+        if (!$quiz instanceof Quiz) {
+            return [];
+        }
+
+        return $this->quizAttemptRepository->findTopUsersByWeightedScore($quiz, $limit);
     }
 
     /**
@@ -115,10 +153,11 @@ final readonly class QuizReadService
         ?string $level,
         ?string $category,
         bool $includeCorrection,
+        bool $randomizeQuestions,
     ): array {
         $cacheKey = $this->quizCacheService->buildQuizReadKey($slug, $level, $category, $includeCorrection);
 
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($slug, $level, $category, $includeCorrection): array {
+        $quizData = $this->cache->get($cacheKey, function (ItemInterface $item) use ($slug, $level, $category, $includeCorrection): array {
             $item->expiresAfter(self::QUIZ_CACHE_TTL);
             $quiz = $this->quizRepository->findOneByApplicationSlugWithConfiguration($slug);
 
@@ -178,5 +217,39 @@ final readonly class QuizReadService
                 ], $questions),
             ];
         });
+
+        if ($quizData === []) {
+            return [];
+        }
+
+        if ($randomizeQuestions) {
+            $quizData['questions'] = $this->pickRandomQuestions($quizData['questions'], 10);
+        }
+
+        return $quizData;
     }
+
+    /**
+     * @param list<array<string,mixed>> $questions
+     * @return list<array<string,mixed>>
+     */
+    private function pickRandomQuestions(array $questions, int $limit): array
+    {
+        if (count($questions) <= $limit) {
+            return $questions;
+        }
+
+        $randomIndexes = array_rand($questions, $limit);
+        if (!is_array($randomIndexes)) {
+            return [$questions[$randomIndexes]];
+        }
+
+        $selected = [];
+        foreach ($randomIndexes as $index) {
+            $selected[] = $questions[$index];
+        }
+
+        return $selected;
+    }
+
 }
