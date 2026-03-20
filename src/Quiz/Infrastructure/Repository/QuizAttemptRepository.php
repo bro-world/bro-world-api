@@ -52,6 +52,7 @@ class QuizAttemptRepository extends BaseRepository
             ->addSelect('user.username AS username')
             ->addSelect('user.firstName AS firstName')
             ->addSelect('user.lastName AS lastName')
+            ->addSelect('user.photo AS photo')
             ->addSelect('AVG(CASE WHEN question.level = :easy THEN 1 WHEN question.level = :medium THEN 2 WHEN question.level = :hard THEN 3 ELSE 1 END) AS levelMultiplier')
             ->leftJoin('attempt.user', 'user')
             ->leftJoin('attempt.answers', 'attemptAnswer')
@@ -78,6 +79,7 @@ class QuizAttemptRepository extends BaseRepository
                     'username' => (string)($row['username'] ?? ''),
                     'firstName' => (string)($row['firstName'] ?? ''),
                     'lastName' => (string)($row['lastName'] ?? ''),
+                    'photo' => (string)($row['photo'] ?? ''),
                     'attemptCount' => 0,
                     'totalWeightedScore' => 0.0,
                 ];
@@ -95,6 +97,7 @@ class QuizAttemptRepository extends BaseRepository
                 'username' => $entry['username'],
                 'firstName' => $entry['firstName'],
                 'lastName' => $entry['lastName'],
+                'photo' => $entry['photo'],
                 'attemptCount' => $attemptCount,
                 'averageWeightedScore' => $attemptCount > 0 ? round(((float)$entry['totalWeightedScore']) / $attemptCount, 2) : 0.0,
             ];
