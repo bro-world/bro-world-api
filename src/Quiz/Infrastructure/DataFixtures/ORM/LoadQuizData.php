@@ -10,6 +10,8 @@ use App\Platform\Domain\Entity\Application;
 use App\Platform\Domain\Entity\Plugin;
 use App\Quiz\Domain\Entity\Quiz;
 use App\Quiz\Domain\Entity\QuizAnswer;
+use App\Quiz\Domain\Entity\QuizAttempt;
+use App\Quiz\Domain\Entity\QuizAttemptAnswer;
 use App\Quiz\Domain\Entity\QuizQuestion;
 use App\Quiz\Domain\Enum\QuizCategory;
 use App\Quiz\Domain\Enum\QuizLevel;
@@ -70,6 +72,7 @@ final class LoadQuizData extends Fixture implements OrderedFixtureInterface
                 ->setPublished(true)
                 ->setConfiguration($configuration);
             $manager->persist($quiz);
+            $this->addReference('Quiz-' . $application->getSlug(), $quiz);
 
             if ($isGeneralApplication) {
                 $this->addReference('Quiz-general', $quiz);
@@ -87,11 +90,69 @@ final class LoadQuizData extends Fixture implements OrderedFixtureInterface
                     ->setPoints($questionIndex % 3 === 0 ? 3 : 1)
                     ->setExplanation('This explanation helps users understand the expected reasoning.');
                 $manager->persist($question);
+                $this->addReference(sprintf('QuizQuestion-%s-%d', $application->getSlug(), $questionIndex), $question);
 
-                $manager->persist(new QuizAnswer()->setQuestion($question)->setLabel('Right answer ' . $questionIndex)->setCorrect(true)->setPosition(1));
-                $manager->persist(new QuizAnswer()->setQuestion($question)->setLabel('Wrong answer A ' . $questionIndex)->setCorrect(false)->setPosition(2));
-                $manager->persist(new QuizAnswer()->setQuestion($question)->setLabel('Wrong answer B ' . $questionIndex)->setCorrect(false)->setPosition(3));
-                $manager->persist(new QuizAnswer()->setQuestion($question)->setLabel('Wrong answer C ' . $questionIndex)->setCorrect(false)->setPosition(4));
+                $correctAnswer = (new QuizAnswer())
+                    ->setQuestion($question)
+                    ->setLabel('Right answer ' . $questionIndex)
+                    ->setCorrect(true)
+                    ->setPosition(1);
+                $manager->persist($correctAnswer);
+                $this->addReference(sprintf('QuizAnswer-%s-%d-correct', $application->getSlug(), $questionIndex), $correctAnswer);
+
+                $wrongAnswerA = (new QuizAnswer())
+                    ->setQuestion($question)
+                    ->setLabel('Wrong answer A ' . $questionIndex)
+                    ->setCorrect(false)
+                    ->setPosition(2);
+                $manager->persist($wrongAnswerA);
+                $this->addReference(sprintf('QuizAnswer-%s-%d-wrong-a', $application->getSlug(), $questionIndex), $wrongAnswerA);
+
+                $wrongAnswerB = (new QuizAnswer())
+                    ->setQuestion($question)
+                    ->setLabel('Wrong answer B ' . $questionIndex)
+                    ->setCorrect(false)
+                    ->setPosition(3);
+                $manager->persist($wrongAnswerB);
+                $this->addReference(sprintf('QuizAnswer-%s-%d-wrong-b', $application->getSlug(), $questionIndex), $wrongAnswerB);
+
+                $wrongAnswerC = (new QuizAnswer())
+                    ->setQuestion($question)
+                    ->setLabel('Wrong answer C ' . $questionIndex)
+                    ->setCorrect(false)
+                    ->setPosition(4);
+                $manager->persist($wrongAnswerC);
+                $this->addReference(sprintf('QuizAnswer-%s-%d-wrong-c', $application->getSlug(), $questionIndex), $wrongAnswerC);
+            }
+
+            foreach ($users as $userIndex => $user) {
+                $attempt = (new QuizAttempt())
+                    ->setQuiz($quiz)
+                    ->setUser($user)
+                    ->setTotalQuestions(3)
+                    ->setCorrectAnswers($userIndex % 2 === 0 ? 3 : 1)
+                    ->setScore($userIndex % 2 === 0 ? 100.0 : 33.33)
+                    ->setPassed($userIndex % 2 === 0);
+                $manager->persist($attempt);
+                $this->addReference(sprintf('QuizAttempt-%s-%d', $application->getSlug(), $userIndex + 1), $attempt);
+
+                for ($attemptQuestionIndex = 1; $attemptQuestionIndex <= 3; $attemptQuestionIndex++) {
+                    $question = $this->getReference(
+                        sprintf('QuizQuestion-%s-%d', $application->getSlug(), $attemptQuestionIndex),
+                        QuizQuestion::class
+                    );
+                    $answerReference = $userIndex % 2 === 0
+                        ? sprintf('QuizAnswer-%s-%d-correct', $application->getSlug(), $attemptQuestionIndex)
+                        : sprintf('QuizAnswer-%s-%d-wrong-a', $application->getSlug(), $attemptQuestionIndex);
+                    $selectedAnswer = $this->getReference($answerReference, QuizAnswer::class);
+
+                    $attemptAnswer = (new QuizAttemptAnswer())
+                        ->setAttempt($attempt)
+                        ->setQuestion($question)
+                        ->setSelectedAnswer($selectedAnswer)
+                        ->setIsCorrect($selectedAnswer->isCorrect());
+                    $manager->persist($attemptAnswer);
+                }
             }
         }
 
