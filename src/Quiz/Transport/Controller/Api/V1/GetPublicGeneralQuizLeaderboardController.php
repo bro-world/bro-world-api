@@ -27,7 +27,6 @@ final readonly class GetPublicGeneralQuizLeaderboardController
                 content: new OA\JsonContent(
                     properties: [
                         new OA\Property(property: 'items', type: 'array', items: new OA\Items(
-                            type: 'object',
                             properties: [
                                 new OA\Property(property: 'userId', type: 'string', example: '0195d47a-a42d-78d4-a9f9-01c6de1f3b43'),
                                 new OA\Property(property: 'username', type: 'string', example: 'john-user'),
@@ -35,7 +34,8 @@ final readonly class GetPublicGeneralQuizLeaderboardController
                                 new OA\Property(property: 'lastName', type: 'string', example: 'User'),
                                 new OA\Property(property: 'attemptCount', type: 'integer', example: 4),
                                 new OA\Property(property: 'averageWeightedScore', type: 'number', format: 'float', example: 156.24),
-                            ]
+                            ],
+                            type: 'object'
                         )),
                     ]
                 )
