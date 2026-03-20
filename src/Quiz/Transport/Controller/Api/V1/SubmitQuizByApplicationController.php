@@ -6,6 +6,8 @@ namespace App\Quiz\Transport\Controller\Api\V1;
 
 use App\Quiz\Application\Service\QuizSubmissionService;
 use App\User\Domain\Entity\User;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use JsonException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,7 +25,14 @@ final class SubmitQuizByApplicationController
     private const string GENERAL_APPLICATION_SLUG = 'general';
 
     /**
+     * @param string $applicationSlug
+     * @param Request $request
+     * @param QuizSubmissionService $quizSubmissionService
+     * @param User $loggedInUser
+     * @return JsonResponse
      * @throws JsonException
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     #[Route('/v1/quiz/applications/{applicationSlug}/submit', methods: [Request::METHOD_POST])]
     #[OA\Post(summary: 'Submit quiz answers for an application', tags: ['Quiz'])]
@@ -35,7 +44,13 @@ final class SubmitQuizByApplicationController
     }
 
     /**
+     * @param Request $request
+     * @param QuizSubmissionService $quizSubmissionService
+     * @param User $loggedInUser
+     * @return JsonResponse
      * @throws JsonException
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     #[Route('/v1/quiz/general/submit', methods: [Request::METHOD_POST])]
     #[OA\Post(
