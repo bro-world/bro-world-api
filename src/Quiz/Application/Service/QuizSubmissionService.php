@@ -51,7 +51,7 @@ final readonly class QuizSubmissionService
             throw new HttpException(JsonResponse::HTTP_UNPROCESSABLE_ENTITY, 'Field "answers" must be an array.');
         }
 
-        $quizData = $this->quizReadService->getCorrectionByApplicationSlug($applicationSlug);
+        $quizData = $this->quizReadService->getCorrectionByApplicationSlug($applicationSlug, null, null, false);
         if ($quizData === []) {
             throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Quiz not found for this application.');
         }
