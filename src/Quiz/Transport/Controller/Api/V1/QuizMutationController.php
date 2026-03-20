@@ -17,6 +17,8 @@ use App\Quiz\Infrastructure\Repository\QuizAnswerRepository;
 use App\Quiz\Infrastructure\Repository\QuizQuestionRepository;
 use App\Quiz\Infrastructure\Repository\QuizRepository;
 use App\User\Domain\Entity\User;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use JsonException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -50,7 +52,13 @@ final readonly class QuizMutationController
     }
 
     /**
+     * @param string $applicationSlug
+     * @param Request $request
+     * @param User $loggedInUser
+     * @return JsonResponse
      * @throws JsonException
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     #[Route('/v1/quiz/applications/{applicationSlug}', methods: [Request::METHOD_POST])]
     #[OA\Post(summary: 'Create quiz for application', tags: ['Quiz'])]
@@ -64,7 +72,7 @@ final readonly class QuizMutationController
 
         $payload = (array)json_decode((string)$request->getContent(), true, 512, JSON_THROW_ON_ERROR);
 
-        $quiz = (new Quiz())
+        $quiz = new Quiz()
             ->setApplication($application)
             ->setOwner($loggedInUser)
             ->setTitle((string)($payload['title'] ?? 'Application quiz'))
@@ -80,7 +88,12 @@ final readonly class QuizMutationController
     }
 
     /**
+     * @param Request $request
+     * @param User $loggedInUser
+     * @return JsonResponse
      * @throws JsonException
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     #[Route('/v1/quiz/general', methods: [Request::METHOD_POST])]
     #[OA\Post(summary: 'Create quiz for general application', tags: ['Quiz'])]
@@ -90,7 +103,13 @@ final readonly class QuizMutationController
     }
 
     /**
+     * @param string $applicationSlug
+     * @param Request $request
+     * @param User $loggedInUser
+     * @return JsonResponse
      * @throws JsonException
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     #[Route('/v1/quiz/applications/{applicationSlug}', methods: [Request::METHOD_PUT])]
     #[OA\Put(summary: 'Update quiz metadata', tags: ['Quiz'])]
@@ -113,6 +132,10 @@ final readonly class QuizMutationController
         ]);
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     #[Route('/v1/quiz/applications/{applicationSlug}/publish', methods: [Request::METHOD_PATCH])]
     #[OA\Patch(summary: 'Publish quiz', tags: ['Quiz'])]
     public function publishQuiz(string $applicationSlug, User $loggedInUser): JsonResponse
@@ -120,6 +143,10 @@ final readonly class QuizMutationController
         return $this->toggleQuizPublication($applicationSlug, $loggedInUser, true);
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     #[Route('/v1/quiz/applications/{applicationSlug}/unpublish', methods: [Request::METHOD_PATCH])]
     #[OA\Patch(summary: 'Unpublish quiz', tags: ['Quiz'])]
     public function unpublishQuiz(string $applicationSlug, User $loggedInUser): JsonResponse
@@ -128,7 +155,12 @@ final readonly class QuizMutationController
     }
 
     /**
+     * @param Request $request
+     * @param User $loggedInUser
+     * @return JsonResponse
      * @throws JsonException
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     #[Route('/v1/quiz/general', methods: [Request::METHOD_PUT])]
     #[OA\Put(summary: 'Update general quiz metadata', tags: ['Quiz'])]
@@ -137,6 +169,10 @@ final readonly class QuizMutationController
         return $this->updateQuiz(self::GENERAL_APPLICATION_SLUG, $request, $loggedInUser);
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     #[Route('/v1/quiz/general/publish', methods: [Request::METHOD_PATCH])]
     #[OA\Patch(summary: 'Publish general quiz', tags: ['Quiz'])]
     public function publishGeneralQuiz(User $loggedInUser): JsonResponse
@@ -144,6 +180,10 @@ final readonly class QuizMutationController
         return $this->toggleQuizPublication(self::GENERAL_APPLICATION_SLUG, $loggedInUser, true);
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     #[Route('/v1/quiz/general/unpublish', methods: [Request::METHOD_PATCH])]
     #[OA\Patch(summary: 'Unpublish general quiz', tags: ['Quiz'])]
     public function unpublishGeneralQuiz(User $loggedInUser): JsonResponse
@@ -151,6 +191,10 @@ final readonly class QuizMutationController
         return $this->toggleQuizPublication(self::GENERAL_APPLICATION_SLUG, $loggedInUser, false);
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     #[Route('/v1/quiz/general', methods: [Request::METHOD_DELETE])]
     #[OA\Delete(summary: 'Delete general quiz', tags: ['Quiz'])]
     public function deleteGeneralQuiz(User $loggedInUser): JsonResponse
@@ -158,6 +202,10 @@ final readonly class QuizMutationController
         return $this->deleteQuiz(self::GENERAL_APPLICATION_SLUG, $loggedInUser);
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     #[Route('/v1/quiz/applications/{applicationSlug}', methods: [Request::METHOD_DELETE])]
     #[OA\Delete(summary: 'Delete quiz', tags: ['Quiz'])]
     public function deleteQuiz(string $applicationSlug, User $loggedInUser): JsonResponse
@@ -172,7 +220,13 @@ final readonly class QuizMutationController
     }
 
     /**
+     * @param string $questionId
+     * @param Request $request
+     * @param User $loggedInUser
+     * @return JsonResponse
      * @throws JsonException
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     #[Route('/v1/quiz/questions/{questionId}', methods: [Request::METHOD_PUT])]
     #[OA\Put(summary: 'Update quiz question', tags: ['Quiz'])]
@@ -199,7 +253,13 @@ final readonly class QuizMutationController
     }
 
     /**
+     * @param string $questionId
+     * @param Request $request
+     * @param User $loggedInUser
+     * @return JsonResponse
      * @throws JsonException
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     #[Route('/v1/quiz/questions/{questionId}/reorder', methods: [Request::METHOD_PATCH])]
     #[OA\Patch(summary: 'Reorder quiz question', tags: ['Quiz'])]
@@ -221,6 +281,10 @@ final readonly class QuizMutationController
         ]);
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     #[Route('/v1/quiz/questions/{questionId}', methods: [Request::METHOD_DELETE])]
     #[OA\Delete(summary: 'Delete quiz question', tags: ['Quiz'])]
     public function deleteQuestion(string $questionId, User $loggedInUser): JsonResponse
@@ -236,7 +300,13 @@ final readonly class QuizMutationController
     }
 
     /**
+     * @param string $answerId
+     * @param Request $request
+     * @param User $loggedInUser
+     * @return JsonResponse
      * @throws JsonException
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     #[Route('/v1/quiz/answers/{answerId}', methods: [Request::METHOD_PUT])]
     #[OA\Put(summary: 'Update quiz answer', tags: ['Quiz'])]
@@ -261,7 +331,13 @@ final readonly class QuizMutationController
     }
 
     /**
+     * @param string $answerId
+     * @param Request $request
+     * @param User $loggedInUser
+     * @return JsonResponse
      * @throws JsonException
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     #[Route('/v1/quiz/answers/{answerId}/reorder', methods: [Request::METHOD_PATCH])]
     #[OA\Patch(summary: 'Reorder quiz answer', tags: ['Quiz'])]
@@ -343,6 +419,10 @@ final readonly class QuizMutationController
         return $answer;
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     private function toggleQuizPublication(string $applicationSlug, User $loggedInUser, bool $published): JsonResponse
     {
         $quiz = $this->findQuizByApplicationSlug($applicationSlug);
