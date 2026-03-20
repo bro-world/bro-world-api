@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Quiz\Application\Service;
 
 use App\Quiz\Domain\Entity\Quiz;
+use App\Quiz\Domain\Entity\QuizAnswer;
 use App\Quiz\Domain\Entity\QuizAttempt;
 use App\Quiz\Domain\Entity\QuizAttemptAnswer;
+use App\Quiz\Domain\Entity\QuizQuestion;
 use App\Quiz\Infrastructure\Repository\QuizAttemptAnswerRepository;
 use App\Quiz\Infrastructure\Repository\QuizAttemptRepository;
 use App\Quiz\Infrastructure\Repository\QuizRepository;
@@ -141,17 +143,17 @@ final readonly class QuizSubmissionService
         $this->quizAttemptRepository->save($attempt, false);
 
         foreach ($results as $result) {
-            $question = $this->quizRepository->getEntityManager()->getRepository(\App\Quiz\Domain\Entity\QuizQuestion::class)
+            $question = $this->quizRepository->getEntityManager()->getRepository(QuizQuestion::class)
                 ->find($result['questionId']);
-            if (!$question instanceof \App\Quiz\Domain\Entity\QuizQuestion) {
+            if (!$question instanceof QuizQuestion) {
                 continue;
             }
 
             $selectedAnswer = null;
             if (is_string($result['selectedAnswerId'])) {
-                $selectedAnswerEntity = $this->quizRepository->getEntityManager()->getRepository(\App\Quiz\Domain\Entity\QuizAnswer::class)
+                $selectedAnswerEntity = $this->quizRepository->getEntityManager()->getRepository(QuizAnswer::class)
                     ->find($result['selectedAnswerId']);
-                if ($selectedAnswerEntity instanceof \App\Quiz\Domain\Entity\QuizAnswer) {
+                if ($selectedAnswerEntity instanceof QuizAnswer) {
                     $selectedAnswer = $selectedAnswerEntity;
                 }
             }
