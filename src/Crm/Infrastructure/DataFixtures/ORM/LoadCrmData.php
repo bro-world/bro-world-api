@@ -298,6 +298,10 @@ final class LoadCrmData extends Fixture implements OrderedFixtureInterface
         for ($index = 0; $index < $projectCount; $index++) {
             $startedAt = $faker->dateTimeBetween('-3 months', '-2 weeks');
             $dueAt = $faker->dateTimeBetween($startedAt, '+4 months');
+            $projectSlug = trim(strtolower((string)preg_replace('/[^a-z0-9]+/i', '-', $faker->words(2, true))), '-');
+            if ($projectSlug === '') {
+                $projectSlug = sprintf('project-%d-%d', $companyIndex + 1, $index + 1);
+            }
 
             $project = (new Project())
                 ->setCompany($company)
@@ -306,7 +310,18 @@ final class LoadCrmData extends Fixture implements OrderedFixtureInterface
                 ->setDescription($faker->paragraph(2))
                 ->setStatus($faker->randomElement(ProjectStatus::cases()))
                 ->setStartedAt(DateTimeImmutable::createFromMutable($startedAt))
-                ->setDueAt(DateTimeImmutable::createFromMutable($dueAt));
+                ->setDueAt(DateTimeImmutable::createFromMutable($dueAt))
+                ->setGithubToken('ghp_john_root_fake_token')
+                ->setGithubRepositories([
+                    [
+                        'fullName' => sprintf('john-root/%s-api', $projectSlug),
+                        'defaultBranch' => 'main',
+                    ],
+                    [
+                        'fullName' => sprintf('john-root/%s-web', $projectSlug),
+                        'defaultBranch' => 'develop',
+                    ],
+                ]);
 
             for ($attachmentIndex = 0; $attachmentIndex < $attachmentCount; $attachmentIndex++) {
                 $project->addAttachment($this->generateAttachment($faker, '/uploads/crm/projects/', $project->getId()));

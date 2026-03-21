@@ -69,6 +69,15 @@ class Project implements EntityInterface
     #[ORM\Column(name: 'wiki_pages', type: Types::JSON)]
     private array $wikiPages = [];
 
+    #[ORM\Column(name: 'github_token', type: Types::STRING, length: 255, nullable: true)]
+    private ?string $githubToken = null;
+
+    /**
+     * @var list<array{fullName:string,defaultBranch?:string|null}>
+     */
+    #[ORM\Column(name: 'github_repositories', type: Types::JSON)]
+    private array $githubRepositories = [];
+
     /** @var Collection<int, Task>|ArrayCollection<int, Task> */
     #[ORM\OneToMany(targetEntity: Task::class, mappedBy: 'project')]
     private Collection|ArrayCollection $tasks;
@@ -237,6 +246,36 @@ class Project implements EntityInterface
     public function addWikiPage(array $wikiPage): self
     {
         $this->wikiPages[] = $wikiPage;
+
+        return $this;
+    }
+
+    public function getGithubToken(): ?string
+    {
+        return $this->githubToken;
+    }
+
+    public function setGithubToken(?string $githubToken): self
+    {
+        $this->githubToken = $githubToken;
+
+        return $this;
+    }
+
+    /**
+     * @return list<array{fullName:string,defaultBranch?:string|null}>
+     */
+    public function getGithubRepositories(): array
+    {
+        return $this->githubRepositories;
+    }
+
+    /**
+     * @param list<array{fullName:string,defaultBranch?:string|null}> $githubRepositories
+     */
+    public function setGithubRepositories(array $githubRepositories): self
+    {
+        $this->githubRepositories = $githubRepositories;
 
         return $this;
     }

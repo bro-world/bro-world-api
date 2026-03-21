@@ -107,6 +107,8 @@ readonly class ProjectReadService
                 'dueAt' => $project->getDueAt()?->format(DATE_ATOM),
                 'attachments' => $project->getAttachments(),
                 'wikiPages' => $project->getWikiPages(),
+                'githubRepositories' => $project->getGithubRepositories(),
+                'githubConfigured' => $project->getGithubToken() !== null && $project->getGithubToken() !== '',
                 'tasks' => array_map(static fn (Task $task): array => [
                     'id' => $task->getId(),
                     'TITLE' => $task->getTitle(),
