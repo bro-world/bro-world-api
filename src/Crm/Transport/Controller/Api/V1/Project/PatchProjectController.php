@@ -70,6 +70,15 @@ final readonly class PatchProjectController
         if (array_key_exists('dueAt', $payload)) {
             $project->setDueAt($this->parseDate($payload['dueAt']));
         }
+        if (array_key_exists('githubToken', $payload)) {
+            $project->setGithubToken($payload['githubToken'] !== null ? (string)$payload['githubToken'] : null);
+        }
+        if (array_key_exists('githubRepositories', $payload) && is_array($payload['githubRepositories'])) {
+            $repositories = $this->normalizeGithubRepositories($payload['githubRepositories']);
+            if ($repositories !== []) {
+                $project->setGithubRepositories($repositories);
+            }
+        }
 
         $this->projectRepository->save($project);
 
@@ -91,5 +100,33 @@ final readonly class PatchProjectController
         $parsed = DateTimeImmutable::createFromFormat(DateTimeInterface::ATOM, $value);
 
         return $parsed === false ? null : $parsed;
+    }
+
+    /**
+     * @param array<mixed> $repositories
+     * @return list<array{fullName:string,defaultBranch?:string|null}>
+     */
+    private function normalizeGithubRepositories(array $repositories): array
+    {
+        $normalized = [];
+        foreach ($repositories as $repository) {
+            if (!is_array($repository)) {
+                continue;
+            }
+
+            $fullName = isset($repository['fullName']) ? trim((string)$repository['fullName']) : '';
+            if ($fullName === '') {
+                continue;
+            }
+
+            $defaultBranch = isset($repository['defaultBranch']) ? trim((string)$repository['defaultBranch']) : null;
+
+            $normalized[] = [
+                'fullName' => $fullName,
+                'defaultBranch' => $defaultBranch !== '' ? $defaultBranch : null,
+            ];
+        }
+
+        return $normalized;
     }
 }

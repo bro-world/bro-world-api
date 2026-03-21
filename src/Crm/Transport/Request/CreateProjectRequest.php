@@ -33,6 +33,12 @@ final class CreateProjectRequest
     #[Assert\Uuid]
     public ?string $companyId = null;
 
+    #[Assert\Length(max: 255)]
+    public ?string $githubToken = null;
+
+    /** @var list<array{fullName?:mixed,defaultBranch?:mixed}> */
+    public array $githubRepositories = [];
+
     public static function fromArray(array $payload): self
     {
         $request = new self();
@@ -43,6 +49,8 @@ final class CreateProjectRequest
         $request->startedAt = isset($payload['startedAt']) ? (string)$payload['startedAt'] : null;
         $request->dueAt = isset($payload['dueAt']) ? (string)$payload['dueAt'] : null;
         $request->companyId = isset($payload['companyId']) ? (string)$payload['companyId'] : null;
+        $request->githubToken = isset($payload['githubToken']) ? (string)$payload['githubToken'] : null;
+        $request->githubRepositories = isset($payload['githubRepositories']) && is_array($payload['githubRepositories']) ? $payload['githubRepositories'] : [];
 
         return $request;
     }

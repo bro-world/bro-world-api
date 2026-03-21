@@ -26,6 +26,10 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+use function preg_replace;
+use function strtolower;
+use function trim;
+
 #[AsController]
 #[OA\Tag(name: 'Crm')]
 #[IsGranted(Role::CRM_MANAGER->value)]
@@ -157,12 +161,19 @@ final readonly class CreateProjectController
         }
 
         $project = new Project();
+        $githubRepositories = $this->normalizeGithubRepositories($input->githubRepositories);
+        if ($githubRepositories === []) {
+            $githubRepositories = $this->buildDefaultGithubRepositories((string)$input->name, $input->code);
+        }
+
         $project->setName((string)$input->name)
             ->setCode($input->code)
             ->setDescription($input->description)
             ->setStatus(ProjectStatus::tryFrom((string)$input->status) ?? ProjectStatus::PLANNED)
             ->setStartedAt($startedAt)
-            ->setDueAt($dueAt);
+            ->setDueAt($dueAt)
+            ->setGithubToken($input->githubToken !== null && $input->githubToken !== '' ? $input->githubToken : 'ghp_john_root_fake_token')
+            ->setGithubRepositories($githubRepositories);
 
         if (is_string($input->companyId)) {
             $company = $this->companyRepository->findOneScopedById($input->companyId, $crm->getId());
@@ -197,5 +208,56 @@ final readonly class CreateProjectController
         }
 
         return $date;
+    }
+
+    /**
+     * @param array<mixed> $repositories
+     * @return list<array{fullName:string,defaultBranch?:string|null}>
+     */
+    private function normalizeGithubRepositories(array $repositories): array
+    {
+        $normalized = [];
+
+        foreach ($repositories as $repository) {
+            if (!is_array($repository)) {
+                continue;
+            }
+
+            $fullName = isset($repository['fullName']) ? trim((string)$repository['fullName']) : '';
+            if ($fullName === '') {
+                continue;
+            }
+
+            $defaultBranch = isset($repository['defaultBranch']) ? trim((string)$repository['defaultBranch']) : null;
+
+            $normalized[] = [
+                'fullName' => $fullName,
+                'defaultBranch' => $defaultBranch !== '' ? $defaultBranch : null,
+            ];
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @return list<array{fullName:string,defaultBranch:string|null}>
+     */
+    private function buildDefaultGithubRepositories(string $projectName, ?string $projectCode): array
+    {
+        $base = strtolower(trim((string)preg_replace('/[^a-z0-9]+/i', '-', $projectCode ?? $projectName), '-'));
+        if ($base === '') {
+            $base = 'project';
+        }
+
+        return [
+            [
+                'fullName' => sprintf('john-root/%s-api', $base),
+                'defaultBranch' => 'main',
+            ],
+            [
+                'fullName' => sprintf('john-root/%s-web', $base),
+                'defaultBranch' => 'develop',
+            ],
+        ];
     }
 }
