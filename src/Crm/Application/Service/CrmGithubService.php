@@ -318,7 +318,7 @@ readonly class CrmGithubService
         $owner = (string)($repository['owner']['login'] ?? '');
 
         $graphql = $this->graphql($project, <<<'GRAPHQL'
-query($owner:String!, $page:Int!, $perPage:Int!) {
+query($owner:String!, $perPage:Int!) {
   user(login: $owner) {
     projectsV2(first: $perPage, orderBy: {field: UPDATED_AT, direction: DESC}) {
       nodes { id title number url closed updatedAt }
@@ -334,7 +334,7 @@ query($owner:String!, $page:Int!, $perPage:Int!) {
     }
   }
 }
-GRAPHQL, ['owner' => $owner, 'page' => $page, 'perPage' => $perPage]);
+GRAPHQL, ['owner' => $owner, 'perPage' => $perPage]);
 
         $projectBlock = $graphql['data']['user']['projectsV2'] ?? $graphql['data']['organization']['projectsV2'] ?? null;
         $nodes = is_array($projectBlock['nodes'] ?? null) ? $projectBlock['nodes'] : [];
