@@ -316,17 +316,12 @@ readonly class CrmGithubService
     {
         $repository = $this->request($project, 'GET', sprintf('/repos/%s', $repoFullName));
         $owner = (string)($repository['owner']['login'] ?? '');
+        $ownerType = strtolower((string)($repository['owner']['type'] ?? ''));
+        $ownerField = $ownerType === 'organization' ? 'organization' : 'user';
 
-        $graphql = $this->graphql($project, <<<'GRAPHQL'
-query($owner:String!, $page:Int!, $perPage:Int!) {
-  user(login: $owner) {
-    projectsV2(first: $perPage, orderBy: {field: UPDATED_AT, direction: DESC}) {
-      nodes { id title number url closed updatedAt }
-      pageInfo { hasNextPage endCursor }
-      totalCount
-    }
-  }
-  organization(login: $owner) {
+        $graphql = $this->graphql($project, sprintf(<<<'GRAPHQL'
+query($owner:String!, $perPage:Int!) {
+  %s(login: $owner) {
     projectsV2(first: $perPage, orderBy: {field: UPDATED_AT, direction: DESC}) {
       nodes { id title number url closed updatedAt }
       pageInfo { hasNextPage endCursor }
@@ -334,9 +329,9 @@ query($owner:String!, $page:Int!, $perPage:Int!) {
     }
   }
 }
-GRAPHQL, ['owner' => $owner, 'page' => $page, 'perPage' => $perPage]);
+GRAPHQL, $ownerField), ['owner' => $owner, 'perPage' => $perPage]);
 
-        $projectBlock = $graphql['data']['user']['projectsV2'] ?? $graphql['data']['organization']['projectsV2'] ?? null;
+        $projectBlock = $graphql['data'][$ownerField]['projectsV2'] ?? null;
         $nodes = is_array($projectBlock['nodes'] ?? null) ? $projectBlock['nodes'] : [];
         $totalCount = (int)($projectBlock['totalCount'] ?? count($nodes));
 
