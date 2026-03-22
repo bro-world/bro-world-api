@@ -403,6 +403,11 @@ GRAPHQL, ['projectId' => $projectId, 'perPage' => $perPage, 'after' => null]);
         ];
     }
 
+    public function deleteRepository(Project $project, string $repoFullName): void
+    {
+        $this->request($project, 'DELETE', sprintf('/repos/%s', trim($repoFullName)));
+    }
+
     public function createRepository(Project $project, string $name, ?string $description = null, bool $private = true): array
     {
         $payload = [
