@@ -20,6 +20,12 @@ use Ramsey\Uuid\UuidInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Throwable;
 
+use function array_map;
+use function array_pad;
+use function explode;
+use function strtolower;
+use function trim;
+
 #[ORM\Entity]
 #[ORM\Table(name: 'crm_project')]
 #[ORM\ChangeTrackingPolicy('DEFERRED_EXPLICIT')]
@@ -72,11 +78,9 @@ class Project implements EntityInterface
     #[ORM\Column(name: 'github_token', type: Types::STRING, length: 255, nullable: true)]
     private ?string $githubToken = null;
 
-    /**
-     * @var list<array{fullName:string,defaultBranch?:string|null}>
-     */
-    #[ORM\Column(name: 'github_repositories', type: Types::JSON)]
-    private array $githubRepositories = [];
+    /** @var Collection<int, CrmRepository>|ArrayCollection<int, CrmRepository> */
+    #[ORM\OneToMany(targetEntity: CrmRepository::class, mappedBy: 'project', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection|ArrayCollection $repositories;
 
     /** @var Collection<int, Task>|ArrayCollection<int, Task> */
     #[ORM\OneToMany(targetEntity: Task::class, mappedBy: 'project')]
@@ -101,6 +105,7 @@ class Project implements EntityInterface
         $this->id = $this->createUuid();
         $this->tasks = new ArrayCollection();
         $this->sprints = new ArrayCollection();
+        $this->repositories = new ArrayCollection();
         $this->assignees = new ArrayCollection();
     }
 
@@ -263,19 +268,85 @@ class Project implements EntityInterface
     }
 
     /**
-     * @return list<array{fullName:string,defaultBranch?:string|null}>
+     * @return Collection<int, CrmRepository>|ArrayCollection<int, CrmRepository>
      */
-    public function getGithubRepositories(): array
+    public function getRepositories(): Collection|ArrayCollection
     {
-        return $this->githubRepositories;
+        return $this->repositories;
     }
 
     /**
-     * @param list<array{fullName:string,defaultBranch?:string|null}> $githubRepositories
+     * Backward-compatible accessor used by read/services and controllers.
+     *
+     * @return list<array<string,mixed>>
+     */
+    public function getGithubRepositories(): array
+    {
+        return array_map(static fn (CrmRepository $repository): array => [
+            'id' => $repository->getId(),
+            'provider' => $repository->getProvider(),
+            'owner' => $repository->getOwner(),
+            'name' => $repository->getName(),
+            'fullName' => $repository->getFullName(),
+            'defaultBranch' => $repository->getDefaultBranch(),
+            'isPrivate' => $repository->isPrivate(),
+            'htmlUrl' => $repository->getHtmlUrl(),
+            'externalId' => $repository->getExternalId(),
+            'lastSyncedAt' => $repository->getLastSyncedAt()?->format(DATE_ATOM),
+            'syncStatus' => $repository->getSyncStatus(),
+            'payload' => $repository->getPayload(),
+        ], $this->repositories->toArray());
+    }
+
+    /**
+     * @param list<array{fullName:string,defaultBranch?:string|null,provider?:string,owner?:string,name?:string,isPrivate?:bool,htmlUrl?:string|null,externalId?:string|int|null,syncStatus?:string,payload?:array<string,mixed>|null}> $githubRepositories
      */
     public function setGithubRepositories(array $githubRepositories): self
     {
-        $this->githubRepositories = $githubRepositories;
+        $this->repositories->clear();
+
+        foreach ($githubRepositories as $githubRepository) {
+            $fullName = trim((string)($githubRepository['fullName'] ?? ''));
+            if ($fullName === '') {
+                continue;
+            }
+
+            [$fallbackOwner, $fallbackName] = array_pad(explode('/', $fullName, 2), 2, '');
+
+            $repository = (new CrmRepository())
+                ->setProject($this)
+                ->setProvider(strtolower(trim((string)($githubRepository['provider'] ?? 'github'))))
+                ->setOwner(trim((string)($githubRepository['owner'] ?? $fallbackOwner)))
+                ->setName(trim((string)($githubRepository['name'] ?? $fallbackName)))
+                ->setFullName($fullName)
+                ->setDefaultBranch(($githubRepository['defaultBranch'] ?? null) !== '' ? ($githubRepository['defaultBranch'] ?? null) : null)
+                ->setIsPrivate((bool)($githubRepository['isPrivate'] ?? false))
+                ->setHtmlUrl(isset($githubRepository['htmlUrl']) ? (string)$githubRepository['htmlUrl'] : null)
+                ->setExternalId(isset($githubRepository['externalId']) ? (string)$githubRepository['externalId'] : null)
+                ->setSyncStatus(trim((string)($githubRepository['syncStatus'] ?? 'pending')))
+                ->setPayload(isset($githubRepository['payload']) && is_array($githubRepository['payload']) ? $githubRepository['payload'] : null);
+
+            $this->addRepository($repository);
+        }
+
+        return $this;
+    }
+
+    public function addRepository(CrmRepository $repository): self
+    {
+        if (!$this->repositories->contains($repository)) {
+            $this->repositories->add($repository);
+            $repository->setProject($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRepository(CrmRepository $repository): self
+    {
+        if ($this->repositories->removeElement($repository) && $repository->getProject() === $this) {
+            $repository->setProject(null);
+        }
 
         return $this;
     }
