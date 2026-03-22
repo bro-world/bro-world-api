@@ -89,13 +89,13 @@ final readonly class CrmApiNormalizer
      */
     public function normalizeProjectProjection(array $item): array
     {
-        $repositories = is_array($item['githubRepositories'] ?? null) ? $item['githubRepositories'] : [];
+        $repositoriesCount = (int)($item['githubRepositoriesCount'] ?? 0);
 
         return [
             'id' => (string)($item['id'] ?? ''),
             'name' => (string)($item['name'] ?? ''),
             'status' => ($item['status'] ?? ''),
-            'githubRepositoriesCount' => count($repositories),
+            'githubRepositoriesCount' => $repositoriesCount,
         ];
     }
 
