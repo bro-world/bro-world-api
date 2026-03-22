@@ -60,6 +60,7 @@ final readonly class CrmApiNormalizer
         return [
             'id' => $taskRequest->getId(),
             'taskId' => $taskRequest->getTask()?->getId(),
+            'repositoryId' => $taskRequest->getRepository()?->getId(),
             'title' => $taskRequest->getTitle(),
             'status' => $taskRequest->getStatus()->value,
             'requestedAt' => $this->normalizeDate($taskRequest->getRequestedAt()),
@@ -107,6 +108,7 @@ final readonly class CrmApiNormalizer
         return [
             'id' => (string)($item['id'] ?? ''),
             'taskId' => $item['taskId'] ?? null,
+            'repositoryId' => $item['repositoryId'] ?? null,
             'title' => (string)($item['title'] ?? ''),
             'status' => ($item['status'] ?? ''),
             'requestedAt' => $this->normalizeDateValue($item['requestedAt'] ?? null),
