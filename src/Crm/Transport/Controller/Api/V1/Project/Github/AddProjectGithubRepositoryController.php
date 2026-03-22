@@ -10,6 +10,8 @@ use App\Crm\Infrastructure\Repository\ProjectRepository;
 use App\Crm\Transport\Request\AddProjectGithubRepositoryRequest;
 use App\Crm\Transport\Request\CrmRequestHandler;
 use App\Role\Domain\Enum\Role;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use OpenApi\Attributes as OA;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -30,25 +32,19 @@ final readonly class AddProjectGithubRepositoryController
     ) {
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     #[Route('/v1/crm/applications/{applicationSlug}/projects/{project}/github/repositories', methods: [Request::METHOD_POST])]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'), example: 'crm-sales-hub')]
     #[OA\Parameter(name: 'project', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'), example: 'ebf77366-d60c-4ac4-b204-9f91a7f7ee12')]
     #[OA\Post(
-        summary: 'POST /v1/crm/applications/{applicationSlug}/projects/{project}/github/repositories',
         description: 'Ajoute un repository GitHub existant au projet CRM courant à partir du fullName `owner/name`.',
+        summary: 'POST /v1/crm/applications/{applicationSlug}/projects/{project}/github/repositories',
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['fullName'],
-                properties: [
-                    new OA\Property(
-                        property: 'fullName',
-                        type: 'string',
-                        maxLength: 255,
-                        example: 'john-root/bro-world-api',
-                        description: 'Nom complet du repository au format owner/name.',
-                    ),
-                ],
                 examples: [
                     new OA\Examples(
                         example: 'addRepo',
@@ -56,6 +52,16 @@ final readonly class AddProjectGithubRepositoryController
                         value: [
                             'fullName' => 'john-root/bro-world-api',
                         ],
+                    ),
+                ],
+                required: ['fullName'],
+                properties: [
+                    new OA\Property(
+                        property: 'fullName',
+                        description: 'Nom complet du repository au format owner/name.',
+                        type: 'string',
+                        maxLength: 255,
+                        example: 'john-root/bro-world-api',
                     ),
                 ],
             ),
