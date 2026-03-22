@@ -10,6 +10,8 @@ use App\Crm\Infrastructure\Repository\ProjectRepository;
 use App\Crm\Transport\Request\AddProjectGithubRepositoryRequest;
 use App\Crm\Transport\Request\CrmRequestHandler;
 use App\Role\Domain\Enum\Role;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use OpenApi\Attributes as OA;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -30,6 +32,10 @@ final readonly class AddProjectGithubRepositoryController
     ) {
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     #[Route('/v1/crm/applications/{applicationSlug}/projects/{project}/github/repositories', methods: [Request::METHOD_POST])]
     public function __invoke(string $applicationSlug, Project $project, Request $request): JsonResponse
     {
