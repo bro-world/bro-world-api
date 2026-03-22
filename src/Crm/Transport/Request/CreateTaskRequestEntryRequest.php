@@ -27,6 +27,11 @@ final class CreateTaskRequestEntryRequest
     #[Assert\Uuid]
     public ?string $taskId = null;
 
+    #[Assert\NotBlank]
+    #[Assert\NotNull]
+    #[Assert\Uuid]
+    public ?string $repositoryId = null;
+
     #[Assert\Type(type: 'array')]
     #[Assert\All([
         new Assert\Uuid(),
@@ -41,6 +46,7 @@ final class CreateTaskRequestEntryRequest
         $request->status = isset($payload['status']) ? (string)$payload['status'] : null;
         $request->resolvedAt = isset($payload['resolvedAt']) ? (string)$payload['resolvedAt'] : null;
         $request->taskId = isset($payload['taskId']) ? (string)$payload['taskId'] : null;
+        $request->repositoryId = isset($payload['repositoryId']) ? (string)$payload['repositoryId'] : null;
         $request->assigneeIds = isset($payload['assigneeIds']) && is_array($payload['assigneeIds']) ? $payload['assigneeIds'] : $payload['assigneeIds'] ?? null;
 
         return $request;

@@ -22,7 +22,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Throwable;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'crm_task_request')]
+#[ORM\Table(
+    name: 'crm_task_request',
+    indexes: [new ORM\Index(name: 'idx_crm_task_request_repository_status', columns: ['repository_id', 'status'])]
+)]
 #[ORM\ChangeTrackingPolicy('DEFERRED_EXPLICIT')]
 class TaskRequest implements EntityInterface
 {
@@ -37,6 +40,11 @@ class TaskRequest implements EntityInterface
     #[ORM\JoinColumn(name: 'task_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull]
     private ?Task $task = null;
+
+    #[ORM\ManyToOne(targetEntity: CrmRepository::class)]
+    #[ORM\JoinColumn(name: 'repository_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[Assert\NotNull]
+    private ?CrmRepository $repository = null;
 
     #[ORM\OneToOne(targetEntity: Blog::class, cascade: ['persist'])]
     #[ORM\JoinColumn(name: 'blog_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
@@ -103,6 +111,18 @@ class TaskRequest implements EntityInterface
     public function getBlog(): ?Blog
     {
         return $this->blog;
+    }
+
+    public function getRepository(): ?CrmRepository
+    {
+        return $this->repository;
+    }
+
+    public function setRepository(?CrmRepository $repository): self
+    {
+        $this->repository = $repository;
+
+        return $this;
     }
 
     public function setBlog(?Blog $blog): self
@@ -230,6 +250,7 @@ class TaskRequest implements EntityInterface
     {
         return [
             'id' => $this->getId(),
+            'repository_id' => $this->getRepository()?->getId(),
             'title' => $this->getTitle(),
             'description' => $this->getDescription(),
             'status' => $this->getStatus(),

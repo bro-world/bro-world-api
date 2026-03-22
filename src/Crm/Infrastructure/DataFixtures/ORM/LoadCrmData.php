@@ -12,6 +12,7 @@ use App\Crm\Domain\Entity\Billing;
 use App\Crm\Domain\Entity\Company;
 use App\Crm\Domain\Entity\Contact;
 use App\Crm\Domain\Entity\Crm;
+use App\Crm\Domain\Entity\CrmRepository;
 use App\Crm\Domain\Entity\Employee;
 use App\Crm\Domain\Entity\Project;
 use App\Crm\Domain\Entity\Sprint;
@@ -416,10 +417,32 @@ final class LoadCrmData extends Fixture implements OrderedFixtureInterface
         int $countByTask,
     ): void {
         foreach ($tasks as $task) {
+            $repository = $task->getProject()?->getRepositories()->first();
+            if (!$repository instanceof CrmRepository) {
+                $project = $task->getProject();
+                if (!$project instanceof Project) {
+                    continue;
+                }
+
+                $repository = (new CrmRepository())
+                    ->setProject($project)
+                    ->setProvider('github')
+                    ->setOwner('fixtures')
+                    ->setName($project->getCode() !== null ? strtolower($project->getCode()) : 'project-' . substr($project->getId(), 0, 8))
+                    ->setFullName(sprintf('fixtures/%s', $project->getCode() !== null ? strtolower($project->getCode()) : 'project-' . substr($project->getId(), 0, 8)))
+                    ->setDefaultBranch('main')
+                    ->setIsPrivate(false)
+                    ->setSyncStatus('synced');
+
+                $project->addRepository($repository);
+                $manager->persist($repository);
+            }
+
             for ($index = 0; $index < $countByTask; $index++) {
                 $status = $faker->randomElement(TaskRequestStatus::cases());
                 $taskRequest = (new TaskRequest())
                     ->setTask($task)
+                    ->setRepository($repository)
                     ->setTitle($faker->sentence(6))
                     ->setDescription($faker->paragraph())
                     ->setStatus($status);

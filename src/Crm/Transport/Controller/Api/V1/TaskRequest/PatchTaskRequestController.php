@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Crm\Transport\Controller\Api\V1\TaskRequest;
 
+use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Domain\Entity\TaskRequest;
 use App\Crm\Domain\Enum\TaskRequestStatus;
+use App\Crm\Infrastructure\Repository\CrmProjectRepositoryRepository;
 use App\Crm\Infrastructure\Repository\TaskRequestRepository;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
 use App\Role\Domain\Enum\Role;
@@ -28,6 +30,8 @@ final readonly class PatchTaskRequestController
 {
     public function __construct(
         private TaskRequestRepository $taskRequestRepository,
+        private CrmProjectRepositoryRepository $crmProjectRepositoryRepository,
+        private CrmApplicationScopeResolver $scopeResolver,
         private CrmApiErrorResponseFactory $errorResponseFactory,
     ) {
     }
@@ -39,6 +43,8 @@ final readonly class PatchTaskRequestController
     #[Route('/v1/crm/applications/{applicationSlug}/task-requests/{taskRequest}', methods: [Request::METHOD_PATCH])]
     public function __invoke(string $applicationSlug, TaskRequest $taskRequest, Request $request): JsonResponse
     {
+        $crm = $this->scopeResolver->resolveOrFail($applicationSlug);
+
         try {
             $payload = json_decode(
                 (string)$request->getContent(),
@@ -67,6 +73,14 @@ final readonly class PatchTaskRequestController
         }
         if (array_key_exists('resolvedAt', $payload)) {
             $taskRequest->setResolvedAt($this->parseDate($payload['resolvedAt']));
+        }
+        if (isset($payload['repositoryId']) && is_string($payload['repositoryId'])) {
+            $repository = $this->crmProjectRepositoryRepository->findOneScopedById($payload['repositoryId'], $crm->getId());
+            if ($repository === null) {
+                return $this->errorResponseFactory->notFoundReference('repositoryId');
+            }
+
+            $taskRequest->setRepository($repository);
         }
 
         $this->taskRequestRepository->save($taskRequest);

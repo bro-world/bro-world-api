@@ -8,6 +8,7 @@ use App\Crm\Application\Service\CrmApplicationScopeResolver;
 use App\Crm\Application\Service\CrmTaskBlogProvisioningService;
 use App\Crm\Domain\Entity\TaskRequest;
 use App\Crm\Domain\Enum\TaskRequestStatus;
+use App\Crm\Infrastructure\Repository\CrmProjectRepositoryRepository;
 use App\Crm\Infrastructure\Repository\TaskRepository;
 use App\Crm\Transport\Request\CreateTaskRequestEntryRequest;
 use App\Crm\Transport\Request\CrmApiErrorResponseFactory;
@@ -33,6 +34,7 @@ final readonly class CreateTaskRequestController
 {
     public function __construct(
         private TaskRepository $taskRepository,
+        private CrmProjectRepositoryRepository $crmProjectRepositoryRepository,
         private CrmApplicationScopeResolver $scopeResolver,
         private CrmApiErrorResponseFactory $errorResponseFactory,
         private CrmTaskBlogProvisioningService $crmTaskBlogProvisioningService,
@@ -53,13 +55,14 @@ final readonly class CreateTaskRequestController
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['title', 'taskId'],
+                required: ['title', 'taskId', 'repositoryId'],
                 properties: [
                     new OA\Property(property: 'title', type: 'string', maxLength: 255, example: 'Demande de revue produit'),
                     new OA\Property(property: 'description', type: 'string', maxLength: 5000, example: 'Valider les nouveaux critères de qualification.', nullable: true),
                     new OA\Property(property: 'status', type: 'string', enum: ['pending', 'approved', 'rejected'], example: 'pending', nullable: true),
                     new OA\Property(property: 'resolvedAt', type: 'string', format: 'date-time', example: '2026-03-20T16:30:00+00:00', nullable: true),
                     new OA\Property(property: 'taskId', type: 'string', format: 'uuid', example: '8f6a3550-9a07-4f69-9f75-0089f7d83e7f'),
+                    new OA\Property(property: 'repositoryId', type: 'string', format: 'uuid', example: '03463358-2e8f-4f63-a893-69d5313b05d2'),
                     new OA\Property(property: 'assigneeIds', type: 'array', items: new OA\Items(type: 'string', format: 'uuid'), example: ['7d3c919e-5d4e-406a-a615-ffaf6dddbd85'], nullable: true),
                 ],
             ),
@@ -151,6 +154,14 @@ final readonly class CreateTaskRequestController
             }
 
             $taskRequest->setTask($task);
+        }
+        if (is_string($input->repositoryId)) {
+            $repository = $this->crmProjectRepositoryRepository->findOneScopedById($input->repositoryId, $crm->getId());
+            if ($repository === null) {
+                return $this->errorResponseFactory->notFoundReference('repositoryId');
+            }
+
+            $taskRequest->setRepository($repository);
         }
 
         if (is_array($input->assigneeIds)) {
