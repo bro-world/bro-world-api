@@ -202,7 +202,6 @@ readonly class CrmGithubService
         if (!is_string($token) || $token === '') {
             throw new RuntimeException('GitHub token is not configured on this project.');
         }
-
         try {
             $response = $this->httpClient->request($method, self::BASE_URL . $path, $options + [
                 'headers' => [
