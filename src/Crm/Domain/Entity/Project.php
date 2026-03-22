@@ -23,6 +23,7 @@ use Throwable;
 use function array_map;
 use function array_pad;
 use function explode;
+use function is_array;
 use function strtolower;
 use function trim;
 
@@ -77,6 +78,15 @@ class Project implements EntityInterface
 
     #[ORM\Column(name: 'github_token', type: Types::STRING, length: 255, nullable: true)]
     private ?string $githubToken = null;
+
+    #[ORM\Column(name: 'provisioning_status', type: Types::STRING, length: 40, options: ['default' => 'pending'])]
+    private string $provisioningStatus = 'pending';
+
+    /**
+     * @var array<string,mixed>
+     */
+    #[ORM\Column(name: 'github_resource_ids', type: Types::JSON, nullable: true)]
+    private ?array $githubResourceIds = null;
 
     /** @var Collection<int, CrmRepository>|ArrayCollection<int, CrmRepository> */
     #[ORM\OneToMany(targetEntity: CrmRepository::class, mappedBy: 'project', cascade: ['persist', 'remove'], orphanRemoval: true)]
@@ -267,6 +277,36 @@ class Project implements EntityInterface
         return $this;
     }
 
+    public function getProvisioningStatus(): string
+    {
+        return $this->provisioningStatus;
+    }
+
+    public function setProvisioningStatus(string $provisioningStatus): self
+    {
+        $this->provisioningStatus = $provisioningStatus;
+
+        return $this;
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    public function getGithubResourceIds(): array
+    {
+        return is_array($this->githubResourceIds) ? $this->githubResourceIds : [];
+    }
+
+    /**
+     * @param array<string,mixed>|null $githubResourceIds
+     */
+    public function setGithubResourceIds(?array $githubResourceIds): self
+    {
+        $this->githubResourceIds = $githubResourceIds;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, CrmRepository>|ArrayCollection<int, CrmRepository>
      */
@@ -292,6 +332,7 @@ class Project implements EntityInterface
             'isPrivate' => $repository->isPrivate(),
             'htmlUrl' => $repository->getHtmlUrl(),
             'externalId' => $repository->getExternalId(),
+            'nodeId' => $repository->getPayload()['nodeId'] ?? null,
             'lastSyncedAt' => $repository->getLastSyncedAt()?->format(DATE_ATOM),
             'syncStatus' => $repository->getSyncStatus(),
             'payload' => $repository->getPayload(),
