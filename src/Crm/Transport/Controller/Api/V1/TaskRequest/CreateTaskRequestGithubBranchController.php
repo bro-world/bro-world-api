@@ -49,6 +49,7 @@ final readonly class CreateTaskRequestGithubBranchController
     }
 
     #[Route('/v1/crm/applications/{applicationSlug}/task-requests/{taskRequest}/github/branches', methods: [Request::METHOD_POST])]
+    #[OA\Parameter(ref: '#/components/parameters/applicationSlug')]
     #[OA\Post(
         summary: 'Create a GitHub branch for a task request issue.',
         requestBody: new OA\RequestBody(
@@ -63,8 +64,8 @@ final readonly class CreateTaskRequestGithubBranchController
         ),
         responses: [
             new OA\Response(response: JsonResponse::HTTP_CREATED, description: 'Branch created on GitHub and associated to task request.'),
-            new OA\Response(response: JsonResponse::HTTP_NOT_FOUND, description: 'Task request not found in CRM scope.'),
-            new OA\Response(response: JsonResponse::HTTP_UNPROCESSABLE_ENTITY, description: 'Validation failed or GitHub API error.'),
+            new OA\Response(ref: '#/components/responses/NotFound404'),
+            new OA\Response(ref: '#/components/responses/ValidationFailed422'),
         ],
     )]
     public function __invoke(string $applicationSlug, TaskRequest $taskRequest, Request $request): JsonResponse

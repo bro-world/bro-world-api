@@ -27,12 +27,12 @@ final readonly class ListProjectGithubIssuesController
     }
 
     #[Route('/v1/crm/applications/{applicationSlug}/projects/{project}/github/issues', methods: [Request::METHOD_GET])]
-    #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(ref: '#/components/parameters/applicationSlug')]
     #[OA\Parameter(name: 'project', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Parameter(name: 'repo', in: 'query', required: true, schema: new OA\Schema(type: 'string'), example: 'rami-aouinti/bro-world-api')]
-    #[OA\Parameter(name: 'state', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['open', 'closed', 'all']), example: 'open')]
-    #[OA\Parameter(name: 'page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', minimum: 1), example: 1)]
-    #[OA\Parameter(name: 'limit', in: 'query', required: false, schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100), example: 30)]
+    #[OA\Parameter(ref: '#/components/parameters/status')]
+    #[OA\Parameter(ref: '#/components/parameters/page')]
+    #[OA\Parameter(ref: '#/components/parameters/limit')]
     #[OA\Get(
         summary: 'List GitHub issues for a repository linked to a CRM project.',
         responses: [
@@ -40,43 +40,13 @@ final readonly class ListProjectGithubIssuesController
                 response: JsonResponse::HTTP_OK,
                 description: 'Opération exécutée avec succès.',
                 content: new OA\JsonContent(
-                    example: [
-                        'items' => [
-                            [
-                                'id' => '8f6a3550-9a07-4f69-9f75-0089f7d83e7f',
-                                'label' => 'CRM item',
-                            ],
-                        ],
-                        'pagination' => [
-                            'page' => 1,
-                            'limit' => 20,
-                            'totalItems' => 57,
-                            'totalPages' => 3,
-                        ],
-                        'meta' => [
-                            'filters' => [
-                                'search' => 'lead',
-                            ],
-                        ],
+                    type: 'object',
+                    properties: [
+                        new OA\Property(property: 'items', type: 'array', items: new OA\Items(ref: '#/components/schemas/CrmGithubIssue')),
                     ],
                 ),
             ),
-            new OA\Response(
-                response: JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
-                description: 'Erreur de validation métier.',
-                content: new OA\JsonContent(
-                    example: [
-                        'message' => 'Validation failed.',
-                        'errors' => [
-                            [
-                                'propertyPath' => 'limit',
-                                'message' => 'This value should be less than or equal to 100.',
-                                'code' => '2fa2158c-2a7f-484b-98aa-975522539ff8',
-                            ],
-                        ],
-                    ],
-                ),
-            ),
+            new OA\Response(ref: '#/components/responses/ValidationFailed422'),
         ],
     )]
     public function __invoke(string $applicationSlug, Project $project, Request $request): JsonResponse

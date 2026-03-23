@@ -50,23 +50,12 @@ final readonly class CreateTaskRequestController
      * @throws ExceptionInterface
      */
     #[Route('/v1/crm/applications/{applicationSlug}/task-requests', methods: [Request::METHOD_POST])]
-    #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(ref: '#/components/parameters/applicationSlug')]
     #[OA\Post(
         summary: 'POST /v1/crm/applications/{applicationSlug}/task-requests',
         requestBody: new OA\RequestBody(
             required: true,
-            content: new OA\JsonContent(
-                required: ['title', 'taskId', 'repositoryId'],
-                properties: [
-                    new OA\Property(property: 'title', type: 'string', maxLength: 255, example: 'Demande de revue produit'),
-                    new OA\Property(property: 'description', type: 'string', maxLength: 5000, example: 'Valider les nouveaux critères de qualification.', nullable: true),
-                    new OA\Property(property: 'status', type: 'string', enum: ['pending', 'approved', 'rejected'], example: 'pending', nullable: true),
-                    new OA\Property(property: 'resolvedAt', type: 'string', format: 'date-time', example: '2026-03-20T16:30:00+00:00', nullable: true),
-                    new OA\Property(property: 'taskId', type: 'string', format: 'uuid', example: '8f6a3550-9a07-4f69-9f75-0089f7d83e7f'),
-                    new OA\Property(property: 'repositoryId', type: 'string', format: 'uuid', example: '03463358-2e8f-4f63-a893-69d5313b05d2'),
-                    new OA\Property(property: 'assigneeIds', type: 'array', items: new OA\Items(type: 'string', format: 'uuid'), example: ['7d3c919e-5d4e-406a-a615-ffaf6dddbd85'], nullable: true),
-                ],
-            ),
+            content: new OA\JsonContent(ref: '#/components/schemas/CrmTaskRequest'),
         ),
         responses: [
             new OA\Response(
@@ -94,32 +83,8 @@ final readonly class CreateTaskRequestController
                     ],
                 ),
             ),
-            new OA\Response(
-                response: 404,
-                description: 'Referenced resource not found in CRM scope.',
-                content: new OA\JsonContent(
-                    example: [
-                        'message' => 'Unknown "taskId" in this CRM scope.',
-                        'errors' => [],
-                    ],
-                ),
-            ),
-            new OA\Response(
-                response: 422,
-                description: 'Validation failed.',
-                content: new OA\JsonContent(
-                    example: [
-                        'message' => 'Validation failed.',
-                        'errors' => [
-                            [
-                                'propertyPath' => 'taskId',
-                                'message' => 'This is not a valid UUID.',
-                                'code' => '51120b12-a2bc-41bf-aa53-cd73daf330d0',
-                            ],
-                        ],
-                    ],
-                ),
-            ),
+            new OA\Response(ref: '#/components/responses/NotFound404'),
+            new OA\Response(ref: '#/components/responses/ValidationFailed422'),
         ],
     )]
     public function __invoke(string $applicationSlug, Request $request): JsonResponse
