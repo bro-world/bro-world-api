@@ -29,8 +29,6 @@ use function method_exists;
 final readonly class GetCompanyController
 {
     public function __construct(
-        private CompanyRepository $companyRepository,
-        private CrmApplicationScopeResolver $scopeResolver,
         private CacheInterface $cache,
         private CacheKeyConventionService $cacheKeyConventionService,
     ) {
@@ -40,8 +38,8 @@ final readonly class GetCompanyController
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
     #[OA\Parameter(name: 'company', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Get(
-        summary: 'Get Company',
         description: 'Exécute l action metier Get Company dans le perimetre de l application CRM.',
+        summary: 'Get Company',
         responses: [
             new OA\Response(response: JsonResponse::HTTP_OK, description: 'Opération exécutée avec succès.'),
             new OA\Response(response: JsonResponse::HTTP_BAD_REQUEST, description: 'Requête invalide.'),

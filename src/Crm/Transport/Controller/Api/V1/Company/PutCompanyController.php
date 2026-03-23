@@ -15,6 +15,7 @@ use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -31,12 +32,15 @@ final readonly class PutCompanyController
     ) {
     }
 
+    /**
+     * @throws ExceptionInterface
+     */
     #[Route('/v1/crm/applications/{applicationSlug}/companies/{companyId}', methods: [Request::METHOD_PUT])]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
     #[OA\Parameter(name: 'companyId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Put(
-        summary: 'Put Company',
         description: 'Exécute l action metier Put Company dans le perimetre de l application CRM.',
+        summary: 'Put Company',
         responses: [
             new OA\Response(response: JsonResponse::HTTP_OK, description: 'Opération exécutée avec succès.'),
             new OA\Response(response: JsonResponse::HTTP_BAD_REQUEST, description: 'Requête invalide.'),
@@ -72,6 +76,6 @@ final readonly class PutCompanyController
             return $this->errorResponseFactory->notFoundReference($exception->field);
         }
 
-        return new JsonResponse((new EntityIdResponseDto($companyId))->toArray());
+        return new JsonResponse(new EntityIdResponseDto($companyId)->toArray());
     }
 }
