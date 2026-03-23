@@ -32,7 +32,7 @@ final readonly class ListTaskRequestGithubBranchesController
     }
 
     #[Route('/v1/crm/applications/{applicationSlug}/task-requests/{taskRequest}/github/branches', methods: [Request::METHOD_GET])]
-    #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'), example: 'crm-sales-hub')]
+    #[OA\Parameter(ref: '#/components/parameters/applicationSlug')]
     #[OA\Parameter(name: 'taskRequest', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'), example: 'a8f2140e-322e-49e5-94dc-dd86126fef3a')]
     #[OA\Get(
         summary: 'List GitHub branches linked to a task request.',
@@ -41,28 +41,13 @@ final readonly class ListTaskRequestGithubBranchesController
                 response: JsonResponse::HTTP_OK,
                 description: 'Opération exécutée avec succès.',
                 content: new OA\JsonContent(
-                    example: [
-                        'items' => [
-                            [
-                                'id' => '8f6a3550-9a07-4f69-9f75-0089f7d83e7f',
-                                'label' => 'CRM item',
-                            ],
-                        ],
-                        'pagination' => [
-                            'page' => 1,
-                            'limit' => 20,
-                            'totalItems' => 57,
-                            'totalPages' => 3,
-                        ],
-                        'meta' => [
-                            'filters' => [
-                                'search' => 'lead',
-                            ],
-                        ],
+                    type: 'object',
+                    properties: [
+                        new OA\Property(property: 'items', type: 'array', items: new OA\Items(ref: '#/components/schemas/CrmGithubBranch')),
                     ],
                 ),
             ),
-            new OA\Response(response: JsonResponse::HTTP_NOT_FOUND, description: 'Task request not found in CRM scope.'),
+            new OA\Response(ref: '#/components/responses/NotFound404'),
         ],
     )]
     public function __invoke(string $applicationSlug, TaskRequest $taskRequest): JsonResponse
