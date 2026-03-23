@@ -288,6 +288,28 @@ when@dev: &dev
                             url:
                                 type: string
                                 nullable: true
+                    CrmGithubBootstrapSyncRequest:
+                        type: object
+                        required:
+                            - token
+                            - owner
+                        properties:
+                            token:
+                                type: string
+                                example: ghp_xxxxxxxxx
+                            owner:
+                                type: string
+                                example: acme-org
+                            issueTarget:
+                                type: string
+                                enum: [task, task_request]
+                                default: task
+                            createPublicProject:
+                                type: boolean
+                                default: true
+                            dryRun:
+                                type: boolean
+                                default: false
                 responses:
                     ValidationFailed422:
                         description: Validation failed.
