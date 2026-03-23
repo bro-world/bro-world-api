@@ -10,6 +10,7 @@ use App\Crm\Application\Service\CrmReadCacheInvalidator;
 use App\Crm\Domain\Enum\TaskRequestStatus;
 use App\Crm\Infrastructure\Repository\CrmGithubWebhookEventRepository;
 use App\Crm\Infrastructure\Repository\CrmProjectRepositoryRepository;
+use App\Crm\Infrastructure\Repository\TaskRequestGithubBranchRepository;
 use App\Crm\Infrastructure\Repository\TaskRequestRepository;
 use App\General\Domain\Service\Interfaces\ElasticsearchServiceInterface;
 use DateTimeImmutable;
@@ -31,6 +32,7 @@ final readonly class GithubWebhookReceivedHandler
     public function __construct(
         private CrmGithubWebhookEventRepository $webhookEventRepository,
         private CrmProjectRepositoryRepository $crmProjectRepositoryRepository,
+        private TaskRequestGithubBranchRepository $taskRequestGithubBranchRepository,
         private TaskRequestRepository $taskRequestRepository,
         private CrmReadCacheInvalidator $crmReadCacheInvalidator,
         private CrmTaskRequestGithubStatusMapper $statusMapper,
@@ -87,6 +89,10 @@ final readonly class GithubWebhookReceivedHandler
 
         if ($repository !== null && ($message->eventName === 'issues' || $message->eventName === 'issue_comment')) {
             $this->synchronizeMappedTaskRequest($message, $repository->getFullName(), $applicationSlug);
+        }
+
+        if ($repository !== null && ($message->eventName === 'create' || $message->eventName === 'delete')) {
+            $this->synchronizeMappedTaskRequestBranches($message, $repository->getFullName());
         }
 
         $this->elasticsearchService->index(self::INDEX_NAME, $webhookEvent->getId(), [
@@ -197,6 +203,66 @@ final readonly class GithubWebhookReceivedHandler
         $this->taskRequestRepository->save($taskRequest, true);
         if ($applicationSlug !== null && $applicationSlug !== '') {
             $this->crmReadCacheInvalidator->invalidateTaskRequest($applicationSlug, $taskRequest->getId());
+        }
+    }
+
+    private function synchronizeMappedTaskRequestBranches(GithubWebhookReceived $message, string $repositoryFullName): void
+    {
+        $branchName = trim((string)($message->payload['ref'] ?? ''));
+        $refType = strtolower(trim((string)($message->payload['ref_type'] ?? '')));
+        if ($branchName === '' || $refType !== 'branch') {
+            return;
+        }
+
+        $mappedBranches = $this->taskRequestGithubBranchRepository->findByRepositoryAndBranch($repositoryFullName, $branchName);
+        if ($mappedBranches === []) {
+            return;
+        }
+
+        $syncedAt = new DateTimeImmutable();
+        $nextStatus = $message->eventName === 'delete' ? 'deleted' : 'synced';
+        $repositoryHtmlUrl = trim((string)($message->payload['repository']['html_url'] ?? ''));
+        $invalidatedTaskRequests = [];
+
+        foreach ($mappedBranches as $mappedBranch) {
+            $metadata = $mappedBranch->getMetadata();
+            $metadata['lastInboundWebhook'] = [
+                'deliveryId' => $message->deliveryId,
+                'event' => $message->eventName,
+                'action' => $message->action,
+                'status' => $nextStatus,
+                'receivedAt' => $syncedAt->format(DATE_ATOM),
+            ];
+
+            $mappedBranch
+                ->setSyncStatus($nextStatus)
+                ->setLastSyncedAt($syncedAt)
+                ->setMetadata($metadata);
+
+            if ($repositoryHtmlUrl !== '') {
+                $mappedBranch->setBranchUrl($repositoryHtmlUrl . '/tree/' . $mappedBranch->getBranchName());
+            }
+
+            if ($message->eventName === 'delete') {
+                $mappedBranch->setBranchSha(null);
+            }
+
+            $this->taskRequestGithubBranchRepository->save($mappedBranch, true);
+
+            $taskRequest = $mappedBranch->getTaskRequest();
+            $applicationSlug = $taskRequest?->getTask()?->getProject()?->getCompany()?->getCrm()?->getApplication()?->getSlug();
+            $taskRequestId = $taskRequest?->getId();
+            if ($applicationSlug === null || $applicationSlug === '' || $taskRequestId === null || $taskRequestId === '') {
+                continue;
+            }
+
+            $cacheKey = $applicationSlug . ':' . $taskRequestId;
+            if (isset($invalidatedTaskRequests[$cacheKey])) {
+                continue;
+            }
+
+            $this->crmReadCacheInvalidator->invalidateTaskRequest($applicationSlug, $taskRequestId);
+            $invalidatedTaskRequests[$cacheKey] = true;
         }
     }
 
