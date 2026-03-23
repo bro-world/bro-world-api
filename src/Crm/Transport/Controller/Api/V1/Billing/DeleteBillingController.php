@@ -10,6 +10,7 @@ use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -24,12 +25,15 @@ final readonly class DeleteBillingController
     ) {
     }
 
+    /**
+     * @throws ExceptionInterface
+     */
     #[Route('/v1/crm/applications/{applicationSlug}/billings/{billing}', methods: [Request::METHOD_DELETE])]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
     #[OA\Parameter(name: 'billing', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
     #[OA\Delete(
-        summary: 'Delete Billing',
         description: 'Exécute l action metier Delete Billing dans le perimetre de l application CRM.',
+        summary: 'Delete Billing',
         responses: [
             new OA\Response(response: JsonResponse::HTTP_NO_CONTENT, description: 'Ressource supprimée avec succès.'),
             new OA\Response(response: JsonResponse::HTTP_BAD_REQUEST, description: 'Requête invalide.'),

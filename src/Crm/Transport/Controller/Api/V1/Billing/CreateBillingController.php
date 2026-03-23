@@ -41,8 +41,8 @@ final readonly class CreateBillingController
     #[Route('/v1/crm/applications/{applicationSlug}/billings', methods: [Request::METHOD_POST])]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
     #[OA\Post(
-        summary: 'Create Billing',
         description: 'Exécute l action metier Create Billing dans le perimetre de l application CRM.',
+        summary: 'Create Billing',
         responses: [
             new OA\Response(response: JsonResponse::HTTP_CREATED, description: 'Ressource créée avec succès.'),
             new OA\Response(response: JsonResponse::HTTP_BAD_REQUEST, description: 'Requête invalide.'),

@@ -32,11 +32,11 @@ final readonly class ListBillingsController
     #[Route('/v1/crm/applications/{applicationSlug}/billings', methods: [Request::METHOD_GET])]
     #[OA\Parameter(name: 'applicationSlug', in: 'path', required: true, schema: new OA\Schema(type: 'string'))]
     #[OA\Parameter(name: 'page', in: 'query', required: false, schema: new OA\Schema(type: 'integer', minimum: 1), example: 1)]
-    #[OA\Parameter(name: 'limit', in: 'query', required: false, schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100), example: 20)]
-    #[OA\Parameter(name: 'search', in: 'query', required: false, schema: new OA\Schema(type: 'string'), description: 'Filtre de recherche libre')]
+    #[OA\Parameter(name: 'limit', in: 'query', required: false, schema: new OA\Schema(type: 'integer', maximum: 100, minimum: 1), example: 20)]
+    #[OA\Parameter(name: 'search', description: 'Filtre de recherche libre', in: 'query', required: false, schema: new OA\Schema(type: 'string'))]
     #[OA\Get(
-        summary: 'List Billings',
         description: 'Exécute l action metier List Billings dans le perimetre de l application CRM.',
+        summary: 'List Billings',
         responses: [
             new OA\Response(
                 response: JsonResponse::HTTP_OK,
