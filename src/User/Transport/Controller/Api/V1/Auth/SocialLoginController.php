@@ -22,7 +22,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 
-use function array_contains;
+use function in_array;
 use function bin2hex;
 use function explode;
 use function random_bytes;
@@ -89,7 +89,7 @@ class SocialLoginController
             throw new BadRequestHttpException('email, provider and providerId are required');
         }
 
-        if (!array_contains(self::ALLOWED_PROVIDERS, $provider)) {
+        if (!in_array($provider, self::ALLOWED_PROVIDERS, true)) {
             throw new BadRequestHttpException('provider must be one of: github, instagram, facebook, google');
         }
 
@@ -99,10 +99,8 @@ class SocialLoginController
             ->select('social', 'user')
             ->innerJoin('social.user', 'user')
             ->andWhere('social.provider = :provider')
-            ->andWhere('social.providerId = :providerId')
             ->andWhere('user.email = :email')
             ->setParameter('provider', $provider)
-            ->setParameter('providerId', $providerId)
             ->setParameter('email', $email)
             ->getQuery()
             ->getOneOrNullResult();

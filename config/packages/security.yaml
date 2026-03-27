@@ -18,6 +18,11 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+        public_auth:
+            pattern: ^/api/v1/auth/(register|social_login)$
+            stateless: true
+            security: false
+
         login:
             pattern: ^/api/v1/auth/get_token$
             stateless: true
