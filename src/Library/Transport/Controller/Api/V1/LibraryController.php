@@ -41,6 +41,41 @@ readonly class LibraryController
     }
 
     #[Route(path: '/v1/library/folders', methods: [Request::METHOD_POST])]
+    #[OA\Post(
+        summary: 'Créer un dossier dans la library utilisateur (racine ou sous-dossier).',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['name'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', example: 'Documents'),
+                    new OA\Property(property: 'parentId', type: 'string', nullable: true, example: '0195df8e-9f4a-7cf2-9f51-b6ed8b4e5bf8'),
+                ],
+                type: 'object',
+                example: [
+                    'name' => 'Factures',
+                    'parentId' => '0195df8e-9f4a-7cf2-9f51-b6ed8b4e5bf8',
+                ],
+            ),
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Dossier créé.',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'string', example: '0195df93-91d2-7eaa-a16e-2abaf2ff57f4'),
+                        new OA\Property(property: 'name', type: 'string', example: 'Factures'),
+                        new OA\Property(property: 'parentId', type: 'string', nullable: true, example: '0195df8e-9f4a-7cf2-9f51-b6ed8b4e5bf8'),
+                    ],
+                    type: 'object',
+                ),
+            ),
+            new OA\Response(response: 400, description: 'Payload invalide.'),
+            new OA\Response(response: 401, description: 'Authentification requise.'),
+            new OA\Response(response: 404, description: 'Dossier parent introuvable.'),
+        ],
+    )]
     public function createFolder(Request $request, User $loggedInUser): JsonResponse
     {
         /** @var array<string,mixed> $payload */
@@ -75,6 +110,45 @@ readonly class LibraryController
     }
 
     #[Route(path: '/v1/library/files/upload', methods: [Request::METHOD_POST])]
+    #[OA\Post(
+        summary: 'Uploader un fichier dans la library utilisateur.',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\MediaType(
+                mediaType: 'multipart/form-data',
+                schema: new OA\Schema(
+                    required: ['file'],
+                    properties: [
+                        new OA\Property(property: 'file', description: 'Fichier à uploader.', type: 'string', format: 'binary'),
+                        new OA\Property(property: 'folderId', description: 'Optionnel. ID du dossier de destination.', type: 'string', nullable: true),
+                    ],
+                    type: 'object',
+                ),
+            ),
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Fichier uploadé.',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'string', example: '0195df99-f0f8-7b45-8e22-31f0f5acef52'),
+                        new OA\Property(property: 'folderId', type: 'string', nullable: true, example: '0195df8e-9f4a-7cf2-9f51-b6ed8b4e5bf8'),
+                        new OA\Property(property: 'name', type: 'string', example: 'contrat.pdf'),
+                        new OA\Property(property: 'url', type: 'string', example: 'https://localhost/uploads/library/a3f9f63e7d5f4a7fa0c4efed6f12f9dd.pdf'),
+                        new OA\Property(property: 'mimeType', type: 'string', example: 'application/pdf'),
+                        new OA\Property(property: 'size', type: 'integer', example: 32145),
+                        new OA\Property(property: 'extension', type: 'string', example: 'pdf'),
+                        new OA\Property(property: 'fileType', type: 'string', example: 'pdf'),
+                    ],
+                    type: 'object',
+                ),
+            ),
+            new OA\Response(response: 400, description: 'Fichier manquant ou invalide.'),
+            new OA\Response(response: 401, description: 'Authentification requise.'),
+            new OA\Response(response: 404, description: 'Dossier introuvable.'),
+        ],
+    )]
     public function uploadFile(Request $request, User $loggedInUser): JsonResponse
     {
         $file = $request->files->get('file');
@@ -141,6 +215,79 @@ readonly class LibraryController
     }
 
     #[Route(path: '/v1/library/tree', methods: [Request::METHOD_GET])]
+    #[OA\Get(
+        summary: 'Retourner tout l’arbre de la library de l’utilisateur connecté.',
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Arbre de la library.',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(
+                            property: 'folders',
+                            type: 'array',
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: 'id', type: 'string', example: '0195df8e-9f4a-7cf2-9f51-b6ed8b4e5bf8'),
+                                    new OA\Property(property: 'name', type: 'string', example: 'Documents'),
+                                    new OA\Property(property: 'type', type: 'string', example: 'folder'),
+                                    new OA\Property(property: 'folders', type: 'array', items: new OA\Items(type: 'object')),
+                                    new OA\Property(
+                                        property: 'files',
+                                        type: 'array',
+                                        items: new OA\Items(
+                                            properties: [
+                                                new OA\Property(property: 'id', type: 'string', example: '0195df99-f0f8-7b45-8e22-31f0f5acef52'),
+                                                new OA\Property(property: 'name', type: 'string', example: 'contrat.pdf'),
+                                                new OA\Property(property: 'type', type: 'string', example: 'file'),
+                                                new OA\Property(property: 'fileType', type: 'string', example: 'pdf'),
+                                                new OA\Property(property: 'mimeType', type: 'string', example: 'application/pdf'),
+                                                new OA\Property(property: 'size', type: 'integer', example: 32145),
+                                                new OA\Property(property: 'extension', type: 'string', example: 'pdf'),
+                                                new OA\Property(property: 'url', type: 'string', example: 'https://localhost/uploads/library/a3f9f63e7d5f4a7fa0c4efed6f12f9dd.pdf'),
+                                            ],
+                                            type: 'object',
+                                        ),
+                                    ),
+                                ],
+                                type: 'object',
+                            ),
+                        ),
+                        new OA\Property(
+                            property: 'files',
+                            type: 'array',
+                            items: new OA\Items(type: 'object'),
+                        ),
+                    ],
+                    type: 'object',
+                    example: [
+                        'folders' => [
+                            [
+                                'id' => '0195df8e-9f4a-7cf2-9f51-b6ed8b4e5bf8',
+                                'name' => 'Documents',
+                                'type' => 'folder',
+                                'folders' => [],
+                                'files' => [
+                                    [
+                                        'id' => '0195df99-f0f8-7b45-8e22-31f0f5acef52',
+                                        'name' => 'contrat.pdf',
+                                        'type' => 'file',
+                                        'fileType' => 'pdf',
+                                        'mimeType' => 'application/pdf',
+                                        'size' => 32145,
+                                        'extension' => 'pdf',
+                                        'url' => 'https://localhost/uploads/library/a3f9f63e7d5f4a7fa0c4efed6f12f9dd.pdf',
+                                    ],
+                                ],
+                            ],
+                        ],
+                        'files' => [],
+                    ],
+                ),
+            ),
+            new OA\Response(response: 401, description: 'Authentification requise.'),
+        ],
+    )]
     public function tree(User $loggedInUser): JsonResponse
     {
         return new JsonResponse($this->libraryTreeService->getTree($loggedInUser));
