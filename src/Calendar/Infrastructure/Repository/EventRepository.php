@@ -36,6 +36,23 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
     ) {
     }
 
+
+    public function findOneByGoogleEventIdAndUserId(string $googleEventId, string $userId): ?Entity
+    {
+        /** @var Entity|null $event */
+        $event = $this->createQueryBuilder('event')
+            ->leftJoin('event.calendar', 'calendar')
+            ->andWhere('event.googleEventId = :googleEventId')
+            ->andWhere('event.user = :userId OR calendar.user = :userId')
+            ->setParameter('googleEventId', $googleEventId)
+            ->setParameter('userId', $userId, UuidBinaryOrderedTimeType::NAME)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $event;
+    }
+
     public function findByUser(User $user, array $filters = [], int $page = 1, int $limit = 20, ?array $esIds = null): array
     {
         $offset = max(0, ($page - 1) * $limit);

@@ -8,6 +8,7 @@ use App\Calendar\Application\Message\CreateEventCommand;
 use App\Calendar\Domain\Entity\Event;
 use App\Calendar\Infrastructure\Repository\CalendarRepository;
 use App\Calendar\Infrastructure\Repository\EventRepository;
+use App\Calendar\Application\Service\GoogleCalendarSyncService;
 use App\General\Application\Service\CacheInvalidationService;
 use App\Platform\Domain\Entity\Application;
 use App\Platform\Infrastructure\Repository\ApplicationRepository;
@@ -26,6 +27,7 @@ final readonly class CreateEventCommandHandler
         private ApplicationRepository $applicationRepository,
         private CalendarRepository $calendarRepository,
         private CacheInvalidationService $cacheInvalidationService,
+        private GoogleCalendarSyncService $googleCalendarSyncService,
     ) {
     }
 
@@ -81,6 +83,7 @@ final readonly class CreateEventCommandHandler
             }
 
             $this->eventRepository->save($event);
+            $this->googleCalendarSyncService->pushLocalEvent($event);
         });
 
         $this->cacheInvalidationService->invalidateEventCaches($command->applicationSlug, $command->actorUserId);
