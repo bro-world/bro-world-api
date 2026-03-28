@@ -7,6 +7,7 @@ namespace App\Calendar\Application\MessageHandler;
 use App\Calendar\Application\Message\PatchEventCommand;
 use App\Calendar\Domain\Entity\Event;
 use App\Calendar\Infrastructure\Repository\EventRepository;
+use App\Calendar\Application\Service\GoogleCalendarSyncService;
 use App\General\Application\Service\CacheInvalidationService;
 use App\General\Transport\Http\ValidationErrorFactory;
 use App\Platform\Domain\Entity\Application;
@@ -22,6 +23,7 @@ final readonly class PatchEventCommandHandler
         private EventRepository $eventRepository,
         private ApplicationRepository $applicationRepository,
         private CacheInvalidationService $cacheInvalidationService,
+        private GoogleCalendarSyncService $googleCalendarSyncService,
     ) {
     }
 
@@ -124,6 +126,7 @@ final readonly class PatchEventCommandHandler
             }
 
             $this->eventRepository->save($event);
+            $this->googleCalendarSyncService->pushLocalEvent($event);
         });
 
         $this->cacheInvalidationService->invalidateEventCaches($command->applicationSlug, $command->actorUserId);

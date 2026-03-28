@@ -7,6 +7,7 @@ namespace App\Calendar\Application\MessageHandler;
 use App\Calendar\Application\Message\DeleteEventCommand;
 use App\Calendar\Domain\Entity\Event;
 use App\Calendar\Infrastructure\Repository\EventRepository;
+use App\Calendar\Application\Service\GoogleCalendarSyncService;
 use App\General\Application\Service\CacheInvalidationService;
 use App\Platform\Domain\Entity\Application;
 use App\Platform\Infrastructure\Repository\ApplicationRepository;
@@ -21,6 +22,7 @@ final readonly class DeleteEventCommandHandler
         private EventRepository $eventRepository,
         private ApplicationRepository $applicationRepository,
         private CacheInvalidationService $cacheInvalidationService,
+        private GoogleCalendarSyncService $googleCalendarSyncService,
     ) {
     }
 
@@ -48,6 +50,7 @@ final readonly class DeleteEventCommandHandler
                 throw new HttpException(JsonResponse::HTTP_NOT_FOUND, 'Event not found.');
             }
 
+            $this->googleCalendarSyncService->deleteRemoteEvent($event);
             $this->eventRepository->remove($event);
         });
 

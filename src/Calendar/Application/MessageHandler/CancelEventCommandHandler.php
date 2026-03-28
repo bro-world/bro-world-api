@@ -8,6 +8,7 @@ use App\Calendar\Application\Message\CancelEventCommand;
 use App\Calendar\Domain\Entity\Event;
 use App\Calendar\Domain\Enum\EventStatus;
 use App\Calendar\Infrastructure\Repository\EventRepository;
+use App\Calendar\Application\Service\GoogleCalendarSyncService;
 use App\General\Application\Service\CacheInvalidationService;
 use App\Platform\Domain\Entity\Application;
 use App\Platform\Infrastructure\Repository\ApplicationRepository;
@@ -22,6 +23,7 @@ final readonly class CancelEventCommandHandler
         private EventRepository $eventRepository,
         private ApplicationRepository $applicationRepository,
         private CacheInvalidationService $cacheInvalidationService,
+        private GoogleCalendarSyncService $googleCalendarSyncService,
     ) {
     }
 
@@ -51,6 +53,7 @@ final readonly class CancelEventCommandHandler
 
             $event->setIsCancelled(true)->setStatus(EventStatus::CANCELLED);
             $this->eventRepository->save($event);
+            $this->googleCalendarSyncService->pushLocalEvent($event);
         });
 
         $this->cacheInvalidationService->invalidateEventCaches($command->applicationSlug, $command->actorUserId);

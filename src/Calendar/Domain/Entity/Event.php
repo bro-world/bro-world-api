@@ -29,6 +29,7 @@ use Throwable;
         new ORM\Index(name: 'idx_calendar_event_visibility', columns: ['visibility']),
         new ORM\Index(name: 'idx_calendar_event_user_id', columns: ['user_id']),
         new ORM\Index(name: 'idx_calendar_event_calendar_id', columns: ['calendar_id']),
+        new ORM\Index(name: 'idx_calendar_event_google_event_id', columns: ['google_event_id']),
     ]
 )]
 #[ORM\ChangeTrackingPolicy('DEFERRED_EXPLICIT')]
@@ -147,6 +148,15 @@ class Event implements EntityInterface
     #[ORM\Column(name: 'metadata', type: Types::JSON, nullable: true)]
     #[Groups(['Event', 'Event.metadata'])]
     private ?array $metadata = null;
+
+
+    #[ORM\Column(name: 'google_event_id', type: Types::STRING, length: 255, nullable: true)]
+    #[Groups(['Event', 'Event.googleEventId'])]
+    private ?string $googleEventId = null;
+
+    #[ORM\Column(name: 'google_calendar_id', type: Types::STRING, length: 255, nullable: true)]
+    #[Groups(['Event', 'Event.googleCalendarId'])]
+    private ?string $googleCalendarId = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
@@ -422,6 +432,28 @@ class Event implements EntityInterface
 
         return $this;
     }
+
+    public function getGoogleEventId(): ?string
+    {
+        return $this->googleEventId;
+    }
+    public function setGoogleEventId(?string $googleEventId): self
+    {
+        $this->googleEventId = $googleEventId;
+
+        return $this;
+    }
+    public function getGoogleCalendarId(): ?string
+    {
+        return $this->googleCalendarId;
+    }
+    public function setGoogleCalendarId(?string $googleCalendarId): self
+    {
+        $this->googleCalendarId = $googleCalendarId;
+
+        return $this;
+    }
+
     public function getUser(): ?User
     {
         return $this->user;
