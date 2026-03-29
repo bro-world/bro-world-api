@@ -1,3 +1,9 @@
 body {
     background-color: skyblue;
 }
+
+/* Contact page: keep the form card transparent instead of solid white. */
+.card:has(form[action*="contact"]),
+form[action*="contact"] {
+    background: transparent !important;
+}
