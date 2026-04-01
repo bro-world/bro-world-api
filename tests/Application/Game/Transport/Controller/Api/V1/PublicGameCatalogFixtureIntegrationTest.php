@@ -27,274 +27,19 @@ final class PublicGameCatalogFixtureIntegrationTest extends WebTestCase
 
         self::assertIsArray($payload);
 
-        $expectedPayload = [
-            [
-                'id' => 'cards',
-                'nameKey' => 'cards',
-                'descriptionKey' => 'cards',
-                'img' => null,
-                'icon' => null,
-                'subCategories' => [
-                    [
-                        'id' => 'classic-cards',
-                        'nameKey' => 'classic-cards',
-                        'descriptionKey' => 'classic-cards',
-                        'img' => null,
-                        'icon' => null,
-                        'games' => [
-                            [
-                                'id' => 'solitaire-classic',
-                                'nameKey' => 'solitaire-classic',
-                                'descriptionKey' => 'solitaire-classic',
-                                'img' => null,
-                                'icon' => null,
-                                'component' => null,
-                                'supportedModes' => ['solo'],
-                                'categoryKey' => 'cards',
-                                'subcategoryKey' => 'classic-cards',
-                                'difficultyKey' => 'beginner',
-                                'tags' => ['cards', 'solo'],
-                                'features' => ['timer'],
-                            ],
-                            [
-                                'id' => 'blackjack-classic',
-                                'nameKey' => 'blackjack-classic',
-                                'descriptionKey' => 'blackjack-classic',
-                                'img' => null,
-                                'icon' => null,
-                                'component' => 'BlackjackClassic',
-                                'supportedModes' => ['solo', 'versus'],
-                                'categoryKey' => 'cards',
-                                'subcategoryKey' => 'classic-cards',
-                                'difficultyKey' => 'intermediate',
-                                'tags' => ['cards', 'casino'],
-                                'features' => ['score-multiplier'],
-                            ],
-                        ],
-                    ],
-                    [
-                        'id' => 'quick-cards',
-                        'nameKey' => 'quick-cards',
-                        'descriptionKey' => 'quick-cards',
-                        'img' => null,
-                        'icon' => null,
-                        'games' => [
-                            [
-                                'id' => 'speed-duel-cards',
-                                'nameKey' => 'speed-duel-cards',
-                                'descriptionKey' => 'speed-duel-cards',
-                                'img' => null,
-                                'icon' => null,
-                                'component' => null,
-                                'supportedModes' => [],
-                                'categoryKey' => 'cards',
-                                'subcategoryKey' => 'quick-cards',
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'id' => 'board',
-                'nameKey' => 'board',
-                'descriptionKey' => 'board',
-                'img' => null,
-                'icon' => null,
-                'subCategories' => [
-                    [
-                        'id' => 'table-classic',
-                        'nameKey' => 'table-classic',
-                        'descriptionKey' => 'table-classic',
-                        'img' => null,
-                        'icon' => null,
-                        'games' => [
-                            [
-                                'id' => 'checkers-table',
-                                'nameKey' => 'checkers-table',
-                                'descriptionKey' => 'checkers-table',
-                                'img' => null,
-                                'icon' => null,
-                                'component' => 'CheckersTable',
-                                'supportedModes' => ['versus'],
-                                'categoryKey' => 'board',
-                                'subcategoryKey' => 'table-classic',
-                                'difficultyKey' => 'beginner',
-                                'tags' => ['board'],
-                                'features' => ['ranked'],
-                            ],
-                            [
-                                'id' => 'chess-table',
-                                'nameKey' => 'chess-table',
-                                'descriptionKey' => 'chess-table',
-                                'img' => null,
-                                'icon' => null,
-                                'component' => 'ChessTable',
-                                'supportedModes' => ['versus', 'online'],
-                                'categoryKey' => 'board',
-                                'subcategoryKey' => 'table-classic',
-                                'difficultyKey' => 'advanced',
-                                'tags' => ['board', 'strategy'],
-                                'features' => ['elo', 'analysis'],
-                            ],
-                        ],
-                    ],
-                    [
-                        'id' => 'strategy-board',
-                        'nameKey' => 'strategy-board',
-                        'descriptionKey' => 'strategy-board',
-                        'img' => null,
-                        'icon' => null,
-                        'games' => [
-                            [
-                                'id' => 'hexa-tactics',
-                                'nameKey' => 'hexa-tactics',
-                                'descriptionKey' => 'hexa-tactics',
-                                'img' => null,
-                                'icon' => null,
-                                'component' => null,
-                                'supportedModes' => ['solo', 'versus'],
-                                'categoryKey' => 'board',
-                                'subcategoryKey' => 'strategy-board',
-                                'difficultyKey' => 'advanced',
-                                'tags' => ['board', 'tactics'],
-                                'features' => ['campaign'],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'id' => 'smart-games',
-                'nameKey' => 'smart-games',
-                'descriptionKey' => 'smart-games',
-                'img' => null,
-                'icon' => null,
-                'subCategories' => [
-                    [
-                        'id' => 'words-language',
-                        'nameKey' => 'words-language',
-                        'descriptionKey' => 'words-language',
-                        'img' => null,
-                        'icon' => null,
-                        'games' => [
-                            [
-                                'id' => 'word-link',
-                                'nameKey' => 'word-link',
-                                'descriptionKey' => 'word-link',
-                                'img' => null,
-                                'icon' => null,
-                                'component' => 'WordLink',
-                                'supportedModes' => ['solo'],
-                                'categoryKey' => 'smart-games',
-                                'subcategoryKey' => 'words-language',
-                                'difficultyKey' => 'beginner',
-                                'tags' => ['words'],
-                                'features' => ['dictionary'],
-                            ],
-                            [
-                                'id' => 'anagram-rush',
-                                'nameKey' => 'anagram-rush',
-                                'descriptionKey' => 'anagram-rush',
-                                'img' => null,
-                                'icon' => null,
-                                'component' => null,
-                                'supportedModes' => [],
-                                'categoryKey' => 'smart-games',
-                                'subcategoryKey' => 'words-language',
-                                'difficultyKey' => 'intermediate',
-                                'tags' => ['words', 'speed'],
-                                'features' => ['daily-challenge'],
-                            ],
-                        ],
-                    ],
-                    [
-                        'id' => 'logic-brain',
-                        'nameKey' => 'logic-brain',
-                        'descriptionKey' => 'logic-brain',
-                        'img' => null,
-                        'icon' => null,
-                        'games' => [
-                            [
-                                'id' => 'number-grid',
-                                'nameKey' => 'number-grid',
-                                'descriptionKey' => 'number-grid',
-                                'img' => null,
-                                'icon' => null,
-                                'component' => 'NumberGrid',
-                                'supportedModes' => ['solo'],
-                                'categoryKey' => 'smart-games',
-                                'subcategoryKey' => 'logic-brain',
-                                'difficultyKey' => 'advanced',
-                                'tags' => ['logic', 'numbers'],
-                                'features' => ['hints'],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'id' => 'arcade',
-                'nameKey' => 'arcade',
-                'descriptionKey' => 'arcade',
-                'img' => null,
-                'icon' => null,
-                'subCategories' => [
-                    [
-                        'id' => 'reflex-arcade',
-                        'nameKey' => 'reflex-arcade',
-                        'descriptionKey' => 'reflex-arcade',
-                        'img' => null,
-                        'icon' => null,
-                        'games' => [
-                            [
-                                'id' => 'color-reactor',
-                                'nameKey' => 'color-reactor',
-                                'descriptionKey' => 'color-reactor',
-                                'img' => null,
-                                'icon' => null,
-                                'component' => null,
-                                'supportedModes' => ['solo'],
-                                'categoryKey' => 'arcade',
-                                'subcategoryKey' => 'reflex-arcade',
-                                'difficultyKey' => 'intermediate',
-                                'tags' => ['reflex'],
-                                'features' => ['combo'],
-                            ],
-                        ],
-                    ],
-                    [
-                        'id' => 'runner-arcade',
-                        'nameKey' => 'runner-arcade',
-                        'descriptionKey' => 'runner-arcade',
-                        'img' => null,
-                        'icon' => null,
-                        'games' => [
-                            [
-                                'id' => 'sky-run',
-                                'nameKey' => 'sky-run',
-                                'descriptionKey' => 'sky-run',
-                                'img' => null,
-                                'icon' => null,
-                                'component' => 'SkyRun',
-                                'supportedModes' => ['solo', 'endless'],
-                                'categoryKey' => 'arcade',
-                                'subcategoryKey' => 'runner-arcade',
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ];
+        $expectedPayload = $this->expectedPayload();
 
         self::assertSame($expectedPayload, $payload);
+        self::assertSame($this->extractImgIconTree($expectedPayload), $this->extractImgIconTree($payload));
 
-        // Sensitive cases
-        self::assertNull($payload[0]['subCategories'][0]['games'][0]['component']);
-        self::assertSame([], $payload[0]['subCategories'][1]['games'][0]['supportedModes']);
-        self::assertArrayNotHasKey('tags', $payload[0]['subCategories'][1]['games'][0]);
-        self::assertArrayNotHasKey('features', $payload[0]['subCategories'][1]['games'][0]);
-        self::assertArrayHasKey('tags', $payload[0]['subCategories'][0]['games'][0]);
-        self::assertArrayHasKey('features', $payload[0]['subCategories'][0]['games'][0]);
+        self::assertSame('/img/game/card-game.png', $payload[0]['img']);
+        self::assertSame('mdi-cards-playing-outline', $payload[0]['icon']);
+        self::assertSame('/img/game/board-game.png', $payload[1]['img']);
+        self::assertSame('mdi-checkerboard', $payload[1]['icon']);
+        self::assertSame('/img/game/smart-game.png', $payload[2]['img']);
+        self::assertSame('mdi-brain', $payload[2]['icon']);
+        self::assertSame('/img/game/arcade-game.png', $payload[3]['img']);
+        self::assertSame('mdi-gamepad-variant-outline', $payload[3]['icon']);
     }
 
     #[TestDox('Public game catalog endpoint is accessible without authentication.')]
@@ -306,5 +51,194 @@ final class PublicGameCatalogFixtureIntegrationTest extends WebTestCase
         $response = $client->getResponse();
 
         self::assertSame(Response::HTTP_OK, $response->getStatusCode(), "Response:\n" . $response);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $categories
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function extractImgIconTree(array $categories): array
+    {
+        return array_map(static function (array $category): array {
+            return [
+                'id' => $category['id'],
+                'img' => $category['img'],
+                'icon' => $category['icon'],
+                'subCategories' => array_map(static function (array $subCategory): array {
+                    return [
+                        'id' => $subCategory['id'],
+                        'img' => $subCategory['img'],
+                        'icon' => $subCategory['icon'],
+                        'games' => array_map(static function (array $game): array {
+                            return [
+                                'id' => $game['id'],
+                                'img' => $game['img'],
+                                'icon' => $game['icon'],
+                            ];
+                        }, $subCategory['games']),
+                    ];
+                }, $category['subCategories']),
+            ];
+        }, $categories);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function expectedPayload(): array
+    {
+        return [
+            [
+                'id' => 'cards',
+                'nameKey' => 'gamePage.catalog.categories.cards.name',
+                'descriptionKey' => 'gamePage.catalog.categories.cards.description',
+                'img' => '/img/game/card-game.png',
+                'icon' => 'mdi-cards-playing-outline',
+                'subCategories' => [
+                    [
+                        'id' => 'classic-cards',
+                        'nameKey' => 'gamePage.catalog.subCategories.classicCards.name',
+                        'descriptionKey' => 'gamePage.catalog.subCategories.classicCards.description',
+                        'img' => '/img/game/classic-card.png',
+                        'icon' => 'mdi-cards-outline',
+                        'games' => [
+                            ['id' => 'rami', 'nameKey' => 'gamePage.catalog.games.rami.name', 'descriptionKey' => 'gamePage.catalog.games.rami.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-cards-diamond-outline', 'component' => 'rami', 'supportedModes' => ['ai', 'pvp'], 'categoryKey' => 'cards', 'subcategoryKey' => 'classic-cards'],
+                            ['id' => 'belote', 'nameKey' => 'gamePage.catalog.games.belote.name', 'descriptionKey' => 'gamePage.catalog.games.belote.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-cards-club-outline', 'component' => 'belote', 'supportedModes' => ['ai'], 'categoryKey' => 'cards', 'subcategoryKey' => 'classic-cards'],
+                            ['id' => 'poker', 'nameKey' => 'gamePage.catalog.games.poker.name', 'descriptionKey' => 'gamePage.catalog.games.poker.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-cards-spade-outline', 'component' => 'poker', 'supportedModes' => ['ai'], 'categoryKey' => 'cards', 'subcategoryKey' => 'classic-cards'],
+                            ['id' => 'uno', 'nameKey' => 'gamePage.catalog.games.uno.name', 'descriptionKey' => 'gamePage.catalog.games.uno.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-cards-playing', 'component' => 'uno', 'supportedModes' => ['ai', 'pvp'], 'categoryKey' => 'cards', 'subcategoryKey' => 'classic-cards'],
+                        ],
+                    ],
+                    [
+                        'id' => 'party-cards',
+                        'nameKey' => 'gamePage.catalog.subCategories.partyCards.name',
+                        'descriptionKey' => 'gamePage.catalog.subCategories.partyCards.description',
+                        'img' => '/img/game/party-card.png',
+                        'icon' => 'mdi-party-popper',
+                        'games' => [
+                            ['id' => 'solitaire', 'nameKey' => 'gamePage.catalog.games.solitaire.name', 'descriptionKey' => 'gamePage.catalog.games.solitaire.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-cards-playing-heart-outline', 'component' => null, 'supportedModes' => [], 'categoryKey' => 'cards', 'subcategoryKey' => 'party-cards'],
+                            ['id' => 'hearts', 'nameKey' => 'gamePage.catalog.games.hearts.name', 'descriptionKey' => 'gamePage.catalog.games.hearts.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-cards-heart', 'component' => null, 'supportedModes' => [], 'categoryKey' => 'cards', 'subcategoryKey' => 'party-cards'],
+                            ['id' => 'spades', 'nameKey' => 'gamePage.catalog.games.spades.name', 'descriptionKey' => 'gamePage.catalog.games.spades.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-cards-spade-heart-outline', 'component' => null, 'supportedModes' => [], 'categoryKey' => 'cards', 'subcategoryKey' => 'party-cards'],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'id' => 'board',
+                'nameKey' => 'gamePage.catalog.categories.board.name',
+                'descriptionKey' => 'gamePage.catalog.categories.board.description',
+                'img' => '/img/game/board-game.png',
+                'icon' => 'mdi-checkerboard',
+                'subCategories' => [
+                    [
+                        'id' => 'table-classic',
+                        'nameKey' => 'gamePage.catalog.subCategories.tableClassic.name',
+                        'descriptionKey' => 'gamePage.catalog.subCategories.tableClassic.description',
+                        'img' => '/img/game/card-game.png',
+                        'icon' => 'mdi-gamepad-round-outline',
+                        'games' => [
+                            ['id' => 'checkers', 'nameKey' => 'gamePage.catalog.games.checkers.name', 'descriptionKey' => 'gamePage.catalog.games.checkers.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-circle-multiple-outline', 'component' => 'checkers', 'supportedModes' => ['ai', 'pvp'], 'categoryKey' => 'board', 'subcategoryKey' => 'table-classic'],
+                            ['id' => 'chess', 'nameKey' => 'gamePage.catalog.games.chess.name', 'descriptionKey' => 'gamePage.catalog.games.chess.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-chess-knight', 'component' => 'chess', 'supportedModes' => ['ai', 'pvp'], 'categoryKey' => 'gamePage.catalog.categories.board.name', 'subcategoryKey' => 'gamePage.catalog.subCategories.tableClassic.name', 'difficultyKey' => 'gamePage.catalog.difficulties.hard', 'tags' => ['gamePage.catalog.games.chess.meta.tags.strategy', 'gamePage.catalog.games.chess.meta.tags.solo', 'gamePage.catalog.games.chess.meta.tags.multiplayer', 'gamePage.catalog.games.chess.meta.tags.oneVsOne', 'gamePage.catalog.games.chess.meta.tags.ai', 'gamePage.catalog.games.chess.meta.tags.replay'], 'features' => ['gamePage.catalog.games.chess.meta.features.ai', 'gamePage.catalog.games.chess.meta.features.multiplayer', 'gamePage.catalog.games.chess.meta.features.replay']],
+                        ],
+                    ],
+                    [
+                        'id' => 'family-board',
+                        'nameKey' => 'gamePage.catalog.subCategories.familyBoard.name',
+                        'descriptionKey' => 'gamePage.catalog.subCategories.familyBoard.description',
+                        'img' => '/img/game/family-board.png',
+                        'icon' => 'mdi-account-group-outline',
+                        'games' => [
+                            ['id' => 'ludo', 'nameKey' => 'gamePage.catalog.games.ludo.name', 'descriptionKey' => 'gamePage.catalog.games.ludo.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-dice-multiple-outline', 'component' => null, 'supportedModes' => [], 'categoryKey' => 'board', 'subcategoryKey' => 'family-board'],
+                            ['id' => 'backgammon', 'nameKey' => 'gamePage.catalog.games.backgammon.name', 'descriptionKey' => 'gamePage.catalog.games.backgammon.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-gamepad-variant-outline', 'component' => null, 'supportedModes' => [], 'categoryKey' => 'board', 'subcategoryKey' => 'family-board'],
+                            ['id' => 'dominoes', 'nameKey' => 'gamePage.catalog.games.dominoes.name', 'descriptionKey' => 'gamePage.catalog.games.dominoes.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-domino-mask', 'component' => null, 'supportedModes' => [], 'categoryKey' => 'board', 'subcategoryKey' => 'family-board'],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'id' => 'smart-games',
+                'nameKey' => 'gamePage.catalog.categories.smartGames.name',
+                'descriptionKey' => 'gamePage.catalog.categories.smartGames.description',
+                'img' => '/img/game/smart-game.png',
+                'icon' => 'mdi-brain',
+                'subCategories' => [
+                    [
+                        'id' => 'logic',
+                        'nameKey' => 'gamePage.catalog.subCategories.logic.name',
+                        'descriptionKey' => 'gamePage.catalog.subCategories.logic.description',
+                        'img' => '/img/game/logic.png',
+                        'icon' => 'mdi-lightbulb-on-outline',
+                        'games' => [
+                            ['id' => 'sudoku', 'nameKey' => 'gamePage.catalog.games.sudoku.name', 'descriptionKey' => 'gamePage.catalog.games.sudoku.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-grid', 'component' => 'sudoku', 'supportedModes' => ['ai'], 'categoryKey' => 'gamePage.catalog.categories.smartGames.name', 'subcategoryKey' => 'gamePage.catalog.subCategories.logic.name', 'difficultyKey' => 'gamePage.catalog.difficulties.medium', 'tags' => ['gamePage.catalog.games.sudoku.meta.tags.logic', 'gamePage.catalog.games.sudoku.meta.tags.puzzle', 'gamePage.catalog.games.sudoku.meta.tags.daily', 'gamePage.catalog.games.sudoku.meta.tags.solo', 'gamePage.catalog.games.sudoku.meta.tags.timer', 'gamePage.catalog.games.sudoku.meta.tags.score'], 'features' => ['gamePage.catalog.games.sudoku.meta.features.gridGeneration', 'gamePage.catalog.games.sudoku.meta.features.autoCheck', 'gamePage.catalog.games.sudoku.meta.features.timerAndScore']],
+                            ['id' => 'game-2048', 'nameKey' => 'gamePage.catalog.games.game2048.name', 'descriptionKey' => 'gamePage.catalog.games.game2048.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-numeric-8-box-multiple-outline', 'component' => 'game2048', 'supportedModes' => ['ai'], 'categoryKey' => 'gamePage.catalog.categories.smartGames.name', 'subcategoryKey' => 'gamePage.catalog.subCategories.logic.name', 'difficultyKey' => 'gamePage.catalog.difficulties.easy', 'tags' => ['gamePage.catalog.games.game2048.meta.tags.logic', 'gamePage.catalog.games.game2048.meta.tags.strategy', 'gamePage.catalog.games.game2048.meta.tags.puzzle', 'gamePage.catalog.games.game2048.meta.tags.solo', 'gamePage.catalog.games.game2048.meta.tags.score'], 'features' => ['gamePage.catalog.games.game2048.meta.features.smoothAnimations', 'gamePage.catalog.games.game2048.meta.features.scoreAndBest', 'gamePage.catalog.games.game2048.meta.features.sessionSave']],
+                        ],
+                    ],
+                    [
+                        'id' => 'words-language',
+                        'nameKey' => 'gamePage.catalog.subCategories.wordsLanguage.name',
+                        'descriptionKey' => 'gamePage.catalog.subCategories.wordsLanguage.description',
+                        'img' => '/img/game/words.png',
+                        'icon' => 'mdi-alphabetical-variant',
+                        'games' => [
+                            ['id' => 'hidden-word', 'nameKey' => 'gamePage.catalog.games.hiddenWord.name', 'descriptionKey' => 'gamePage.catalog.games.hiddenWord.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-text-search-variant', 'component' => 'hidden-word', 'supportedModes' => ['ai'], 'categoryKey' => 'gamePage.catalog.categories.smartGames.name', 'subcategoryKey' => 'gamePage.catalog.subCategories.wordsLanguage.name', 'difficultyKey' => 'gamePage.catalog.difficulties.medium', 'tags' => ['gamePage.catalog.games.hiddenWord.meta.tags.words', 'gamePage.catalog.games.hiddenWord.meta.tags.daily', 'gamePage.catalog.games.hiddenWord.meta.tags.puzzle', 'gamePage.catalog.games.hiddenWord.meta.tags.solo', 'gamePage.catalog.games.hiddenWord.meta.tags.hints', 'gamePage.catalog.games.hiddenWord.meta.tags.share'], 'features' => ['gamePage.catalog.games.hiddenWord.meta.features.wordOfTheDay', 'gamePage.catalog.games.hiddenWord.meta.features.dictionary', 'gamePage.catalog.games.hiddenWord.meta.features.share']],
+                        ],
+                    ],
+                    [
+                        'id' => 'grids-puzzles',
+                        'nameKey' => 'gamePage.catalog.subCategories.gridsPuzzles.name',
+                        'descriptionKey' => 'gamePage.catalog.subCategories.gridsPuzzles.description',
+                        'img' => '/img/game/puzzle.png',
+                        'icon' => 'mdi-grid-large',
+                        'games' => [
+                            ['id' => 'nonogram', 'nameKey' => 'gamePage.catalog.games.nonogram.name', 'descriptionKey' => 'gamePage.catalog.games.nonogram.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-view-grid-plus-outline', 'component' => 'nonogram', 'supportedModes' => ['ai'], 'categoryKey' => 'gamePage.catalog.categories.smartGames.name', 'subcategoryKey' => 'gamePage.catalog.subCategories.gridsPuzzles.name', 'difficultyKey' => 'gamePage.catalog.difficulties.hard', 'tags' => ['gamePage.catalog.games.nonogram.meta.tags.logic', 'gamePage.catalog.games.nonogram.meta.tags.puzzle', 'gamePage.catalog.games.nonogram.meta.tags.grid', 'gamePage.catalog.games.nonogram.meta.tags.solo', 'gamePage.catalog.games.nonogram.meta.tags.deduction'], 'features' => ['gamePage.catalog.games.nonogram.meta.features.rowColumnHints', 'gamePage.catalog.games.nonogram.meta.features.progressiveLevels']],
+                        ],
+                    ],
+                    [
+                        'id' => 'brain-training',
+                        'nameKey' => 'gamePage.catalog.subCategories.brainTraining.name',
+                        'descriptionKey' => 'gamePage.catalog.subCategories.brainTraining.description',
+                        'img' => '/img/game/brain.png',
+                        'icon' => 'mdi-head-cog-outline',
+                        'games' => [
+                            ['id' => 'memory-match', 'nameKey' => 'gamePage.catalog.games.memoryMatch.name', 'descriptionKey' => 'gamePage.catalog.games.memoryMatch.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-brain', 'component' => null, 'supportedModes' => [], 'categoryKey' => 'smart-games', 'subcategoryKey' => 'brain-training'],
+                            ['id' => 'mastermind', 'nameKey' => 'gamePage.catalog.games.mastermind.name', 'descriptionKey' => 'gamePage.catalog.games.mastermind.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-bullseye-arrow', 'component' => null, 'supportedModes' => [], 'categoryKey' => 'smart-games', 'subcategoryKey' => 'brain-training'],
+                            ['id' => 'minesweeper', 'nameKey' => 'gamePage.catalog.games.minesweeper.name', 'descriptionKey' => 'gamePage.catalog.games.minesweeper.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-bomb', 'component' => null, 'supportedModes' => [], 'categoryKey' => 'smart-games', 'subcategoryKey' => 'brain-training'],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'id' => 'arcade',
+                'nameKey' => 'gamePage.catalog.categories.arcade.name',
+                'descriptionKey' => 'gamePage.catalog.categories.arcade.description',
+                'img' => '/img/game/arcade-game.png',
+                'icon' => 'mdi-gamepad-variant-outline',
+                'subCategories' => [
+                    [
+                        'id' => 'reaction-arcade',
+                        'nameKey' => 'gamePage.catalog.subCategories.reactionArcade.name',
+                        'descriptionKey' => 'gamePage.catalog.subCategories.reactionArcade.description',
+                        'img' => '/img/game/card-game.png',
+                        'icon' => 'mdi-lightning-bolt-outline',
+                        'games' => [
+                            ['id' => 'flappy-rocket', 'nameKey' => 'gamePage.catalog.games.flappyRocket.name', 'descriptionKey' => 'gamePage.catalog.games.flappyRocket.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-rocket-launch-outline', 'component' => null, 'supportedModes' => [], 'categoryKey' => 'arcade', 'subcategoryKey' => 'reaction-arcade'],
+                            ['id' => 'stack-jump', 'nameKey' => 'gamePage.catalog.games.stackJump.name', 'descriptionKey' => 'gamePage.catalog.games.stackJump.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-cube-outline', 'component' => null, 'supportedModes' => [], 'categoryKey' => 'arcade', 'subcategoryKey' => 'reaction-arcade'],
+                        ],
+                    ],
+                    [
+                        'id' => 'classic-arcade',
+                        'nameKey' => 'gamePage.catalog.subCategories.classicArcade.name',
+                        'descriptionKey' => 'gamePage.catalog.subCategories.classicArcade.description',
+                        'img' => '/img/game/card-game.png',
+                        'icon' => 'mdi-ghost-outline',
+                        'games' => [
+                            ['id' => 'space-invaders', 'nameKey' => 'gamePage.catalog.games.spaceInvaders.name', 'descriptionKey' => 'gamePage.catalog.games.spaceInvaders.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-space-invaders', 'component' => null, 'supportedModes' => [], 'categoryKey' => 'arcade', 'subcategoryKey' => 'classic-arcade'],
+                            ['id' => 'brick-breaker', 'nameKey' => 'gamePage.catalog.games.brickBreaker.name', 'descriptionKey' => 'gamePage.catalog.games.brickBreaker.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-view-grid-plus-outline', 'component' => null, 'supportedModes' => [], 'categoryKey' => 'arcade', 'subcategoryKey' => 'classic-arcade'],
+                            ['id' => 'snake', 'nameKey' => 'gamePage.catalog.games.snake.name', 'descriptionKey' => 'gamePage.catalog.games.snake.description', 'img' => '/img/game/classic-card.png', 'icon' => 'mdi-snake', 'component' => null, 'supportedModes' => [], 'categoryKey' => 'arcade', 'subcategoryKey' => 'classic-arcade'],
+                        ],
+                    ],
+                ],
+            ],
+        ];
     }
 }
