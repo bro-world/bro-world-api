@@ -241,20 +241,11 @@ final readonly class GameController
         ], JsonResponse::HTTP_CREATED);
     }
 
-    #[Route('/v1/games/{gameId}/sessions/{sessionId}/finish', methods: [Request::METHOD_POST])]
-    #[OA\Post(summary: 'Finish tracked session with final result.', security: [['bearerAuth' => []]], requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object', properties: [new OA\Property(property: 'result', type: 'string', example: 'win')], required: ['result'])), responses: [new OA\Response(response: 200, description: 'Session finished.', content: new OA\JsonContent(type: 'object', properties: [new OA\Property(property: 'userGame', type: 'object'), new OA\Property(property: 'coins', type: 'integer')])), new OA\Response(response: 404, description: 'Game/session not found.'), new OA\Response(response: 409, description: 'Already finished.'), new OA\Response(response: 422, description: 'Validation failed.'), new OA\Response(response: 401, description: 'Authentication required.')])]
-    public function finishSession(string $gameId, string $sessionId, Request $request, User $loggedInUser): JsonResponse
+    #[Route('/v1/games/sessions/{session}/finish', methods: [Request::METHOD_POST])]
+    #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
+    #[OA\Post(summary: 'Finish tracked session with final result.', requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object', properties: [new OA\Property(property: 'result', type: 'string', example: 'win')], required: ['result'])), responses: [new OA\Response(response: 200, description: 'Session finished.', content: new OA\JsonContent(type: 'object', properties: [new OA\Property(property: 'userGame', type: 'object'), new OA\Property(property: 'coins', type: 'integer')])), new OA\Response(response: 404, description: 'Game/session not found.'), new OA\Response(response: 409, description: 'Already finished.'), new OA\Response(response: 422, description: 'Validation failed.'), new OA\Response(response: 401, description: 'Authentication required.')])]
+    public function finishSession(GameSession $session, Request $request, User $loggedInUser): JsonResponse
     {
-        $game = $this->entityManager->getRepository(Game::class)->find($gameId);
-        if (!$game instanceof Game) {
-            return new JsonResponse(['message' => 'Game not found.'], JsonResponse::HTTP_NOT_FOUND);
-        }
-
-        $session = $this->entityManager->getRepository(GameSession::class)->find($sessionId);
-        if (!$session instanceof GameSession || $session->getGame()?->getId() !== $game->getId()) {
-            return new JsonResponse(['message' => 'Game session not found.'], JsonResponse::HTTP_NOT_FOUND);
-        }
-
         $payload = $this->decodeRequest($request);
         if ($payload instanceof JsonResponse) {
             return $payload;
