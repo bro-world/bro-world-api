@@ -18,6 +18,7 @@ use App\Blog\Infrastructure\Repository\BlogRepository;
 use App\General\Application\Service\CacheInvalidationService;
 use App\General\Application\Service\CacheKeyConventionService;
 use App\User\Domain\Entity\User;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -88,6 +89,7 @@ final class BlogReadServiceTest extends TestCase
         $post->method('getAuthor')->willReturn($currentUser);
         $post->method('getTitle')->willReturn('Post title');
         $post->method('getContent')->willReturn('Post content');
+        $post->method('getCreatedAt')->willReturn(new DateTimeImmutable('2026-01-01T10:00:00+00:00'));
         $post->method('getSharedUrl')->willReturn(null);
         $post->method('getParentPost')->willReturn(null);
         $post->method('isPinned')->willReturn(true);
@@ -130,9 +132,11 @@ final class BlogReadServiceTest extends TestCase
         self::assertSame(8, $normalized['pagination']['totalItems']);
         self::assertSame(2, $normalized['pagination']['totalPages']);
         self::assertSame('p-1', $normalized['posts'][0]['id']);
+        self::assertSame('2026-01-01T10:00:00+00:00', $normalized['posts'][0]['createdAt']);
         self::assertSame(1, $normalized['posts'][0]['children']['count']);
         self::assertSame('alice-user', $normalized['posts'][0]['children']['authors'][0]['username']);
         self::assertSame('c-root', $normalized['posts'][0]['comments'][0]['id']);
+        self::assertSame('2026-01-01T12:00:00+00:00', $normalized['posts'][0]['comments'][0]['createdAt']);
     }
 
     public function testPrivateBlogCacheIsRefreshedAfterBlogMutationInvalidation(): void
@@ -206,6 +210,7 @@ final class BlogReadServiceTest extends TestCase
         $comment->method('getAuthor')->willReturn($author);
         $comment->method('getParent')->willReturn($parent);
         $comment->method('getContent')->willReturn('Comment ' . $id);
+        $comment->method('getCreatedAt')->willReturn(new DateTimeImmutable('2026-01-01T12:00:00+00:00'));
         $comment->method('getFilePath')->willReturn(null);
         $comment->method('getReactions')->willReturn(new ArrayCollection($reactions));
 
