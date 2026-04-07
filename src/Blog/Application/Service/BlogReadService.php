@@ -181,6 +181,7 @@ final readonly class BlogReadService
             'author' => $this->normalizeAuthor($post->getAuthor()),
             'title' => $post->getTitle(),
             'content' => $post->getContent(),
+            'createdAt' => $post->getCreatedAt()?->format(DATE_ATOM),
             'sharedUrl' => $post->getSharedUrl(),
             'isPinned' => $post->isPinned(),
             'filePath' => $post->getFilePath(),
@@ -256,6 +257,7 @@ final readonly class BlogReadService
                 'isAuthor' => $this->isAuthor($comment->getAuthor(), $currentUser),
                 'author' => $this->normalizeAuthor($comment->getAuthor()),
                 'content' => $comment->getContent(),
+                'createdAt' => $comment->getCreatedAt()?->format(DATE_ATOM),
                 'filePath' => $comment->getFilePath(),
                 'reactions' => array_map(fn ($reaction): array => [
                     'id' => $reaction->getId(),
