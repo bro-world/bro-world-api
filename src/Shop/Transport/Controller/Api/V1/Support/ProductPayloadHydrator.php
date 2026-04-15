@@ -48,6 +48,9 @@ final readonly class ProductPayloadHydrator
         if (!$partial || array_key_exists('stock', $payload)) {
             $product->setStock((int)($payload['stock'] ?? 0));
         }
+        if (!$partial || array_key_exists('coinsAmount', $payload)) {
+            $product->setCoinsAmount((int)($payload['coinsAmount'] ?? 0));
+        }
         if (!$partial || array_key_exists('isFeatured', $payload)) {
             $product->setIsFeatured((bool)($payload['isFeatured'] ?? false));
         }

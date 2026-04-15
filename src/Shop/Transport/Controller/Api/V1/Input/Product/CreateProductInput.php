@@ -21,6 +21,9 @@ final class CreateProductInput
     #[Assert\GreaterThanOrEqual(value: 0, message: 'stock must be greater than or equal to 0.')]
     public int $stock = 0;
 
+    #[Assert\GreaterThanOrEqual(value: 0, message: 'coinsAmount must be greater than or equal to 0.')]
+    public int $coinsAmount = 0;
+
     public ?string $description = null;
     public ?string $currencyCode = null;
     public ?string $categoryId = null;
@@ -45,6 +48,7 @@ final class CreateProductInput
         $input->sku = strtoupper(trim((string)($payload['sku'] ?? '')));
         $input->price = (float)($payload['price'] ?? 0);
         $input->stock = (int)($payload['stock'] ?? 0);
+        $input->coinsAmount = (int)($payload['coinsAmount'] ?? 0);
         $input->description = ($payload['description'] ?? null) !== null ? (string)$payload['description'] : null;
         $input->currencyCode = is_string($payload['currencyCode'] ?? null) ? trim((string)$payload['currencyCode']) : null;
         $input->categoryId = is_string($payload['categoryId'] ?? null) ? trim((string)$payload['categoryId']) : null;

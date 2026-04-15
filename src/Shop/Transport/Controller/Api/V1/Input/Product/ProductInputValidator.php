@@ -55,6 +55,13 @@ final readonly class ProductInputValidator
                 'code' => 'STOCK_INVALID',
             ];
         }
+        if ($input->coinsAmount !== null && $input->coinsAmount < 0) {
+            $errors[] = [
+                'field' => 'coinsAmount',
+                'message' => 'coinsAmount must be greater than or equal to 0.',
+                'code' => 'COINS_AMOUNT_INVALID',
+            ];
+        }
 
         if ($errors === []) {
             return null;

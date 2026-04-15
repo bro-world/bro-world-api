@@ -140,6 +140,7 @@ readonly class ProductListService
             'price' => MoneyFormatter::toApiAmount($product->getPrice()),
             'currencyCode' => $product->getCurrencyCode(),
             'stock' => $product->getStock(),
+            'coinsAmount' => $product->getCoinsAmount(),
             'isFeatured' => $product->isFeatured(),
             'status' => $product->getStatus()->value,
             'categoryId' => $product->getCategory()?->getId(),
