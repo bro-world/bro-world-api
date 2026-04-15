@@ -31,9 +31,10 @@ readonly class ClassApplicationListService
      * @throws \JsonException
      * @throws InvalidArgumentException
      */
-    public function list(Request $request, string $applicationSlug, School $school): array
+    public function list(Request $request, ?School $school = null): array
     {
         $queryOptions = $this->listRequestHelper->fromRequest($request, ['q']);
+        $applicationSlug = (string)$request->attributes->get('applicationSlug', 'general');
         $cacheKey = $this->cacheKeyConventionService->buildSchoolClassApplicationListKey($applicationSlug, $queryOptions->page, $queryOptions->limit, $queryOptions->filters);
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($applicationSlug, $school, $queryOptions): array {
@@ -43,31 +44,39 @@ readonly class ClassApplicationListService
             }
 
             $qb = $this->classRepository->createQueryBuilder('class')
-                ->andWhere('class.school = :school')->setParameter('school', $school)
                 ->orderBy('class.createdAt', 'DESC')
                 ->setFirstResult($queryOptions->offset())
                 ->setMaxResults($queryOptions->limit);
+            if ($school !== null) {
+                $qb->andWhere('class.school = :school')->setParameter('school', $school);
+            }
             if ($queryOptions->filters['q'] !== '') {
                 $qb->andWhere('LOWER(class.name) LIKE LOWER(:q)')->setParameter('q', '%' . $queryOptions->filters['q'] . '%');
             }
 
             $items = $this->viewMapper->mapClassCollection($qb->getQuery()->getResult());
 
-            $countQb = $this->classRepository->createQueryBuilder('class')->select('COUNT(class.id)')
-                ->andWhere('class.school = :school')->setParameter('school', $school);
+            $countQb = $this->classRepository->createQueryBuilder('class')->select('COUNT(class.id)');
+            if ($school !== null) {
+                $countQb->andWhere('class.school = :school')->setParameter('school', $school);
+            }
             if ($queryOptions->filters['q'] !== '') {
                 $countQb->andWhere('LOWER(class.name) LIKE LOWER(:q)')->setParameter('q', '%' . $queryOptions->filters['q'] . '%');
             }
             $totalItems = (int)$countQb->getQuery()->getSingleScalarResult();
 
+            $meta = [
+                'applicationSlug' => $applicationSlug,
+            ];
+            if ($school !== null) {
+                $meta['schoolId'] = $school->getId();
+            }
+
             return $this->listResponseFactory->create(
                 $queryOptions,
                 $totalItems,
                 $items,
-                [
-                    'applicationSlug' => $applicationSlug,
-                    'schoolId' => $school->getId(),
-                ],
+                $meta,
             );
         });
     }
