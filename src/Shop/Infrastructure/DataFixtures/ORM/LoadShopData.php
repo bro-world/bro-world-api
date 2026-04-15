@@ -19,6 +19,8 @@ use Override;
 
 final class LoadShopData extends Fixture implements OrderedFixtureInterface
 {
+    private const string ASSET_HOST = 'https://localhost';
+
     /**
      * @var array<non-empty-string, array<int, non-empty-string>>
      */
@@ -34,12 +36,159 @@ final class LoadShopData extends Fixture implements OrderedFixtureInterface
     public function load(ObjectManager $manager): void
     {
         $globalShop = $this->findOrCreateGlobalShop($manager);
-        $coinsCategory = $this->findOrCreateCategory($manager, $globalShop, 'Coins', 'coins', 'Pièces virtuelles à créditer sur le solde utilisateur.');
-        $coinsPackCategory = $this->findOrCreateCategory($manager, $globalShop, 'Packs coins', 'packs-coins', 'Packs de coins prêts à être achetés et crédités automatiquement.');
 
-        $this->findOrCreateCoinProduct($manager, $globalShop, $coinsCategory, 'Pack 200 coins', 'COINS-200', 300, 200);
-        $this->findOrCreateCoinProduct($manager, $globalShop, $coinsPackCategory, 'Pack 500 coins', 'COINS-500', 500, 500);
-        $this->findOrCreateCoinProduct($manager, $globalShop, $coinsPackCategory, 'Pack 1000 coins', 'COINS-1000', 800, 1000);
+        $coinsCategory = $this->findOrCreateCategory(
+            $manager,
+            $globalShop,
+            'Coins',
+            'coins',
+            'Packs de coins virtuels.',
+            $this->buildAssetUrl('/img/shop/categories/coins.png'),
+        );
+
+        $housesCategory = $this->findOrCreateCategory(
+            $manager,
+            $globalShop,
+            'Houses',
+            'houses',
+            'Maisons et décor premium.',
+            $this->buildAssetUrl('/img/shop/categories/houses.png'),
+        );
+
+        $furnitureCategory = $this->findOrCreateCategory(
+            $manager,
+            $globalShop,
+            'Meubles',
+            'meubles',
+            'Mobilier et décoration intérieure.',
+            $this->buildAssetUrl('/img/shop/categories/meubles.png'),
+        );
+
+        $this->findOrCreateProduct(
+            manager: $manager,
+            shop: $globalShop,
+            category: $coinsCategory,
+            name: '200 coins',
+            sku: 'COINS-200',
+            price: 200,
+            stock: 999999,
+            description: 'Crédite 200 coins.',
+            photo: $this->buildAssetUrl('/img/shop/products/200.png'),
+            coinsAmount: 200,
+            isFeatured: true,
+        );
+
+        $this->findOrCreateProduct(
+            manager: $manager,
+            shop: $globalShop,
+            category: $coinsCategory,
+            name: '400 coins',
+            sku: 'COINS-400',
+            price: 360,
+            stock: 999999,
+            description: 'Crédite 400 coins.',
+            photo: $this->buildAssetUrl('/img/shop/products/400.png'),
+            coinsAmount: 400,
+            isFeatured: true,
+        );
+
+        $this->findOrCreateProduct(
+            manager: $manager,
+            shop: $globalShop,
+            category: $coinsCategory,
+            name: '600 coins',
+            sku: 'COINS-600',
+            price: 500,
+            stock: 999999,
+            description: 'Crédite 600 coins.',
+            photo: $this->buildAssetUrl('/img/shop/products/600.png'),
+            coinsAmount: 600,
+            isFeatured: true,
+        );
+
+        $this->findOrCreateProduct(
+            manager: $manager,
+            shop: $globalShop,
+            category: $housesCategory,
+            name: 'House Pack 1',
+            sku: 'HOUSE-001',
+            price: 15900,
+            stock: 120,
+            description: 'Pack maison 1.',
+            photo: $this->buildAssetUrl('/img/shop/products/product-1-min.jpeg'),
+        );
+
+        $this->findOrCreateProduct(
+            manager: $manager,
+            shop: $globalShop,
+            category: $housesCategory,
+            name: 'House Pack 2',
+            sku: 'HOUSE-002',
+            price: 22900,
+            stock: 80,
+            description: 'Pack maison 2.',
+            photo: $this->buildAssetUrl('/img/shop/products/product-2-min.jpeg'),
+        );
+
+        $this->findOrCreateProduct(
+            manager: $manager,
+            shop: $globalShop,
+            category: $housesCategory,
+            name: 'House Pack 3',
+            sku: 'HOUSE-003',
+            price: 31900,
+            stock: 60,
+            description: 'Pack maison 3.',
+            photo: $this->buildAssetUrl('/img/shop/products/product-3-min.jpeg'),
+        );
+
+        $this->findOrCreateProduct(
+            manager: $manager,
+            shop: $globalShop,
+            category: $furnitureCategory,
+            name: 'Meuble Set 1',
+            sku: 'FURN-001',
+            price: 3900,
+            stock: 250,
+            description: 'Set meuble 1.',
+            photo: $this->buildAssetUrl('/img/shop/products/product-details-1.jpg'),
+        );
+
+        $this->findOrCreateProduct(
+            manager: $manager,
+            shop: $globalShop,
+            category: $furnitureCategory,
+            name: 'Meuble Set 2',
+            sku: 'FURN-002',
+            price: 4900,
+            stock: 220,
+            description: 'Set meuble 2.',
+            photo: $this->buildAssetUrl('/img/shop/products/product-details-2.jpg'),
+        );
+
+        $this->findOrCreateProduct(
+            manager: $manager,
+            shop: $globalShop,
+            category: $furnitureCategory,
+            name: 'Meuble Set 3',
+            sku: 'FURN-003',
+            price: 5900,
+            stock: 180,
+            description: 'Set meuble 3.',
+            photo: $this->buildAssetUrl('/img/shop/products/product-details-3.jpg'),
+        );
+
+        $this->findOrCreateProduct(
+            manager: $manager,
+            shop: $globalShop,
+            category: $furnitureCategory,
+            name: 'Meuble Set 4',
+            sku: 'FURN-004',
+            price: 7900,
+            stock: 140,
+            description: 'Set meuble 4.',
+            photo: $this->buildAssetUrl('/img/shop/products/product-details-4.jpg'),
+        );
 
         foreach ($this->getApplicationsByPlatform(PlatformKey::SHOP) as $application) {
             $existingCatalog = $manager->getRepository(Shop::class)->findOneBy([
@@ -120,7 +269,7 @@ final class LoadShopData extends Fixture implements OrderedFixtureInterface
         return $shop;
     }
 
-    private function findOrCreateCategory(ObjectManager $manager, Shop $shop, string $name, string $slug, string $description): Category
+    private function findOrCreateCategory(ObjectManager $manager, Shop $shop, string $name, string $slug, string $description, string $photo): Category
     {
         $category = $manager->getRepository(Category::class)->findOneBy([
             'shop' => $shop,
@@ -130,21 +279,34 @@ final class LoadShopData extends Fixture implements OrderedFixtureInterface
         if ($category instanceof Category) {
             return $category
                 ->setName($name)
-                ->setDescription($description);
+                ->setDescription($description)
+                ->setPhoto($photo);
         }
 
         $category = (new Category())
             ->setShop($shop)
             ->setName($name)
             ->setSlug($slug)
-            ->setDescription($description);
+            ->setDescription($description)
+            ->setPhoto($photo);
         $manager->persist($category);
 
         return $category;
     }
 
-    private function findOrCreateCoinProduct(ObjectManager $manager, Shop $shop, Category $category, string $name, string $sku, int $price, int $coinsAmount): Product
-    {
+    private function findOrCreateProduct(
+        ObjectManager $manager,
+        Shop $shop,
+        Category $category,
+        string $name,
+        string $sku,
+        int $price,
+        int $stock,
+        string $description,
+        string $photo,
+        int $coinsAmount = 0,
+        bool $isFeatured = false,
+    ): Product {
         $product = $manager->getRepository(Product::class)->findOneBy(['sku' => $sku]);
 
         if ($product instanceof Product) {
@@ -152,13 +314,14 @@ final class LoadShopData extends Fixture implements OrderedFixtureInterface
                 ->setShop($shop)
                 ->setCategory($category)
                 ->setName($name)
-                ->setDescription(sprintf('Crédite %d coins sur le compte utilisateur après paiement validé.', $coinsAmount))
+                ->setDescription($description)
+                ->setPhoto($photo)
                 ->setPrice($price)
                 ->setCurrencyCode('EUR')
-                ->setStock(999999)
+                ->setStock($stock)
                 ->setCoinsAmount($coinsAmount)
                 ->setStatus(ProductStatus::ACTIVE)
-                ->setIsFeatured(true);
+                ->setIsFeatured($isFeatured);
         }
 
         $product = (new Product())
@@ -166,16 +329,22 @@ final class LoadShopData extends Fixture implements OrderedFixtureInterface
             ->setCategory($category)
             ->setName($name)
             ->setSku($sku)
-            ->setDescription(sprintf('Crédite %d coins sur le compte utilisateur après paiement validé.', $coinsAmount))
+            ->setDescription($description)
+            ->setPhoto($photo)
             ->setPrice($price)
             ->setCurrencyCode('EUR')
-            ->setStock(999999)
+            ->setStock($stock)
             ->setCoinsAmount($coinsAmount)
             ->setStatus(ProductStatus::ACTIVE)
-            ->setIsFeatured(true);
+            ->setIsFeatured($isFeatured);
         $manager->persist($product);
 
         return $product;
+    }
+
+    private function buildAssetUrl(string $path): string
+    {
+        return self::ASSET_HOST . $path;
     }
 
     /**
