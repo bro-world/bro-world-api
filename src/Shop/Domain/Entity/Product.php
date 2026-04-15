@@ -60,6 +60,11 @@ class Product implements EntityInterface
     ])]
     private int $stock = 0;
 
+    #[ORM\Column(name: 'coins_amount', type: Types::INTEGER, options: [
+        'default' => 0,
+    ])]
+    private int $coinsAmount = 0;
+
     #[ORM\Column(name: 'is_featured', type: Types::BOOLEAN, options: [
         'default' => false,
     ])]
@@ -177,6 +182,18 @@ class Product implements EntityInterface
     public function setStock(int $stock): self
     {
         $this->stock = max(0, $stock);
+
+        return $this;
+    }
+
+    public function getCoinsAmount(): int
+    {
+        return $this->coinsAmount;
+    }
+
+    public function setCoinsAmount(int $coinsAmount): self
+    {
+        $this->coinsAmount = max(0, $coinsAmount);
 
         return $this;
     }

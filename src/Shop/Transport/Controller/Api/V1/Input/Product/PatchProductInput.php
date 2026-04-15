@@ -10,6 +10,7 @@ final class PatchProductInput
     public ?string $sku = null;
     public ?float $price = null;
     public ?int $stock = null;
+    public ?int $coinsAmount = null;
     public ?string $description = null;
     public ?string $currencyCode = null;
     public ?string $categoryId = null;
@@ -32,6 +33,7 @@ final class PatchProductInput
         $input->sku = array_key_exists('sku', $payload) ? strtoupper(trim((string)$payload['sku'])) : null;
         $input->price = array_key_exists('price', $payload) ? (float)$payload['price'] : null;
         $input->stock = array_key_exists('stock', $payload) ? (int)$payload['stock'] : null;
+        $input->coinsAmount = array_key_exists('coinsAmount', $payload) ? (int)$payload['coinsAmount'] : null;
         $input->description = array_key_exists('description', $payload) ? (($payload['description'] ?? null) !== null ? (string)$payload['description'] : null) : null;
         $input->currencyCode = array_key_exists('currencyCode', $payload) ? (($payload['currencyCode'] ?? null) !== null ? (string)$payload['currencyCode'] : null) : null;
         $input->categoryId = array_key_exists('categoryId', $payload) ? (($payload['categoryId'] ?? null) !== null ? (string)$payload['categoryId'] : null) : null;

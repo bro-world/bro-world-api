@@ -33,6 +33,14 @@ final class LoadShopData extends Fixture implements OrderedFixtureInterface
     #[Override]
     public function load(ObjectManager $manager): void
     {
+        $globalShop = $this->findOrCreateGlobalShop($manager);
+        $coinsCategory = $this->findOrCreateCategory($manager, $globalShop, 'Coins', 'coins', 'Pièces virtuelles à créditer sur le solde utilisateur.');
+        $coinsPackCategory = $this->findOrCreateCategory($manager, $globalShop, 'Packs coins', 'packs-coins', 'Packs de coins prêts à être achetés et crédités automatiquement.');
+
+        $this->findOrCreateCoinProduct($manager, $globalShop, $coinsCategory, 'Pack 200 coins', 'COINS-200', 300, 200);
+        $this->findOrCreateCoinProduct($manager, $globalShop, $coinsPackCategory, 'Pack 500 coins', 'COINS-500', 500, 500);
+        $this->findOrCreateCoinProduct($manager, $globalShop, $coinsPackCategory, 'Pack 1000 coins', 'COINS-1000', 800, 1000);
+
         foreach ($this->getApplicationsByPlatform(PlatformKey::SHOP) as $application) {
             $existingCatalog = $manager->getRepository(Shop::class)->findOneBy([
                 'application' => $application,
@@ -87,6 +95,87 @@ final class LoadShopData extends Fixture implements OrderedFixtureInterface
     public function getOrder(): int
     {
         return 10;
+    }
+
+    private function findOrCreateGlobalShop(ObjectManager $manager): Shop
+    {
+        $shop = $manager->getRepository(Shop::class)->findOneBy(['isGlobal' => true]);
+        if ($shop instanceof Shop) {
+            return $shop
+                ->setName('Global Coins Shop')
+                ->setDescription('Catalogue global pour les achats de coins.')
+                ->setIsActive(true)
+                ->setIsGlobal(true)
+                ->setApplication(null);
+        }
+
+        $shop = (new Shop())
+            ->setName('Global Coins Shop')
+            ->setDescription('Catalogue global pour les achats de coins.')
+            ->setIsActive(true)
+            ->setIsGlobal(true)
+            ->setApplication(null);
+        $manager->persist($shop);
+
+        return $shop;
+    }
+
+    private function findOrCreateCategory(ObjectManager $manager, Shop $shop, string $name, string $slug, string $description): Category
+    {
+        $category = $manager->getRepository(Category::class)->findOneBy([
+            'shop' => $shop,
+            'slug' => $slug,
+        ]);
+
+        if ($category instanceof Category) {
+            return $category
+                ->setName($name)
+                ->setDescription($description);
+        }
+
+        $category = (new Category())
+            ->setShop($shop)
+            ->setName($name)
+            ->setSlug($slug)
+            ->setDescription($description);
+        $manager->persist($category);
+
+        return $category;
+    }
+
+    private function findOrCreateCoinProduct(ObjectManager $manager, Shop $shop, Category $category, string $name, string $sku, int $price, int $coinsAmount): Product
+    {
+        $product = $manager->getRepository(Product::class)->findOneBy(['sku' => $sku]);
+
+        if ($product instanceof Product) {
+            return $product
+                ->setShop($shop)
+                ->setCategory($category)
+                ->setName($name)
+                ->setDescription(sprintf('Crédite %d coins sur le compte utilisateur après paiement validé.', $coinsAmount))
+                ->setPrice($price)
+                ->setCurrencyCode('EUR')
+                ->setStock(999999)
+                ->setCoinsAmount($coinsAmount)
+                ->setStatus(ProductStatus::ACTIVE)
+                ->setIsFeatured(true);
+        }
+
+        $product = (new Product())
+            ->setShop($shop)
+            ->setCategory($category)
+            ->setName($name)
+            ->setSku($sku)
+            ->setDescription(sprintf('Crédite %d coins sur le compte utilisateur après paiement validé.', $coinsAmount))
+            ->setPrice($price)
+            ->setCurrencyCode('EUR')
+            ->setStock(999999)
+            ->setCoinsAmount($coinsAmount)
+            ->setStatus(ProductStatus::ACTIVE)
+            ->setIsFeatured(true);
+        $manager->persist($product);
+
+        return $product;
     }
 
     /**
