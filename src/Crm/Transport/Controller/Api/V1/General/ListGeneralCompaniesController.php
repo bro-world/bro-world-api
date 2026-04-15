@@ -1,0 +1,35 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Crm\Transport\Controller\Api\V1\General;
+
+use App\Crm\Application\Service\CompanyApplicationListService;
+use App\Role\Domain\Enum\Role;
+use JsonException;
+use OpenApi\Attributes as OA;
+use Psr\Cache\InvalidArgumentException;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[AsController]
+#[OA\Tag(name: 'Crm')]
+#[IsGranted(Role::CRM_VIEWER->value)]
+final readonly class ListGeneralCompaniesController
+{
+    public function __construct(private CompanyApplicationListService $companyApplicationListService)
+    {
+    }
+
+    /** @throws JsonException
+     * @throws InvalidArgumentException
+     */
+    #[Route('/v1/crm/general/companies', methods: [Request::METHOD_GET])]
+    public function __invoke(Request $request): JsonResponse
+    {
+        return new JsonResponse($this->companyApplicationListService->listGlobal($request));
+    }
+}
