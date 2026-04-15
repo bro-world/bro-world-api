@@ -37,10 +37,10 @@ final readonly class CheckoutGeneralController
     }
 
     #[Route('/v1/shop/general/checkout/{shopId}', methods: [Request::METHOD_POST])]
-    #[OA\Parameter(name: 'shopId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Parameter(name: 'shopId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid', example: 'f95da407-b9f0-4d5f-a14e-15c4b22af6e3'))]
     #[OA\Post(
         summary: 'Create an order from the authenticated user cart in the global shop scope.',
-        description: 'Independent from any application slug: this endpoint converts the active cart of the authenticated user into an order for the provided shop.',
+        description: 'Manual /api/doc chain step 3/6: POST /v1/shop/general/checkout/{shopId}. Reuse shopId=f95da407-b9f0-4d5f-a14e-15c4b22af6e3 from steps 1-2 and store returned orderId=ord_8cb7be4f-2d27-430d-bc16-5b9fc4f2ef1e for steps 4-5.',
         security: [['Bearer' => []]],
         requestBody: new OA\RequestBody(
             required: true,
@@ -55,8 +55,8 @@ final readonly class CheckoutGeneralController
                 ],
                 examples: [
                     new OA\Examples(
-                        example: 'checkout',
-                        summary: 'Checkout request',
+                        example: 'manual_step_3_checkout_input',
+                        summary: 'Step 3 input - checkout using shopId from steps 1-2',
                         value: [
                             'billingAddress' => '42 Rue des Fleurs, 75001 Paris, FR',
                             'shippingAddress' => '15 Avenue Victor Hugo, 75016 Paris, FR',
@@ -75,8 +75,8 @@ final readonly class CheckoutGeneralController
         content: new OA\JsonContent(
             examples: [
                 new OA\Examples(
-                    example: 'order_created',
-                    summary: 'Checkout created',
+                    example: 'manual_step_3_checkout_output',
+                    summary: 'Step 3 output - capture orderId for steps 4-5',
                     value: [
                         'id' => 'ord_8cb7be4f-2d27-430d-bc16-5b9fc4f2ef1e',
                         'status' => 'pending_payment',

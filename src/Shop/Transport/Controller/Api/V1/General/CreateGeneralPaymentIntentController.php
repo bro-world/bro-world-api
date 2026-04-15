@@ -38,10 +38,10 @@ final readonly class CreateGeneralPaymentIntentController
      * @throws ORMException
      */
     #[Route('/v1/shop/general/orders/{orderId}/payment-intent', methods: [Request::METHOD_POST])]
-    #[OA\Parameter(name: 'orderId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Parameter(name: 'orderId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid', example: 'ord_8cb7be4f-2d27-430d-bc16-5b9fc4f2ef1e'))]
     #[OA\Post(
         summary: 'Create a payment intent for an existing global-scope order.',
-        description: 'Independent from application context: creates a transaction intent for a global shop order using the selected payment provider and method.',
+        description: 'Manual /api/doc chain step 4/6: POST /v1/shop/general/orders/{orderId}/payment-intent. Reuse orderId=ord_8cb7be4f-2d27-430d-bc16-5b9fc4f2ef1e from step 3 and keep providerReference for steps 5-6.',
         security: [['Bearer' => []]],
         requestBody: new OA\RequestBody(
             required: false,
@@ -53,8 +53,8 @@ final readonly class CreateGeneralPaymentIntentController
                 type: 'object',
                 examples: [
                     new OA\Examples(
-                        example: 'create_payment_intent',
-                        summary: 'Create payment intent with Stripe card flow',
+                        example: 'manual_step_4_payment_intent_input',
+                        summary: 'Step 4 input - create Stripe payment intent for orderId from step 3',
                         value: [
                             'provider' => 'stripe',
                             'paymentMethod' => 'stripe',
@@ -66,7 +66,7 @@ final readonly class CreateGeneralPaymentIntentController
     )]
     #[OA\Response(
         response: JsonResponse::HTTP_CREATED,
-        description: 'Payment intent created.',
+        description: 'Payment intent created (capture providerReference for step 5 and optional step 6).',
         content: new OA\JsonContent(example: [
             'id' => 'txn_8f96897f-bf44-4ed5-b2e8-cd8b64ac9ef8',
             'orderId' => 'ord_8cb7be4f-2d27-430d-bc16-5b9fc4f2ef1e',

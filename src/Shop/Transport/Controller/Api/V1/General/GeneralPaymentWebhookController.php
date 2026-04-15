@@ -35,11 +35,11 @@ final readonly class GeneralPaymentWebhookController
         in: 'query',
         required: false,
         description: 'Optional provider hint used to route webhook events.',
-        schema: new OA\Schema(type: 'string', enum: ['paypal', 'stripe', 'mock']),
+        schema: new OA\Schema(type: 'string', enum: ['paypal', 'stripe', 'mock'], example: 'stripe'),
     )]
     #[OA\Post(
         summary: 'Receive provider webhook notifications for global shop payments.',
-        description: 'Public endpoint independent from application context. Providers notify payment state changes through this callback.',
+        description: 'Manual /api/doc optional step 6/6: POST /v1/shop/general/payments/webhook?provider=stripe. Reuse providerReference=pi_3QyQkL2x8d9 from step 4 to simulate asynchronous provider callbacks.',
         security: [],
         requestBody: new OA\RequestBody(
             required: true,
@@ -48,8 +48,8 @@ final readonly class GeneralPaymentWebhookController
                 description: 'Provider webhook payload (shape depends on provider).',
                 examples: [
                     new OA\Examples(
-                        example: 'webhook_payload',
-                        summary: 'Stripe webhook payload example',
+                        example: 'manual_step_6_webhook_input',
+                        summary: 'Optional step 6 input - Stripe event linked to providerReference from step 4',
                         value: [
                             'id' => 'evt_1QyQtx2x8d9',
                             'type' => 'payment_intent.succeeded',
