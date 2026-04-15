@@ -30,12 +30,12 @@ final class LoadUserData extends Fixture implements OrderedFixtureInterface
      * @var array<non-empty-string, non-empty-string>
      */
     private const array USER_PHOTOS = [
-        'john' => 'https://localhost/img/team-1.jpg',
-        'john-logged' => 'https://localhost/img/team-2.jpg',
-        'john-api' => 'https://localhost/img/team-3.jpg',
-        'john-user' => 'https://localhost/img/team-4.jpg',
-        'john-admin' => 'https://localhost/img/team-5.jpg',
-        'john-root' => 'https://localhost/img/team-9.jpeg',
+        'john' => 'https://bro-world.org/img/team-1.jpg',
+        'john-logged' => 'https://bro-world.org/img/team-2.jpg',
+        'john-api' => 'https://bro-world.org/img/team-3.jpg',
+        'john-user' => 'https://bro-world.org/img/team-4.jpg',
+        'john-admin' => 'https://bro-world.org/img/team-5.jpg',
+        'john-root' => 'https://bro-world.org/img/team-9.jpeg',
     ];
 
     /**

@@ -19,7 +19,7 @@ use Override;
 
 final class LoadShopData extends Fixture implements OrderedFixtureInterface
 {
-    private const string ASSET_HOST = 'https://localhost';
+    private const string ASSET_HOST = 'https://bro-world.org';
 
     /**
      * @var array<non-empty-string, array<int, non-empty-string>>
