@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Crm\Application\Service;
 
+use App\Crm\Domain\Entity\Company;
 use App\Crm\Domain\Entity\Crm;
 use App\Crm\Infrastructure\Repository\CompanyRepository;
 use App\General\Application\Service\CacheKeyConventionService;
@@ -49,5 +50,55 @@ readonly class CompanyApplicationListService
                 'crmId' => $crm->getId(),
             ]);
         });
+    }
+
+    /**
+     * @return array<string,mixed>
+     * @throws JsonException
+     * @throws InvalidArgumentException
+     */
+    public function listGlobal(Request $request): array
+    {
+        $queryOptions = $this->listRequestHelper->fromRequest($request, ['q']);
+        $cacheKey = $this->cacheKeyConventionService->buildCrmCompanyApplicationListKey('general', $queryOptions->page, $queryOptions->limit, $queryOptions->filters);
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($queryOptions): array {
+            $item->expiresAfter(120);
+            if (method_exists($item, 'tag') && $this->cache instanceof TagAwareCacheInterface) {
+                $item->tag($this->cacheKeyConventionService->crmCompanyListByApplicationTag('general'));
+            }
+
+            $items = $this->companyRepository->findBy([], ['createdAt' => 'DESC'], $queryOptions->limit, $queryOptions->offset());
+            $totalItems = (int)$this->companyRepository->count([]);
+
+            $normalizedItems = array_map(
+                static fn (Company $company): array => [
+                    'id' => $company->getId(),
+                    'name' => $company->getName(),
+                    'industry' => $company->getIndustry(),
+                    'website' => $company->getWebsite(),
+                    'contactEmail' => $company->getContactEmail(),
+                    'phone' => $company->getPhone(),
+                ],
+                $items
+            );
+
+            return $this->listResponseFactory->create($queryOptions, $totalItems, $normalizedItems);
+        });
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    public function getGlobalDetail(Company $company): array
+    {
+        return [
+            'id' => $company->getId(),
+            'name' => $company->getName(),
+            'industry' => $company->getIndustry(),
+            'website' => $company->getWebsite(),
+            'contactEmail' => $company->getContactEmail(),
+            'phone' => $company->getPhone(),
+        ];
     }
 }

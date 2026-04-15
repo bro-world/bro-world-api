@@ -152,6 +152,66 @@ readonly class TaskListService
     }
 
     /**
+     * @return array<string,mixed>
+     * @throws JsonException
+     * @throws InvalidArgumentException
+     */
+    public function getGlobalList(Request $request): array
+    {
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = max(1, min(100, $request->query->getInt('limit', 20)));
+
+        $filters = [
+            'q' => trim((string)$request->query->get('q', '')),
+            'title' => trim((string)$request->query->get('title', '')),
+            'status' => trim((string)$request->query->get('status', '')),
+            'priority' => trim((string)$request->query->get('priority', '')),
+        ];
+
+        $cacheKey = $this->cacheKeyConventionService->buildCrmTaskListKey(
+            $page,
+            $limit,
+            array_merge($filters, [
+                'applicationSlug' => 'general',
+            ])
+        );
+
+        /** @var array<string,mixed> $result */
+        $result = $this->cache->get($cacheKey, function (ItemInterface $item) use ($filters, $page, $limit): array {
+            $item->expiresAfter(120);
+            if (method_exists($item, 'tag') && $this->cache instanceof TagAwareCacheInterface) {
+                $item->tag($this->cacheKeyConventionService->crmTaskListTag('general'));
+            }
+
+            $items = array_map(
+                fn (Task $task): array => $this->crmApiNormalizer->normalizeTask($task),
+                $this->taskRepository->findBy([], ['createdAt' => 'DESC'], $limit, ($page - 1) * $limit)
+            );
+            $totalItems = (int)$this->taskRepository->count([]);
+
+            return [
+                'items' => $items,
+                'pagination' => [
+                    'page' => $page,
+                    'limit' => $limit,
+                    'totalItems' => $totalItems,
+                    'totalPages' => $totalItems > 0 ? (int)ceil($totalItems / $limit) : 0,
+                ],
+                'meta' => [
+                    'module' => 'crm',
+                ],
+            ];
+        });
+
+        $result['meta']['filters'] = array_filter(
+            $filters,
+            static fn (string $value): bool => $value !== ''
+        );
+
+        return $result;
+    }
+
+    /**
      * @param array<string,string> $filters
      * @param list<string>|null $esIds
      * @return list<string>

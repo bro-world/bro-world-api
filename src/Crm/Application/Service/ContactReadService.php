@@ -19,6 +19,7 @@ use function array_filter;
 use function array_map;
 use function array_values;
 use function method_exists;
+use function ceil;
 
 readonly class ContactReadService
 {
@@ -93,6 +94,93 @@ readonly class ContactReadService
             }
 
             $contact = $this->contactRepository->findOneScopedById($contactId, $crm->getId());
+            if ($contact === null) {
+                return null;
+            }
+
+            return [
+                'id' => $contact->getId(),
+                'companyId' => $contact->getCompany()?->getId(),
+                'firstName' => $contact->getFirstName(),
+                'lastName' => $contact->getLastName(),
+                'email' => $contact->getEmail(),
+                'phone' => $contact->getPhone(),
+                'jobTitle' => $contact->getJobTitle(),
+                'city' => $contact->getCity(),
+                'score' => $contact->getScore(),
+            ];
+        });
+    }
+
+    /**
+     * @return array<string,mixed>
+     * @throws JsonException
+     * @throws InvalidArgumentException
+     */
+    public function listGlobal(Request $request): array
+    {
+        $queryOptions = $this->listRequestHelper->fromRequest($request, ['q']);
+        $filters = $queryOptions->filters;
+
+        $cacheKey = $this->cacheKeyConventionService->buildCrmContactListKey('general', $queryOptions->page, $queryOptions->limit, $filters);
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($queryOptions, $filters): array {
+            $item->expiresAfter(120);
+            if (method_exists($item, 'tag') && $this->cache instanceof TagAwareCacheInterface) {
+                $item->tag($this->cacheKeyConventionService->crmContactListTag('general'));
+            }
+
+            $esIds = $this->searchIdsFromElastic($filters['q']);
+            if ($esIds === []) {
+                return $this->listResponseFactory->create($queryOptions, 0, []);
+            }
+
+            $items = $this->contactRepository->findBy([], ['createdAt' => 'DESC'], $queryOptions->limit, $queryOptions->offset());
+            $totalItems = (int)$this->contactRepository->count([]);
+
+            return [
+                'items' => array_map(static fn ($contact): array => [
+                    'id' => $contact->getId(),
+                    'companyId' => $contact->getCompany()?->getId(),
+                    'firstName' => $contact->getFirstName(),
+                    'lastName' => $contact->getLastName(),
+                    'email' => $contact->getEmail(),
+                    'phone' => $contact->getPhone(),
+                    'jobTitle' => $contact->getJobTitle(),
+                    'city' => $contact->getCity(),
+                    'score' => $contact->getScore(),
+                ], $items),
+                'pagination' => [
+                    'page' => $queryOptions->page,
+                    'limit' => $queryOptions->limit,
+                    'totalItems' => $totalItems,
+                    'totalPages' => $totalItems > 0 ? (int)ceil($totalItems / $queryOptions->limit) : 0,
+                ],
+                'meta' => [
+                    'filters' => array_filter($filters, static fn (string $value): bool => $value !== ''),
+                ],
+            ];
+        });
+    }
+
+    /**
+     * @return array<string,mixed>|null
+     * @throws InvalidArgumentException
+     */
+    public function getGlobalDetail(string $contactId): ?array
+    {
+        $cacheKey = $this->cacheKeyConventionService->buildCrmContactDetailKey('general', $contactId);
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($contactId): ?array {
+            $item->expiresAfter(120);
+            if (method_exists($item, 'tag') && $this->cache instanceof TagAwareCacheInterface) {
+                $item->tag([
+                    $this->cacheKeyConventionService->crmContactListTag('general'),
+                    $this->cacheKeyConventionService->crmContactDetailTag('general', $contactId),
+                ]);
+            }
+
+            $contact = $this->contactRepository->find($contactId);
             if ($contact === null) {
                 return null;
             }

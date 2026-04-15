@@ -134,6 +134,54 @@ readonly class ProjectReadService
         });
     }
 
+    public function getListGlobal(Request $request): array
+    {
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = max(1, min(100, $request->query->getInt('limit', 20)));
+        $filters = [
+            'q' => trim((string)$request->query->get('q', '')),
+            'status' => trim((string)$request->query->get('status', '')),
+        ];
+
+        $cacheKey = $this->cacheKeyConventionService->buildCrmProjectListKey('general', $page, $limit, $filters);
+
+        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($page, $limit, $filters): array {
+            $item->expiresAfter(120);
+            if (method_exists($item, 'tag') && $this->cache instanceof TagAwareCacheInterface) {
+                $item->tag($this->cacheKeyConventionService->crmProjectListTag('general'));
+            }
+
+            $projects = $this->projectRepository->findBy([], ['createdAt' => 'DESC'], $limit, ($page - 1) * $limit);
+            $items = array_map(fn (Project $project): array => [
+                'id' => $project->getId(),
+                'name' => $project->getName(),
+                'status' => $project->getStatus()->value,
+                'provisioningStatus' => $project->getProvisioningStatus(),
+                'githubResourceIds' => $project->getGithubResourceIds(),
+                'githubRepositoriesCount' => count($project->getRepositories()),
+            ], $projects);
+            $totalItems = (int)$this->projectRepository->count([]);
+
+            return [
+                'items' => array_map(fn (array $item): array => $this->crmApiNormalizer->normalizeProjectProjection($item), $items),
+                'pagination' => [
+                    'page' => $page,
+                    'limit' => $limit,
+                    'totalItems' => $totalItems,
+                    'totalPages' => $totalItems > 0 ? (int)ceil($totalItems / $limit) : 0,
+                ],
+                'meta' => [
+                    'filters' => array_filter($filters, static fn (string $value): bool => $value !== ''),
+                ],
+            ];
+        });
+    }
+
+    public function getDetailGlobal(Project $project): ?array
+    {
+        return $this->getDetail('general', $project);
+    }
+
     private function searchIdsFromElastic(string $query): ?array
     {
         if ($query === '') {

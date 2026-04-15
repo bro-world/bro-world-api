@@ -115,6 +115,85 @@ final readonly class CrmReportService
         );
     }
 
+    /**
+     * @throws DateMalformedStringException
+     */
+    public function buildGlobal(): CrmReportDto
+    {
+        $companies = $this->companyRepository->findBy([], ['createdAt' => 'DESC'], 100, 0);
+        $contacts = $this->contactRepository->findBy([], ['createdAt' => 'DESC'], 200, 0);
+        $employees = $this->employeeRepository->findBy([], ['createdAt' => 'DESC'], 200, 0);
+        $billings = $this->billingRepository->findBy([], ['createdAt' => 'DESC'], 200, 0);
+        $projects = $this->projectRepository->findBy([], ['createdAt' => 'DESC'], 200, 0);
+
+        $totalBilling = 0.0;
+        foreach ($billings as $billing) {
+            $totalBilling += $billing->getAmount();
+        }
+
+        $averageContactScore = 0.0;
+        if ($contacts !== []) {
+            $scoreSum = 0;
+            foreach ($contacts as $contact) {
+                $scoreSum += $contact->getScore();
+            }
+            $averageContactScore = $scoreSum / count($contacts);
+        }
+
+        $cycleDays = 0;
+        if ($projects !== []) {
+            $totalCycleDays = 0;
+            $projectCount = 0;
+            foreach ($projects as $project) {
+                $startedAt = $project->getStartedAt();
+                $dueAt = $project->getDueAt();
+                if ($startedAt === null || $dueAt === null) {
+                    continue;
+                }
+                $days = (int)$startedAt->diff($dueAt)->format('%a');
+                $totalCycleDays += $days;
+                $projectCount++;
+            }
+
+            if ($projectCount > 0) {
+                $cycleDays = (int)round($totalCycleDays / $projectCount);
+            }
+        }
+
+        $counts = new CrmReportCountsDto(
+            companies: count($companies),
+            contacts: count($contacts),
+            employees: count($employees),
+            billings: count($billings),
+            tasks: (int)$this->taskRepository->count([]),
+        );
+
+        return new CrmReportDto(
+            metadata: new CrmReportMetadataDto(
+                period: 'rolling-30d',
+                timezone: 'UTC',
+                generatedAt: new DateTimeImmutable('now', new DateTimeZone('UTC'))->format(DateTimeInterface::ATOM),
+                version: 'v1',
+            ),
+            kpis: new CrmReportKpisDto(
+                pipeline: round($totalBilling, 2),
+                dealsWon: (int)$this->projectRepository->count([]),
+                cycleDays: $cycleDays,
+                npsClients: (int)round(max(0.0, min(100.0, $averageContactScore))),
+            ),
+            counts: $counts,
+            contacts: array_map(static fn ($c) => new CrmReportContactDto(
+                id: $c->getId(),
+                name: trim($c->getFirstName() . ' ' . $c->getLastName()),
+                email: $c->getEmail(),
+                jobTitle: $c->getJobTitle(),
+                city: $c->getCity(),
+                score: $c->getScore(),
+            ), $contacts),
+            recommendedActions: $this->buildRecommendedActions($counts),
+        );
+    }
+
     public function toCsv(CrmReportDto $report): string
     {
         $reportData = $report->toArray();
