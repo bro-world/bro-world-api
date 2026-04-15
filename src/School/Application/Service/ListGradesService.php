@@ -22,20 +22,22 @@ final readonly class ListGradesService
     /**
      * @return array<string,mixed>
      */
-    public function list(Request $request, School $school): array
+    public function list(Request $request, ?School $school = null): array
     {
         $queryOptions = $this->listRequestHelper->fromRequest($request, ['q']);
 
         $qb = $this->gradeRepository->createQueryBuilder('grade')
             ->innerJoin('grade.exam', 'exam')
             ->innerJoin('grade.student', 'student')
-            ->innerJoin('exam.schoolClass', 'class')
-            ->innerJoin('class.school', 'school')
-            ->andWhere('school.id = :schoolId')
-            ->setParameter('schoolId', $school->getId())
             ->orderBy('grade.createdAt', 'DESC')
             ->setFirstResult($queryOptions->offset())
             ->setMaxResults($queryOptions->limit);
+        if ($school !== null) {
+            $qb->innerJoin('exam.schoolClass', 'class')
+                ->innerJoin('class.school', 'school')
+                ->andWhere('school.id = :schoolId')
+                ->setParameter('schoolId', $school->getId());
+        }
         if ($queryOptions->filters['q'] !== '') {
             $qb->andWhere('LOWER(exam.title) LIKE LOWER(:q) OR LOWER(student.name) LIKE LOWER(:q)')->setParameter('q', '%' . $queryOptions->filters['q'] . '%');
         }
@@ -44,17 +46,19 @@ final readonly class ListGradesService
 
         $countQb = $this->gradeRepository->createQueryBuilder('grade')->select('COUNT(grade.id)')
             ->innerJoin('grade.exam', 'exam')
-            ->innerJoin('grade.student', 'student')
-            ->innerJoin('exam.schoolClass', 'class')
-            ->innerJoin('class.school', 'school')
-            ->andWhere('school.id = :schoolId')
-            ->setParameter('schoolId', $school->getId());
+            ->innerJoin('grade.student', 'student');
+        if ($school !== null) {
+            $countQb->innerJoin('exam.schoolClass', 'class')
+                ->innerJoin('class.school', 'school')
+                ->andWhere('school.id = :schoolId')
+                ->setParameter('schoolId', $school->getId());
+        }
         if ($queryOptions->filters['q'] !== '') {
             $countQb->andWhere('LOWER(exam.title) LIKE LOWER(:q) OR LOWER(student.name) LIKE LOWER(:q)')->setParameter('q', '%' . $queryOptions->filters['q'] . '%');
         }
         $totalItems = (int)$countQb->getQuery()->getSingleScalarResult();
 
-        return $this->listResponseFactory->create($queryOptions, $totalItems, $items, [
+        return $this->listResponseFactory->create($queryOptions, $totalItems, $items, $school === null ? [] : [
             'schoolId' => $school->getId(),
         ]);
     }

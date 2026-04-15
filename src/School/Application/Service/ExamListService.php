@@ -31,13 +31,13 @@ readonly class ExamListService
     /**
      * @return array<string,mixed>
      */
-    public function list(Request $request, string $schoolId): array
+    public function list(Request $request, ?string $schoolId = null): array
     {
         $queryOptions = $this->listRequestHelper->fromRequest($request, ['q', 'title']);
-        $applicationSlug = (string)$request->attributes->get('applicationSlug', 'default');
+        $applicationSlug = (string)$request->attributes->get('applicationSlug', 'general');
         $cacheKey = $this->cacheKeyConventionService->buildSchoolExamListKey($applicationSlug, $queryOptions->page, $queryOptions->limit, [
             ...$queryOptions->filters,
-            'schoolId' => $schoolId,
+            'schoolId' => $schoolId ?? 'all',
         ]);
 
         /** @var array<string,mixed> $result */
@@ -56,10 +56,12 @@ readonly class ExamListService
             }
 
             $qb = $this->examRepository->createQueryBuilder('exam')->leftJoin('exam.schoolClass', 'class')->leftJoin('exam.teacher', 'teacher')
-                ->innerJoin('class.school', 'school')
-                ->andWhere('school.id = :schoolId')
-                ->setParameter('schoolId', $schoolId)
                 ->setFirstResult($queryOptions->offset())->setMaxResults($queryOptions->limit)->orderBy('exam.createdAt', 'DESC');
+            if ($schoolId !== null) {
+                $qb->innerJoin('class.school', 'school')
+                    ->andWhere('school.id = :schoolId')
+                    ->setParameter('schoolId', $schoolId);
+            }
             if ($queryOptions->filters['title'] !== '') {
                 $qb->andWhere('LOWER(exam.title) LIKE LOWER(:title)')->setParameter('title', '%' . $queryOptions->filters['title'] . '%');
             }
@@ -70,10 +72,12 @@ readonly class ExamListService
             $items = $this->viewMapper->mapExamCollection($qb->getQuery()->getResult());
 
             $countQb = $this->examRepository->createQueryBuilder('exam')->select('COUNT(exam.id)')
-                ->innerJoin('exam.schoolClass', 'class')
-                ->innerJoin('class.school', 'school')
-                ->andWhere('school.id = :schoolId')
-                ->setParameter('schoolId', $schoolId);
+                ->innerJoin('exam.schoolClass', 'class');
+            if ($schoolId !== null) {
+                $countQb->innerJoin('class.school', 'school')
+                    ->andWhere('school.id = :schoolId')
+                    ->setParameter('schoolId', $schoolId);
+            }
             if ($queryOptions->filters['title'] !== '') {
                 $countQb->andWhere('LOWER(exam.title) LIKE LOWER(:title)')->setParameter('title', '%' . $queryOptions->filters['title'] . '%');
             }
@@ -83,14 +87,15 @@ readonly class ExamListService
 
             $totalItems = (int)$countQb->getQuery()->getSingleScalarResult();
 
-            return $this->listResponseFactory->create(
-                $queryOptions,
-                $totalItems,
-                $items,
-                [
-                    'module' => 'school',
-                ],
-            );
+            $meta = [
+                'module' => 'school',
+                'applicationSlug' => $applicationSlug,
+            ];
+            if ($schoolId !== null) {
+                $meta['schoolId'] = $schoolId;
+            }
+
+            return $this->listResponseFactory->create($queryOptions, $totalItems, $items, $meta);
         });
 
         return $result;
