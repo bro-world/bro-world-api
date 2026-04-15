@@ -7,7 +7,10 @@ namespace App\User\Application\Service;
 use App\General\Application\Service\CacheKeyConventionService;
 use App\General\Domain\Service\Interfaces\ElasticsearchServiceInterface;
 use App\User\Domain\Entity\User;
+use App\User\Domain\Entity\UserProfile;
 use App\User\Infrastructure\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -25,6 +28,7 @@ readonly class UserPublicListService
 
     public function __construct(
         private UserRepository $userRepository,
+        private EntityManagerInterface $entityManager,
         private CacheInterface $cache,
         private ElasticsearchServiceInterface $elasticsearchService,
         private CacheKeyConventionService $cacheKeyConventionService,
@@ -32,7 +36,10 @@ readonly class UserPublicListService
     }
 
     /**
+     * @param Request $request
      * @return array{users: array<int, array<string, string|null>>, filters: array<string, string>}
+     * @throws \JsonException
+     * @throws InvalidArgumentException
      */
     public function getList(Request $request): array
     {
@@ -73,6 +80,40 @@ readonly class UserPublicListService
             'users' => $users,
             'filters' => array_filter($filters, static fn (string $value): bool => $value !== ''),
         ];
+    }
+
+    /**
+     * @param string $username
+     * @return array<string,mixed>
+     */
+    public function buildMePayload(string $username): array
+    {
+        $user = $this->userRepository->findOneBy(['username' => $username]);
+
+        return [
+            'id' => $user->getId(),
+            'username' => $user->getUsername(),
+            'email' => $user->getEmail(),
+            'firstName' => $user->getFirstName(),
+            'lastName' => $user->getLastName(),
+            'photo' => $user->getPhoto(),
+            'coins' => $user->getCoins()
+        ];
+    }
+
+    private function ensureProfile(User $user): UserProfile
+    {
+        $profile = $user->getProfile();
+
+        if ($profile === null) {
+            $profile = new UserProfile();
+            $profile->setUser($user);
+            $user->setProfile($profile);
+            $this->entityManager->persist($profile);
+            $this->entityManager->flush();
+        }
+
+        return $profile;
     }
 
     /**
