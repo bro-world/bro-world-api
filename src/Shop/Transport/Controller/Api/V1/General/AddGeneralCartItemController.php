@@ -46,10 +46,10 @@ final readonly class AddGeneralCartItemController
      * @throws OptimisticLockException
      */
     #[Route('/v1/shop/general/carts/{shopId}/items', methods: [Request::METHOD_POST])]
-    #[OA\Parameter(name: 'shopId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Parameter(name: 'shopId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid', example: 'f95da407-b9f0-4d5f-a14e-15c4b22af6e3'))]
     #[OA\Post(
         summary: 'Add a product to the authenticated user cart in global shop scope.',
-        description: 'Independent from any application slug: creates or updates an active cart line for the authenticated user and the targeted shop.',
+        description: 'Manual /api/doc chain step 1/6: POST /v1/shop/general/carts/{shopId}/items. Use shopId=f95da407-b9f0-4d5f-a14e-15c4b22af6e3, then reuse the same shopId in step 2 (GET cart) and step 3 (checkout).',
         security: [['Bearer' => []]],
         requestBody: new OA\RequestBody(
             required: true,
@@ -61,8 +61,8 @@ final readonly class AddGeneralCartItemController
                 ],
                 examples: [
                     new OA\Examples(
-                        example: 'add_to_cart',
-                        summary: 'Add two units of a product',
+                        example: 'manual_step_1_add_item_input',
+                        summary: 'Step 1 input - add product with chainable shopId',
                         value: [
                             'productId' => '8b673f1d-8f2f-4a81-b5e8-6f2f14b26626',
                             'quantity' => 2,

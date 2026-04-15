@@ -35,10 +35,10 @@ final readonly class ConfirmGeneralPaymentController
      * @throws ORMException
      */
     #[Route('/v1/shop/general/orders/{orderId}/payment-confirm', methods: [Request::METHOD_POST])]
-    #[OA\Parameter(name: 'orderId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid'))]
+    #[OA\Parameter(name: 'orderId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid', example: 'ord_8cb7be4f-2d27-430d-bc16-5b9fc4f2ef1e'))]
     #[OA\Post(
         summary: 'Confirm a previously created payment intent for a global order.',
-        description: 'Independent from any application slug: validates provider callback data and updates transaction status for a global shop order.',
+        description: 'Manual /api/doc chain step 5/6: POST /v1/shop/general/orders/{orderId}/payment-confirm. Reuse orderId from step 3 and providerReference=pi_3QyQkL2x8d9 from step 4.',
         security: [['Bearer' => []]],
         requestBody: new OA\RequestBody(
             required: true,
@@ -50,8 +50,8 @@ final readonly class ConfirmGeneralPaymentController
                 ],
                 examples: [
                     new OA\Examples(
-                        example: 'confirm_payment',
-                        summary: 'Confirm Stripe payment',
+                        example: 'manual_step_5_payment_confirm_input',
+                        summary: 'Step 5 input - confirm using providerReference returned at step 4',
                         value: [
                             'providerReference' => 'pi_3QyQkL2x8d9',
                             'providerPayload' => [
