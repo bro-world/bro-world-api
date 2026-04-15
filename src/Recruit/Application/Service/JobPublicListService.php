@@ -271,6 +271,153 @@ readonly class JobPublicListService
         return $result;
     }
 
+    /**
+     * @return array<string, mixed>
+     * @throws InvalidArgumentException
+     * @throws JsonException
+     */
+    public function getGeneralList(Request $request): array
+    {
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = max(1, min(100, $request->query->getInt('limit', 20)));
+
+        $filters = [
+            'contractType' => trim((string)$request->query->get('contractType', '')),
+            'workMode' => trim((string)$request->query->get('workMode', '')),
+            'experienceLevel' => trim((string)$request->query->get('experienceLevel', '')),
+            'location' => trim((string)$request->query->get('location', '')),
+            'q' => trim((string)$request->query->get('q', '')),
+        ];
+
+        $cacheKey = $this->cacheKeyConventionService->buildRecruitJobPublicListKey('general', null, $page, $limit, $filters);
+
+        /** @var array<string, mixed> $result */
+        $result = $this->cache->get($cacheKey, function (ItemInterface $item) use ($page, $limit, $filters): array {
+            $item->expiresAfter(120);
+            if (method_exists($item, 'tag') && $this->cache instanceof TagAwareCacheInterface) {
+                $item->tag($this->cacheKeyConventionService->recruitJobListTag('general'));
+            }
+
+            $qb = $this->entityManager
+                ->getRepository(Job::class)
+                ->createQueryBuilder('job')
+                ->leftJoin('job.company', 'company')->addSelect('company')
+                ->leftJoin('job.salary', 'salary')->addSelect('salary')
+                ->leftJoin('job.badges', 'badge')->addSelect('badge')
+                ->leftJoin('job.tags', 'tag')->addSelect('tag')
+                ->andWhere('job.isPublished = :isPublished')
+                ->setParameter('isPublished', true)
+                ->orderBy('job.createdAt', 'DESC')
+                ->addOrderBy('job.id', 'DESC');
+
+            if ($filters['contractType'] !== '') {
+                $qb->andWhere('job.contractType = :contractType')
+                    ->setParameter('contractType', $filters['contractType']);
+            }
+
+            if ($filters['workMode'] !== '') {
+                $qb->andWhere('job.workMode = :workMode')
+                    ->setParameter('workMode', $filters['workMode']);
+            }
+
+            if ($filters['experienceLevel'] !== '') {
+                $qb->andWhere('job.experienceLevel = :experienceLevel')
+                    ->setParameter('experienceLevel', $filters['experienceLevel']);
+            }
+
+            if ($filters['location'] !== '') {
+                $qb->andWhere('LOWER(job.location) LIKE :location')
+                    ->setParameter('location', '%' . mb_strtolower($filters['location']) . '%');
+            }
+
+            $esIds = $this->searchIdsFromElastic([
+                'q' => $filters['q'],
+                'company' => '',
+                'location' => $filters['location'],
+            ]);
+            if ($esIds !== null) {
+                if ($esIds === []) {
+                    return [
+                        'items' => [],
+                        'pagination' => [
+                            'page' => $page,
+                            'limit' => $limit,
+                            'totalItems' => 0,
+                            'totalPages' => 0,
+                        ],
+                    ];
+                }
+
+                $qb->andWhere('job.id IN (:esIds)')
+                    ->setParameter('esIds', $esIds);
+            }
+
+            $query = $qb
+                ->setFirstResult(($page - 1) * $limit)
+                ->setMaxResults($limit)
+                ->getQuery();
+
+            $paginator = new Paginator($query, true);
+            $totalItems = $paginator->count();
+
+            $items = [];
+            /** @var Job $job */
+            foreach ($paginator as $job) {
+                $items[] = [
+                    'id' => $job->getId(),
+                    'slug' => $job->getSlug(),
+                    'title' => $job->getTitle(),
+                    'company' => [
+                        'name' => $job->getCompany()?->getName() ?? '',
+                        'logo' => $job->getCompany()?->getLogo() ?? '',
+                        'sector' => $job->getCompany()?->getSector() ?? '',
+                        'size' => $job->getCompany()?->getSize() ?? '',
+                    ],
+                    'location' => $job->getLocation(),
+                    'contractType' => $job->getContractTypeValue(),
+                    'workMode' => $job->getWorkModeValue(),
+                    'schedule' => $job->getScheduleValue(),
+                    'experienceLevel' => $job->getExperienceLevelValue(),
+                    'yearsExperienceMin' => $job->getYearsExperienceMin(),
+                    'yearsExperienceMax' => $job->getYearsExperienceMax(),
+                    'salary' => [
+                        'min' => $job->getSalary()?->getMin() ?? 0,
+                        'max' => $job->getSalary()?->getMax() ?? 0,
+                        'currency' => $job->getSalary()?->getCurrency() ?? 'EUR',
+                        'period' => $job->getSalary()?->getPeriod() ?? 'year',
+                    ],
+                    'postedAtLabel' => $this->buildPostedAtLabel($job->getCreatedAt()),
+                    'summary' => $job->getSummary(),
+                    'matchScore' => $job->getMatchScore(),
+                    'badges' => array_map(static fn ($badge): string => $badge->getLabel(), $job->getBadges()->toArray()),
+                    'tags' => array_map(static fn ($tag): string => $tag->getLabel(), $job->getTags()->toArray()),
+                    'missionTitle' => $job->getMissionTitle(),
+                    'missionDescription' => $job->getMissionDescription(),
+                    'responsibilities' => $job->getResponsibilities(),
+                    'profile' => $job->getProfile(),
+                    'benefits' => $job->getBenefits(),
+                ];
+            }
+
+            return [
+                'items' => $items,
+                'pagination' => [
+                    'page' => $page,
+                    'limit' => $limit,
+                    'totalItems' => $totalItems,
+                    'totalPages' => $totalItems > 0 ? (int)ceil($totalItems / $limit) : 0,
+                ],
+            ];
+        });
+
+        $result['meta'] = [
+            'scope' => 'general',
+            'filters' => array_filter($filters, static fn (string $value): bool => $value !== ''),
+        ];
+
+        return $result;
+    }
+
     private function buildPostedAtLabel(?DateTimeImmutable $createdAt): string
     {
         if ($createdAt === null) {
