@@ -36,19 +36,31 @@ readonly class JobPublicDetailService
         $job = $this->entityManager->getRepository(Job::class)->findOneBy([
             'recruit' => $recruit,
             'slug' => $jobSlug,
+            'isPublished' => true,
         ]);
 
         if (!$job instanceof Job) {
             throw new NotFoundHttpException('Job not found.');
         }
 
-        $similarJobIds = $this->getSimilarJobIds($job->getId());
-        $similarJobs = $this->getSimilarJobs($recruit, $similarJobIds);
+        return $this->buildDetailPayload($job, $recruit);
+    }
 
-        return [
-            'job' => $this->buildJobPayload($job),
-            'similarJobs' => $similarJobs,
-        ];
+    /**
+     * @return array<string, mixed>
+     */
+    public function getGeneralDetail(string $jobSlug): array
+    {
+        $job = $this->entityManager->getRepository(Job::class)->findOneBy([
+            'slug' => $jobSlug,
+            'isPublished' => true,
+        ]);
+
+        if (!$job instanceof Job) {
+            throw new NotFoundHttpException('Job not found.');
+        }
+
+        return $this->buildDetailPayload($job);
     }
 
     /**
@@ -123,6 +135,56 @@ readonly class JobPublicDetailService
         });
 
         return array_map(fn (Job $item): array => $this->buildJobPayload($item), array_values(array_filter($jobs, static fn (Job $item): bool => in_array($item->getId(), $similarJobIds, true))));
+    }
+
+    /**
+     * @param list<string> $similarJobIds
+     * @return list<array<string, mixed>>
+     */
+    private function getGeneralSimilarJobs(array $similarJobIds): array
+    {
+        if ($similarJobIds === []) {
+            return [];
+        }
+
+        /** @var list<Job> $jobs */
+        $jobs = $this->entityManager->getRepository(Job::class)
+            ->createQueryBuilder('job')
+            ->leftJoin('job.company', 'company')->addSelect('company')
+            ->leftJoin('job.salary', 'salary')->addSelect('salary')
+            ->leftJoin('job.badges', 'badge')->addSelect('badge')
+            ->leftJoin('job.tags', 'tag')->addSelect('tag')
+            ->andWhere('job.isPublished = :isPublished')
+            ->andWhere('job.id IN (:ids)')
+            ->setParameter('isPublished', true)
+            ->setParameter('ids', $similarJobIds)
+            ->getQuery()
+            ->getResult();
+
+        usort($jobs, static function (Job $left, Job $right) use ($similarJobIds): int {
+            $leftIndex = array_search($left->getId(), $similarJobIds, true);
+            $rightIndex = array_search($right->getId(), $similarJobIds, true);
+
+            return ($leftIndex === false ? count($similarJobIds) : $leftIndex) <=> ($rightIndex === false ? count($similarJobIds) : $rightIndex);
+        });
+
+        return array_map(fn (Job $item): array => $this->buildJobPayload($item), array_values(array_filter($jobs, static fn (Job $item): bool => in_array($item->getId(), $similarJobIds, true))));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildDetailPayload(Job $job, ?Recruit $recruit = null): array
+    {
+        $similarJobIds = $this->getSimilarJobIds($job->getId());
+        $similarJobs = $recruit instanceof Recruit
+            ? $this->getSimilarJobs($recruit, $similarJobIds)
+            : $this->getGeneralSimilarJobs($similarJobIds);
+
+        return [
+            'job' => $this->buildJobPayload($job),
+            'similarJobs' => $similarJobs,
+        ];
     }
 
     /**
