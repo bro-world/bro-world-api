@@ -49,10 +49,10 @@ final readonly class UpdateGeneralApplicationStatusController
                 properties: [
                     new OA\Property(
                         property: 'status',
+                        description: 'Exemples: REJECTED, INTERVIEW_PLANNED, OFFER_SENT.',
                         type: 'string',
                         enum: ['WAITING', 'SCREENING', 'INTERVIEW_PLANNED', 'INTERVIEW_DONE', 'OFFER_SENT', 'HIRED', 'REJECTED'],
                         example: 'INTERVIEW_PLANNED',
-                        description: 'Exemples: REJECTED, INTERVIEW_PLANNED, OFFER_SENT.',
                     ),
                     new OA\Property(property: 'comment', type: 'string', nullable: true),
                 ],
