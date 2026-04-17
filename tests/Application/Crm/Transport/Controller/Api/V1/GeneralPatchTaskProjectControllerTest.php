@@ -40,6 +40,31 @@ final class GeneralPatchTaskProjectControllerTest extends WebTestCase
         self::assertNull($payload['sprintId'] ?? null);
     }
 
+    public function testPatchGeneralTaskCanReassignProjectWithoutSprint(): void
+    {
+        $companyId = $this->createGeneralCompany();
+        $projectAId = $this->createGeneralProject($companyId);
+        $projectBId = $this->createGeneralProject($companyId);
+        $taskId = $this->createGeneralTask($projectAId);
+
+        $managerClient = $this->getTestClient('john-crm_manager', 'password-crm_manager');
+        $managerClient->request(
+            'PATCH',
+            sprintf('%s/v1/crm/general/tasks/%s', self::API_URL_PREFIX, $taskId),
+            content: JSON::encode([
+                'projectId' => $projectBId,
+            ])
+        );
+        self::assertSame(Response::HTTP_OK, $managerClient->getResponse()->getStatusCode());
+
+        $managerClient->request('GET', sprintf('%s/v1/crm/general/tasks/%s', self::API_URL_PREFIX, $taskId));
+        self::assertSame(Response::HTTP_OK, $managerClient->getResponse()->getStatusCode());
+
+        $payload = $this->decodeJsonResponse($managerClient->getResponse()->getContent());
+        self::assertSame($projectBId, $payload['projectId'] ?? null);
+        self::assertNull($payload['sprintId'] ?? null);
+    }
+
     public function testPatchGeneralTaskReturns404WhenProjectDoesNotExist(): void
     {
         $companyId = $this->createGeneralCompany();
