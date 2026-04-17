@@ -38,7 +38,7 @@ final readonly class PatchGeneralTaskController
     ) {}
 
     #[Route('/v1/crm/general/tasks/{task}', methods: [Request::METHOD_PATCH])]
-    #[OA\Patch(summary: 'General - Update Task', requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(example: ['status' => 'in_progress', 'estimatedHours' => 4.5, 'parentTaskId' => 'uuid'])), responses: [new OA\Response(response: 200, description: 'Task mise à jour', content: new OA\JsonContent(example: ['id' => 'uuid']))])]
+    #[OA\Patch(summary: 'General - Update Task', requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(example: ['status' => 'in_progress', 'estimatedHours' => 4.5, 'projectId' => 'uuid', 'parentTaskId' => 'uuid'])), responses: [new OA\Response(response: 200, description: 'Task mise à jour', content: new OA\JsonContent(example: ['id' => 'uuid']))])]
     public function __invoke(Task $task, Request $request): JsonResponse
     {
         $payload = $this->decodePayload($request);
