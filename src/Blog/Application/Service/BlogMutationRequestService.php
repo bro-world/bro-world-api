@@ -8,6 +8,7 @@ use App\Blog\Domain\Enum\BlogReactionType;
 use App\Media\Application\Service\MediaUploaderService;
 use App\Media\Application\Service\MediaUploadValidationPolicy;
 use JsonException;
+use Random\RandomException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -104,9 +105,11 @@ final readonly class BlogMutationRequestService
     }
 
     /**
+     * @param Request $request
      * @param list<UploadedFile> $files
      *
      * @return list<string>
+     * @throws RandomException
      */
     private function uploadFiles(Request $request, array $files): array
     {

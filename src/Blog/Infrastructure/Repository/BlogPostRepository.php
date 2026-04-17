@@ -65,7 +65,7 @@ class BlogPostRepository extends BaseRepository
             ->select('COUNT(post.id)')
             ->where('post.blog = :blog')
             ->andWhere('post.parentPost IS NULL')
-            ->setParameter('blog', $blog)
+            ->setParameter('blog', $blog->getId(), UuidBinaryOrderedTimeType::NAME)
             ->getQuery()
             ->getSingleScalarResult();
     }

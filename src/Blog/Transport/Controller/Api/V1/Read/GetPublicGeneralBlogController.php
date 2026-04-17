@@ -6,6 +6,7 @@ namespace App\Blog\Transport\Controller\Api\V1\Read;
 
 use App\Blog\Application\Service\BlogReadService;
 use OpenApi\Attributes as OA;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
@@ -20,6 +21,9 @@ final readonly class GetPublicGeneralBlogController
     ) {
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     #[Route('/v1/public/blogs/general', methods: [Request::METHOD_GET])]
     #[OA\Get(
         security: [],
