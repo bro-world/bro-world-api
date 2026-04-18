@@ -33,13 +33,23 @@ final readonly class BlogMutationRequestService
      */
     public function extractPayload(Request $request): array
     {
-        $payload = (array)json_decode((string)$request->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $contentType = (string) $request->headers->get('Content-Type', '');
 
-        if ($payload === []) {
-            $payload = $request->request->all();
+        if (str_contains($contentType, 'multipart/form-data')) {
+            return $request->request->all();
         }
 
-        return $payload;
+        if (str_contains($contentType, 'application/json')) {
+            $content = trim((string) $request->getContent());
+
+            if ($content === '') {
+                return [];
+            }
+
+            return (array) json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+        }
+
+        return $request->request->all();
     }
 
     public function parseReactionType(string $reactionType): BlogReactionType
@@ -53,9 +63,12 @@ final readonly class BlogMutationRequestService
         throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, sprintf('Unsupported reaction type "%s".', $reactionType));
     }
 
+    /**
+     * @throws RandomException
+     */
     public function resolveUploadedFileUrl(Request $request, string $fallbackUrl): string
     {
-        $file = $request->files->get('file');
+        $file = $request->files->get('media');
 
         if (!$file instanceof UploadedFile) {
             return $fallbackUrl;
@@ -65,23 +78,35 @@ final readonly class BlogMutationRequestService
     }
 
     /**
+     * @param Request $request
      * @return list<string>
+     * @throws RandomException
      */
     public function resolveUploadedFileUrls(Request $request): array
     {
-        $files = $request->files->all('files');
+        $files = $request->files->get('media');
 
-        if ($files === []) {
+        if ($files === null) {
             return [];
         }
 
-        $uploadedFiles = array_values(array_filter($files, static fn ($file): bool => $file instanceof UploadedFile));
+        if ($files instanceof UploadedFile) {
+            return $this->uploadFiles($request, [$files]);
+        }
+
+        if (!is_array($files)) {
+            return [];
+        }
+
+        $uploadedFiles = array_values(array_filter(
+            $files,
+            static fn ($file): bool => $file instanceof UploadedFile
+        ));
 
         if ($uploadedFiles === []) {
             return [];
         }
 
-        /** @var list<UploadedFile> $uploadedFiles */
         return $this->uploadFiles($request, $uploadedFiles);
     }
 

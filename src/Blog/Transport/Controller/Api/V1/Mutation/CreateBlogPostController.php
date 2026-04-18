@@ -12,6 +12,7 @@ use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
 use JsonException;
 use OpenApi\Attributes as OA;
+use Random\RandomException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
@@ -38,13 +39,13 @@ final readonly class CreateBlogPostController
      * @throws OptimisticLockException
      * @throws ORMException
      * @throws JsonException
+     * @throws RandomException
      */
     #[Route('/v1/private/blogs/{blogId}/posts', methods: [Request::METHOD_POST])]
     public function __invoke(string $blogId, Request $request, User $loggedInUser): JsonResponse
     {
         $payload = $this->requestService->extractPayload($request);
         $payload['filePath'] = $this->requestService->resolveUploadedFileUrl($request, (string)($payload['filePath'] ?? ''));
-        $mediaUrls = $this->requestService->resolveUploadedFileUrls($request);
         $contentData = $this->requestService->normalizePostContent($payload);
         $slug = $this->slugify((string)($payload['slug'] ?? $payload['title'] ?? 'post'));
 
@@ -56,7 +57,7 @@ final readonly class CreateBlogPostController
             $slug,
             $contentData['content'],
             $payload['filePath'] ?: null,
-            $mediaUrls,
+            [],
             $contentData['sharedUrl'],
             isset($payload['parentPostId']) ? (string)$payload['parentPostId'] : null,
             (bool)($payload['isPinned'] ?? false)
@@ -66,6 +67,7 @@ final readonly class CreateBlogPostController
             'status' => 'accepted',
             'id' => is_string($entityId) ? $entityId : null,
             'slug' => $slug,
+            'payload' => $payload,
         ], JsonResponse::HTTP_ACCEPTED);
     }
 
