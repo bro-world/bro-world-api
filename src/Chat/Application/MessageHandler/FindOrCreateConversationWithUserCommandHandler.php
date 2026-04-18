@@ -17,9 +17,11 @@ use App\General\Application\Service\CacheInvalidationService;
 use App\General\Application\Service\MercurePublisher;
 use App\User\Domain\Entity\User;
 use App\User\Infrastructure\Repository\UserRepository;
+use JsonException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Throwable;
 
 #[AsMessageHandler]
 final readonly class FindOrCreateConversationWithUserCommandHandler
@@ -34,6 +36,10 @@ final readonly class FindOrCreateConversationWithUserCommandHandler
     ) {
     }
 
+    /**
+     * @throws Throwable
+     * @throws JsonException
+     */
     public function __invoke(FindOrCreateConversationWithUserCommand $command): void
     {
         $result = $this->conversationRepository->getEntityManager()->getConnection()->transactional(function () use ($command): array {

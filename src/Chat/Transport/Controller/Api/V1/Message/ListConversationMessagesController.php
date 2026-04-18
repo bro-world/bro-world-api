@@ -6,6 +6,8 @@ namespace App\Chat\Transport\Controller\Api\V1\Message;
 
 use App\Chat\Application\Service\ChatAccessResolverService;
 use App\User\Domain\Entity\User;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -37,6 +39,10 @@ readonly class ListConversationMessagesController
     ) {
     }
 
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     #[Route(path: '/v1/chat/private/conversations/{conversationId}', methods: [Request::METHOD_GET])]
     public function __invoke(string $conversationId, User $loggedInUser): JsonResponse
     {
@@ -68,6 +74,18 @@ readonly class ListConversationMessagesController
                     'owner' => $isOwner,
                 ],
                 'attachments' => $message->getAttachments(),
+                'reactions' => array_map(
+                    static fn ($reaction) => [
+                        'id' => $reaction->getId(),
+                        'user' => [
+                            'id' => $reaction->getUser()->getId(),
+                            'firstName' => $reaction->getUser()->getFirstName(),
+                            'lastName' => $reaction->getUser()->getLastName(),
+                            'photo' => $reaction->getUser()->getPhoto(),
+                        ],
+                        'type' => $reaction->getReaction()->value,
+                    ], $message->getReactions()->toArray()
+                ),
                 'read' => $isRead,
                 'readAt' => $isRead && !$isOwner ? $lastReadMessageAt?->format(DATE_ATOM) : null,
                 'createdAt' => $message->getCreatedAt()?->format(DATE_ATOM),

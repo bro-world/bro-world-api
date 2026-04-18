@@ -87,4 +87,18 @@ class ChatMessageReaction implements EntityInterface
 
         return $this;
     }
+
+    public function __toString(): string
+    {
+        return $this->getId();
+    }
+
+    public function __toArray(): array
+    {
+        return [
+            'id' => $this->getId(),
+            'user' => $this->getUser(),
+            'reaction' => $this->getReaction(),
+        ];
+    }
 }

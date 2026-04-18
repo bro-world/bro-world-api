@@ -117,7 +117,7 @@ services:
             $senderEmail: '%recruit.interview_invitation.sender_email%'
             $createTemplate: '%recruit.interview_invitation.template_create%'
             $updateTemplate: '%recruit.interview_invitation.template_update%'
-            
+
     App\General\Domain\Service\Interfaces\MetricsCounterInterface:
         class: App\General\Infrastructure\Service\NullMetricsCounter
 
@@ -155,6 +155,10 @@ services:
     App\Tool\Transport\Serializer\ExternalMessageSerializer:
         arguments:
             $serializer: '@app.serializer.external_message'
+
+    App\Media\Application\Service\MediaUploaderService:
+        arguments:
+            $publicBaseUrl: '%env(default::APP_PUBLIC_BASE_URL)%'
 
 
     App\Shop\Application\Monitoring\ShopMonitoringService:

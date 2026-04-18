@@ -52,18 +52,23 @@ class ChatRepository extends BaseRepository implements ChatRepositoryInterface
 
     public function findChatForDirectConversation(User $actor, User $targetUser): ?Entity
     {
-        $sharedConversationChat = $this->createQueryBuilder('chat')
+
+        $qb = $this->createQueryBuilder('chat');
+
+        $sharedConversationChat = $qb
             ->innerJoin('chat.conversations', 'conversation')
             ->innerJoin('conversation.participants', 'participant')
             ->innerJoin('participant.user', 'participantUser')
-            ->where('participantUser.id IN (:users)')
-            ->setParameter('users', [$actor->getId(), $targetUser->getId()], UuidBinaryOrderedTimeType::NAME)
+            ->where('participantUser = :actor OR participantUser = :targetUser')
+            ->setParameter('actor', $actor->getId(), UuidBinaryOrderedTimeType::NAME)
+            ->setParameter('targetUser', $targetUser->getId(), UuidBinaryOrderedTimeType::NAME)
             ->groupBy('chat.id')
             ->having('COUNT(DISTINCT participantUser.id) = 2')
             ->orderBy('MAX(conversation.createdAt)', 'DESC')
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+
 
         if ($sharedConversationChat instanceof Entity) {
             return $sharedConversationChat;

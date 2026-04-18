@@ -6,11 +6,14 @@ namespace App\User\Transport\Controller\Api\V1\User;
 
 use App\User\Application\Service\UserMeService;
 use App\User\Domain\Entity\User;
+use DateMalformedStringException;
+use JsonException;
 use OpenApi\Attributes as OA;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\AsController;
+use Symfony\Component\Messenger\Exception\ExceptionInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Authorization\Voter\AuthenticatedVoter;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -18,10 +21,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[AsController]
 #[OA\Tag(name: 'User Me')]
 #[IsGranted(AuthenticatedVoter::IS_AUTHENTICATED_FULLY)]
-class UserMeController
+readonly class UserMeController
 {
     public function __construct(
-        private readonly UserMeService $userMeService
+        private UserMeService $userMeService
     ) {
     }
 
@@ -59,6 +62,9 @@ class UserMeController
         return new JsonResponse($this->userMeService->getApplications($loggedInUser, 3));
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     #[Route(path: '/v1/users/me/profile', methods: [Request::METHOD_GET])]
     #[OA\Response(response: 200, description: 'Current user profile')]
     public function profile(User $loggedInUser): JsonResponse
@@ -68,6 +74,11 @@ class UserMeController
         return new JsonResponse($me['profile'] ?? []);
     }
 
+    /**
+     * @throws DateMalformedStringException
+     * @throws ExceptionInterface
+     * @throws JsonException
+     */
     #[Route(path: '/v1/users/me/profile', methods: [Request::METHOD_PATCH])]
     #[OA\Patch(summary: 'PATCH /v1/users/me/profile', tags: ['User Me'], parameters: [], responses: [new OA\Response(response: 200, description: 'Success.'), new OA\Response(response: 400, description: 'Bad request.'), new OA\Response(response: 401, description: 'Unauthorized.'), new OA\Response(response: 404, description: 'Not found.'), new OA\Response(response: 422, description: 'Validation error.')])]
     #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object'))]
@@ -79,9 +90,12 @@ class UserMeController
         return new JsonResponse($this->userMeService->patchProfile($loggedInUser, $payload));
     }
 
+    /**
+     * @throws JsonException
+     */
     #[Route(path: '/v1/users/me/password', methods: [Request::METHOD_PATCH])]
     #[OA\Patch(summary: 'PATCH /v1/users/me/password', tags: ['User Me'], parameters: [], responses: [new OA\Response(response: 200, description: 'Success.'), new OA\Response(response: 400, description: 'Bad request.'), new OA\Response(response: 401, description: 'Unauthorized.'), new OA\Response(response: 404, description: 'Not found.'), new OA\Response(response: 422, description: 'Validation error.')])]
-    #[OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object', required: ['currentPassword', 'newPassword']))]
+    #[OA\RequestBody(required: true, content: new OA\JsonContent(required: ['currentPassword', 'newPassword'], type: 'object'))]
     public function changePassword(Request $request, User $loggedInUser): JsonResponse
     {
         /** @var array<string,mixed> $payload */

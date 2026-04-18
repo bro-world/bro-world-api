@@ -127,14 +127,20 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
             ->leftJoin('messages.sender', 'sender')
             ->leftJoin('messages.reactions', 'reactions')
             ->leftJoin('reactions.user', 'reactionUser')
-            ->where('participantUser IN (:users)')
+            ->where(
+                $this->createQueryBuilder('conversation')->expr()->orX(
+                    'participantUser = :firstUser',
+                    'participantUser = :secondUser'
+                )
+            )
             ->andWhere('conversation.type = :conversationType')
-            ->setParameter('users', [$firstUser, $secondUser])
+            ->andWhere('conversation.archivedAt IS NULL')
+            ->setParameter('firstUser', $firstUser->getId(), UuidBinaryOrderedTimeType::NAME)
+            ->setParameter('secondUser', $secondUser->getId(), UuidBinaryOrderedTimeType::NAME)
             ->setParameter('conversationType', ConversationType::DIRECT)
             ->groupBy('conversation.id')
             ->having('COUNT(DISTINCT participantUser.id) = 2')
             ->andHaving('COUNT(DISTINCT participants.id) = 2')
-            ->andWhere('conversation.archivedAt IS NULL')
             ->orderBy('conversation.lastMessageAt', 'DESC')
             ->addOrderBy('conversation.createdAt', 'DESC')
             ->setMaxResults(1)
@@ -143,6 +149,7 @@ class ConversationRepository extends BaseRepository implements ConversationRepos
 
         return $conversation instanceof Entity ? $conversation : null;
     }
+
 
     /**
      * @return list<string>

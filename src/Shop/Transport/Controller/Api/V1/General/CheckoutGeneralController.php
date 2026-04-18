@@ -39,20 +39,11 @@ final readonly class CheckoutGeneralController
     #[Route('/v1/shop/general/checkout/{shopId}', methods: [Request::METHOD_POST])]
     #[OA\Parameter(name: 'shopId', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid', example: 'f95da407-b9f0-4d5f-a14e-15c4b22af6e3'))]
     #[OA\Post(
-        summary: 'Create an order from the authenticated user cart in the global shop scope.',
         description: 'Manual /api/doc chain step 3/6: POST /v1/shop/general/checkout/{shopId}. Reuse shopId=f95da407-b9f0-4d5f-a14e-15c4b22af6e3 from steps 1-2 and store returned orderId=ord_8cb7be4f-2d27-430d-bc16-5b9fc4f2ef1e for steps 4-5.',
-        security: [['Bearer' => []]],
+        summary: 'Create an order from the authenticated user cart in the global shop scope.',
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['billingAddress', 'shippingAddress', 'email', 'shippingMethod'],
-                properties: [
-                    new OA\Property(property: 'billingAddress', type: 'string', example: '42 Rue des Fleurs, 75001 Paris, FR'),
-                    new OA\Property(property: 'shippingAddress', type: 'string', example: '15 Avenue Victor Hugo, 75016 Paris, FR'),
-                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'alice.martin@example.com'),
-                    new OA\Property(property: 'phone', type: 'string', nullable: true, example: '+33123456789'),
-                    new OA\Property(property: 'shippingMethod', type: 'string', example: 'standard'),
-                ],
                 examples: [
                     new OA\Examples(
                         example: 'manual_step_3_checkout_input',
@@ -65,6 +56,14 @@ final readonly class CheckoutGeneralController
                             'shippingMethod' => 'express',
                         ],
                     ),
+                ],
+                required: ['billingAddress', 'shippingAddress', 'email', 'shippingMethod'],
+                properties: [
+                    new OA\Property(property: 'billingAddress', type: 'string', example: '42 Rue des Fleurs, 75001 Paris, FR'),
+                    new OA\Property(property: 'shippingAddress', type: 'string', example: '15 Avenue Victor Hugo, 75016 Paris, FR'),
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'alice.martin@example.com'),
+                    new OA\Property(property: 'phone', type: 'string', example: '+33123456789', nullable: true),
+                    new OA\Property(property: 'shippingMethod', type: 'string', example: 'standard'),
                 ],
             ),
         ),
@@ -132,13 +131,8 @@ final readonly class CheckoutGeneralController
         description: 'Shop not found.',
         content: new OA\JsonContent(example: ['message' => 'Shop not found.']),
     )]
-    public function __invoke(string $shopId, Request $request): JsonResponse
+    public function __invoke(string $shopId, Request $request, User $loggedInUser): JsonResponse
     {
-        $user = $this->security->getUser();
-        if (!$user instanceof User) {
-            throw new HttpException(JsonResponse::HTTP_FORBIDDEN, 'Authenticated user required.');
-        }
-
         try {
             $payload = (array)json_decode((string)$request->getContent(), true, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException) {
@@ -155,7 +149,7 @@ final readonly class CheckoutGeneralController
             operationId: $request->headers->get('x-request-id', uniqid('checkout-global-', true)),
             applicationSlug: null,
             shopId: $shopId,
-            userId: $user->getId(),
+            userId: $loggedInUser->getId(),
             billingAddress: $input->billingAddress,
             shippingAddress: $input->shippingAddress,
             email: $input->email,
