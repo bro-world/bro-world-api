@@ -227,7 +227,7 @@ final readonly class TaskBoardService
                 ];
             }
 
-            $items[$sprintId]['tasks'][] = $this->normalizeTask($task);
+            $items[$sprintId]['tasks'][] = $this->normalizeTaskForBoard($task);
         }
 
         return [
@@ -243,35 +243,6 @@ final readonly class TaskBoardService
         return $this->crmApiNormalizer->normalizeTaskForBoard($task);
     }
 
-    /**
-     * @param list<Task> $tasks
-     * @return array{items:list<array<string,mixed>>}
-     */
-    private function groupTasksBySprint(array $tasks): array
-    {
-        $items = [];
-        foreach ($tasks as $task) {
-            $sprintId = $task->getSprint()?->getId() ?? 'no-sprint';
-            if (!isset($items[$sprintId])) {
-                $items[$sprintId] = [
-                    'sprint' => [
-                        'id' => $task->getSprint()?->getId(),
-                        'name' => $task->getSprint()?->getName(),
-                        'status' => $task->getSprint()?->getStatus()->value,
-                        'startDate' => $task->getSprint()?->getStartDate()?->format(DATE_ATOM),
-                        'endDate' => $task->getSprint()?->getEndDate()?->format(DATE_ATOM),
-                    ],
-                    'tasks' => [],
-                ];
-            }
-
-            $items[$sprintId]['tasks'][] = $this->normalizeTaskForBoard($task);
-        }
-
-        return [
-            'items' => array_values($items),
-        ];
-    }
 
     /**
      * @return array<string,mixed>
