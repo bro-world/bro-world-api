@@ -20,6 +20,9 @@ final readonly class ListGeneralTasksBySprintController
     ) {
     }
 
+    /**
+     * @return JsonResponse
+     */
     #[Route('/v1/crm/general/tasks/by-sprint', methods: [Request::METHOD_GET])]
     #[OA\Get(
         summary: 'List General Tasks By Sprint',
